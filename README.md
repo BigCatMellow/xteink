@@ -1,9 +1,15 @@
 # XTEINK projects
 
-Projects and experiments for the XTEINK X4 Pro.
+Projects and experiments for the XTEINK X4 Pro, primarily running XTOS Licorice.
 
 ## Games
 
-- [Paper Golf](paper-golf/README.md) — **Pocket Golf**, an offline, turn-based, paper-golf-inspired game for XTOS Licorice.
+- [Paper Golf](paper-golf/README.md) — offline, turn-based golf puzzle.
 
-The shared [build workflow](.github/workflows/build.yml) tests and packages Paper Golf into an installable `.xtapp` artifact.
+## Utilities
+
+- [Wallpaper Randomizer](wallpaper-randomizer/README.md) — changes the lock-screen JPEG on each activation without an immediate repeat.
+
+## Builds
+
+Each project has its own workflow: [Paper Golf](.github/workflows/build.yml) and [Wallpaper Randomizer](.github/workflows/wallpaper-randomizer.yml). They produce separately installable `.xtapp` artifacts.

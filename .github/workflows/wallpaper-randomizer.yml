@@ -1,0 +1,47 @@
+name: Build Wallpaper Randomizer
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wallpaper-randomizer/**'
+      - '.github/workflows/wallpaper-randomizer.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua and build prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lua5.4
+          python -m pip install cryptography pillow
+      - name: Test rotation logic
+        run: cd wallpaper-randomizer && lua tests/test_wallpaper.lua
+      - name: Image conversion smoke test
+        run: |
+          python -c "from PIL import Image; Image.new('RGB',(640,800),'white').save('/tmp/test.png')"
+          mkdir -p /tmp/wallpaper-input
+          cp /tmp/test.png /tmp/wallpaper-input/
+          python wallpaper-randomizer/tools/prepare_images.py /tmp/wallpaper-input --output /tmp/wallpaper-out
+          python -c "from PIL import Image; i=Image.open('/tmp/wallpaper-out/wall001.jpg'); assert i.size == (480,800)"
+      - name: Fetch pinned packer
+        run: |
+          git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
+          git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
+      - name: Check Lua compatibility
+        run: |
+          python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/index.lua
+          python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/lockscreen.lua
+      - name: Build XTApp
+        run: |
+          mkdir -p dist
+          python /tmp/xtapp-tools/xtpack.py wallpaper-randomizer/app -o dist/wallpaper-randomizer.xtapp
+          python -c "from pathlib import Path; p=Path('dist/wallpaper-randomizer.xtapp'); assert p.read_bytes()[:4]==b'XTAP' and p.stat().st_size>256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wallpaper-randomizer-xtapp
+          path: dist/wallpaper-randomizer.xtapp
+          if-no-files-found: error

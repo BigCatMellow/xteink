@@ -1,0 +1,15 @@
+{
+  "app_id": "wallrandom",
+  "display_name": "Wallpaper Randomizer",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Rotate JPEG lock-screen images without immediate repeats.",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": [],
+  "lockscreen": {
+    "enabled": true,
+    "entry": "lockscreen.lua",
+    "interval_sec": 3600
+  }
+}

@@ -1,0 +1,35 @@
+name: Build Pocket Golf
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test runtime and crypto
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lua5.4
+          python -m pip install cryptography
+      - name: Test game rules
+        run: lua tests/test_game.lua
+      - name: Get pinned Licorice packer
+        run: |
+          git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
+          git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
+      - name: Lint for Lua 5.5
+        run: python /tmp/xtapp-tools/tools/lualint55.py app/index.lua
+      - name: Build app
+        run: |
+          mkdir -p dist
+          python /tmp/xtapp-tools/xtpack.py app -o dist/pocket-golf.xtapp
+          python -c "from pathlib import Path; p=Path('dist/pocket-golf.xtapp'); assert p.read_bytes()[:4]==b'XTAP' and p.stat().st_size>256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pocket-golf-xtapp
+          path: dist/pocket-golf.xtapp
+          if-no-files-found: error

@@ -1,19 +1,43 @@
 # Pocket Golf for XTEINK X4 Pro
 
-Offline, roll-and-choose golf for **XTOS Licorice** on the X4 Pro's 480 × 800 monochrome e-ink screen.
+Offline, exact-distance puzzle golf for **XTOS Licorice** on the X4 Pro's 480 × 800 monochrome e-ink screen.
 
-**Status: v0.1 prototype.** The source and build can be tested on a computer, but the game has **not yet been verified on a physical X4 Pro**.
+**Status: v0.3 monochrome strategy prototype.** The source and build can be tested on a computer, but the game has **not yet been verified on a physical X4 Pro**.
 
 Original, unofficial game inspired by paper-based roll-and-write golf. It does **not** reproduce Gladden Design's Paper Apps Golf art, layouts, branding, or proprietary rules. Paper Apps Golf is a separate commercial product: https://gladdendesign.com/products/paper-apps-golf
 
+## Visual design (v0.2)
+
+The course artwork now follows a **minimal top-down paper-grid aesthetic** rather than the earlier scattered-symbol layout. Because the X4 Pro screen is monochrome, meaning replaces color:
+
+- **Fairway and putting green:** continuous, stepped outlines with tiny sparse marks; no large black fills.
+- **Water:** grouped, outlined blocks containing repeating small waves.
+- **Sand:** clustered, outlined blocks with stippled dots.
+- **Trees:** solid small triangles; rough remains mostly empty dotted paper.
+- **Ball:** double outline ring. **Cup:** black dot and a small outlined flag.
+- **Available shots:** thin circles appear on reachable grid positions after a roll.
+
+The 9×12 course now takes most of the portrait screen. A compact header, a small NEW button, and three large club selectors preserve e-ink-friendly touch controls. The app draws all graphics in black on white and doesn't rely on colored shades. This intentionally follows the *visual structure* of the supplied reference, without copying a specific course.
+
+**Compatibility:** This revision changes procedural layouts; an unfinished round saved by the previous version may look different after updating. The device still needs a physical smoke test.
+
 ## How to play
 
-1. Tap **ROLL**. A six-sided die sets your maximum range.
-2. Tap a **ringed dot** to take a shot. The ball moves in one of eight straight directions; you may choose a shorter shot.
-3. **Fairway** adds 1 to range; **sand** subtracts 1 (minimum 1). You cannot land in water or on trees; trees block shots. Flying over water is allowed.
-4. Reach the flag in as few strokes as possible. Complete nine holes and compare your score with par.
+This is now a **deterministic shot-planning puzzle, not a luck-based dice game**. The course is generated once per hole, then stays fixed. Every valid shot is predictable.
 
-No animation, accounts, or online connection. The current course, ball position, rolls, and scorecard save automatically.
+1. Select a club: **PUTT = exactly 1** grid square, **CHIP = exactly 2**, **DRIVE = exactly 4**. Shots travel in one of eight straight directions.
+2. The game shows **ringed landing spaces** for that club. Tap any ring to take the shot.
+3. A **tree blocks a flight path**. You can fly **over water**, but cannot land in it. Sand permits only a putt to escape; rough permits putts and chips but not a drive.
+4. Reach the hole using as few shots as possible. Each hole's **TARGET** is calculated by a shortest-path search over the same rules the player uses, so matching it is always theoretically possible.
+5. Finish nine holes and compare your total strokes with the total optimum.
+
+The important decision is how to position the ball for the **next** shot: taking a longer club now may land in rough, cost a recovery shot, or leave no good line to the flag. No randomness enters shot selection, power, or hazard outcomes.
+
+No animation, accounts, or online connection. Course seed, current ball, chosen club, stroke count, and scorecard are saved automatically.
+
+### Save compatibility
+
+Version 0.3 introduces a new save format. An unfinished round from the old **dice-based** build resets when this version first runs; older saves are not reinterpreted as club-based rounds.
 
 ## Project files
 
@@ -35,14 +59,14 @@ For local builds: use Python 3.10+, install the cryptography package, and run **
 
 ## Controls
 
-- ROLL: roll the die and display available destinations.
-- Tap any ringed space to shoot.
-- NEXT: advance once the ball reaches the hole.
-- NEW: confirm before discarding a round.
-- The side page buttons also advance from a finished hole.
+- Tap **PUTT 1**, **CHIP 2**, or **DRIVE 4** to choose the exact shot distance.
+- Tap any ringed square to shoot. Water is not a valid landing; trees block the shot.
+- **NEXT HOLE**: advance once the ball reaches the hole.
+- **NEW**: top-right button confirms before discarding the current round.
+- Side page buttons cycle clubs, or advance from a completed hole.
 
 Uses the host's API 2.9 (manifest requests 2.0), no permissions, no external assets, and original line art. Packaged using MIT-licensed community tools including [kycube/x4pro-emu](https://github.com/kycube/x4pro-emu).
 
 ## Next
 
-After an actual-device smoke test, tune legibility, input and game balance before expanding the scope.
+After an actual-device smoke test, tune legibility, input and puzzle difficulty before expanding the scope.

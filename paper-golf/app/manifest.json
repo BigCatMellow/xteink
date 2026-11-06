@@ -1,9 +1,9 @@
 {
   "app_id": "pocketgolf",
   "display_name": "Pocket Golf",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "author": "BigCatMellow",
-  "description": "An offline dice-and-grid golf game for X4 Pro.",
+  "description": "Offline exact-distance puzzle golf for the X4 Pro.",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": []

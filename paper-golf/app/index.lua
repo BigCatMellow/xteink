@@ -1,8 +1,8 @@
--- Pocket Golf: original, offline dice golf for XTOS Licorice API 2.9.
+-- Pocket Golf: original, offline exact-distance golf puzzle for XTOS Licorice API 2.9.
 -- Portrait screen: 480 x 800. No network, images, fonts, or animations.
 -- All game state is stored in the app's private save.txt.
 local COLS, ROWS = 9, 12
-local CELL, BX, BY = 40, 60, 144
+local CELL, BX, BY = 46, 33, 94
 local MODULUS = 4294967296
 local CTX, S, COURSE, ERR
 local confirm_new, message = false, nil
@@ -18,6 +18,66 @@ local function integer(v, fallback)
 end
 
 -- The entire layout is reproducible from a seed and hole number.
+-- Courses use adjoining rectangular tiles rather than scattered random hazards.
+-- That keeps the geometry close to a paper-grid golf puzzle and the fairway traversable.
+-- Every club has an exact distance; chance plays no role in taking a shot.
+-- This creates a predictable shortest-path puzzle, not a dice-roll lottery.
+local CLUBS = {
+  { name='PUTT', distance=1 },
+  { name='CHIP', distance=2 },
+  { name='DRIVE', distance=4 },
+}
+local DIRECTIONS = { {-1,-1},{0,-1},{1,-1},{-1,0},{1,0},{-1,1},{0,1},{1,1} }
+
+local function targets(course, x, y, club)
+  local chosen = CLUBS[club]
+  if not chosen then return {} end
+  local lie = course.map[index(x, y)]
+  -- Sand traps demand a one-square recovery; rough prevents long drives.
+  if lie == 'sand' and club ~= 1 then return {} end
+  if lie == 'rough' and club == 3 then return {} end
+  local result = {}
+  for _, dir in ipairs(DIRECTIONS) do
+    local dx, dy = dir[1], dir[2]
+    local blocked, nx, ny = false, x, y
+    for step = 1, chosen.distance do
+      nx, ny = x + dx*step, y + dy*step
+      if not in_bounds(nx, ny) or course.map[index(nx,ny)] == 'tree' then
+        blocked = true
+        break
+      end
+    end
+    if not blocked then
+      local landing = course.map[index(nx,ny)]
+      -- Water may be cleared in flight, but is never a safe landing square.
+      if landing ~= 'water' and landing ~= 'tree' then
+        result[#result+1] = {x=nx, y=ny}
+      end
+    end
+  end
+  return result
+end
+
+local function shortest_path(course)
+  local q = {{x=course.tx,y=course.ty,moves=0}}
+  local seen = {[index(course.tx,course.ty)]=true}
+  local first = 1
+  while first <= #q do
+    local p=q[first];first=first+1
+    if p.x==course.hx and p.y==course.hy then return p.moves end
+    for club=1,#CLUBS do
+      for _, v in ipairs(targets(course,p.x,p.y,club)) do
+        local key=index(v.x,v.y)
+        if not seen[key] then
+          seen[key]=true
+          q[#q+1]={x=v.x,y=v.y,moves=p.moves+1}
+        end
+      end
+    end
+  end
+  return nil
+end
+
 local function make_course(seed, hole)
   local rng = (seed % MODULUS + hole * 7919) % MODULUS
   local function pick(n)
@@ -26,185 +86,179 @@ local function make_course(seed, hole)
   end
   local map = {}
   for y = 1, ROWS do
-    for x = 1, COLS do
-      local n = pick(100)
-      map[index(x, y)] = n < 8 and 'water' or (n < 16 and 'tree' or
-                           (n < 29 and 'sand' or 'rough'))
-    end
+    for x = 1, COLS do map[index(x, y)] = 'rough' end
   end
+
   local tx, hx = 3 + pick(4), 3 + pick(4)
-  for y = ROWS, 2, -1 do
-    local t = (ROWS - y) / (ROWS - 2)
-    local middle = math.floor(tx + (hx - tx) * t + 0.5)
-    for x = middle - 1, middle + 1 do
+  local center = tx
+  for y = ROWS, 3, -1 do
+    local target = math.floor(tx + (hx - tx) * (ROWS - y) / (ROWS - 2) + 0.5)
+    if center < target then center = center + 1
+    elseif center > target then center = center - 1 end
+    -- Occasional one-cell detours make the paper fairway less mechanical.
+    if y > 4 and y < ROWS - 1 and pick(5) == 0 then
+      center = math.max(2, math.min(COLS - 2, center + (pick(2) == 0 and -1 or 1)))
+    end
+    local left = center - (y % 3 == 0 and 1 or 0)
+    for x = left, center + 1 do
       if in_bounds(x, y) then map[index(x, y)] = 'fairway' end
     end
   end
+  -- A small rectangular green and a guaranteed route at the top.
   for y = 1, 3 do
     for x = hx - 1, hx + 1 do
       if in_bounds(x, y) then map[index(x, y)] = 'green' end
     end
   end
+  for x = math.min(center, hx), math.max(center, hx) do
+    map[index(x, 3)] = 'green'
+  end
   map[index(tx, ROWS)] = 'tee'
   map[index(hx, 2)] = 'cup'
-  -- Avoid isolating a legal landing square with eight obstructed neighbours.
-  for y = 1, ROWS do
-    for x = 1, COLS do
-      local v = map[index(x, y)]
-      if v ~= 'tree' and v ~= 'water' then
-        local open = false
-        for dy = -1, 1 do
-          for dx = -1, 1 do
-            local nx, ny = x + dx, y + dy
-            if (dx ~= 0 or dy ~= 0) and in_bounds(nx, ny) then
-              local n = map[index(nx, ny)]
-              if n ~= 'tree' and n ~= 'water' then open = true end
-            end
-          end
-        end
-        if not open then
-          local nx = x < COLS and x + 1 or x - 1
-          map[index(nx, y)] = 'rough'
-        end
+
+  -- Sand and water occupy 2x2/3x2 tile patches, retaining hard corners.
+  local function patch(tile, width, height)
+    local x0, y0 = 1 + pick(COLS - width + 1), 2 + pick(ROWS - height - 2)
+    for dy = 0, height - 1 do
+      for dx = 0, width - 1 do
+        local x, y = x0 + dx, y0 + dy
+        if map[index(x, y)] == 'rough' then map[index(x, y)] = tile end
       end
     end
   end
-  return { map = map, tx = tx, ty = ROWS, hx = hx, hy = 2,
-           par = (hole % 3 == 0) and 4 or 3 }
+  patch('water', 2, 2)
+  patch('water', 2, 3)
+  patch('sand', 2, 2)
+  patch('sand', 3, 2)
+
+  -- Scattered triangular trees. Leave water/sand/fairway untouched.
+  for n = 1, 9 do
+    local x, y = 1 + pick(COLS), 1 + pick(ROWS)
+    if map[index(x, y)] == 'rough' then map[index(x, y)] = 'tree' end
+  end
+  local course = { map=map, tx=tx, ty=ROWS, hx=hx, hy=2 }
+  local target = shortest_path(course)
+  if not target then
+    -- Guaranteed contiguous rescue route; every square is puttable if needed.
+    for y=2,ROWS-1 do map[index(tx,y)]='fairway' end
+    for x=math.min(tx,hx),math.max(tx,hx) do map[index(x,2)]='green' end
+    map[index(tx,ROWS)]='tee'
+    map[index(hx,2)]='cup'
+    target=shortest_path(course)
+  end
+  course.par = target or 10
+  return course
 end
 
 local function totals()
   local strokes, par = 0, 0
-  for i = 1, 9 do
+  for i=1,9 do
     if S.scores[i] > 0 then
-      strokes = strokes + S.scores[i]
-      par = par + ((i % 3 == 0) and 4 or 3)
+      strokes=strokes+S.scores[i]
+      par=par+S.pars[i]
     end
   end
-  return strokes, par
+  return strokes,par
 end
 
 local function save()
   if not CTX or not CTX.storage then return end
   local fields = {
-    'seed=' .. S.seed, 'rng=' .. S.rng,
+    'version=2', 'seed=' .. S.seed, 'rng=' .. S.rng,
     'hole=' .. S.hole, 'x=' .. S.x, 'y=' .. S.y,
-    'strokes=' .. S.strokes, 'die=' .. S.die,
-    'stage=' .. S.stage, 'scores=' .. table.concat(S.scores, ',')
+    'strokes=' .. S.strokes, 'club=' .. S.club,
+    'stage=' .. S.stage, 'scores=' .. table.concat(S.scores, ','),
+    'pars=' .. table.concat(S.pars, ',')
   }
   pcall(function() CTX.storage:write('save.txt', table.concat(fields, '\n')) end)
 end
 
 local function start_round(seed)
-  seed = (integer(seed, 1) % (MODULUS - 1)) + 1
-  S = { seed = seed, rng = step_rng(seed), hole = 1,
-        x = 0, y = 0, strokes = 0, die = 0, stage = 'roll',
-        scores = { 0, 0, 0, 0, 0, 0, 0, 0, 0 } }
-  COURSE = make_course(S.seed, S.hole)
-  S.x, S.y = COURSE.tx, COURSE.ty
-  confirm_new, message = false, 'Tap ROLL to begin'
+  seed = (integer(seed,1) % (MODULUS-1))+1
+  S = { seed=seed, rng=step_rng(seed), hole=1, x=0, y=0,
+        strokes=0, club=2, stage='aim',
+        scores={0,0,0,0,0,0,0,0,0}, pars={0,0,0,0,0,0,0,0,0} }
+  COURSE=make_course(S.seed,S.hole)
+  S.x,S.y=COURSE.tx,COURSE.ty
+  confirm_new,message=false,'Select club and landing'
   save()
 end
 
 local function restore()
-  local ok, data = pcall(function() return CTX.storage:read('save.txt') end)
-  if not ok or type(data) ~= 'string' then return false end
-  local fields = {}
-  for key, val in data:gmatch('([%w_]+)=([^\n]*)') do fields[key] = val end
-  local seed = integer(fields.seed, 0)
-  local hole = integer(fields.hole, 0)
-  local x, y = integer(fields.x, 0), integer(fields.y, 0)
-  local strokes = integer(fields.strokes, -1)
-  local die = integer(fields.die, -1)
-  local rng = integer(fields.rng, -1)
-  local stage = fields.stage
-  if seed < 1 or seed >= MODULUS or hole < 1 or hole > 9 or
-     not in_bounds(x, y) or strokes < 0 or strokes > 999 or
-     die < 0 or die > 6 or rng < 0 or rng >= MODULUS or
-     (stage ~= 'roll' and stage ~= 'aim' and stage ~= 'finished') then return false end
-  local scores = {}
-  for s in (fields.scores or ''):gmatch('%d+') do scores[#scores + 1] = tonumber(s) end
-  if #scores ~= 9 then return false end
-  for i = 1, 9 do if scores[i] < 0 or scores[i] > 999 then return false end end
-  if (stage == 'aim' and die == 0) or (stage ~= 'aim' and die ~= 0) then return false end
-  S = { seed=seed, rng=rng, hole=hole, x=x, y=y,
-        strokes=strokes, die=die, stage=stage, scores=scores }
-  COURSE = make_course(seed, hole)
-  if COURSE.map[index(x, y)] == 'water' or COURSE.map[index(x, y)] == 'tree' then return false end
-  confirm_new, message = false, nil
+  local ok,data=pcall(function() return CTX.storage:read('save.txt') end)
+  if not ok or type(data)~='string' then return false end
+  local fields={}
+  for key,val in data:gmatch('([%w_]+)=([^\n]*)') do fields[key]=val end
+  if fields.version~='2' then return false end -- reset incompatible dice save
+  local seed, rng=integer(fields.seed,0),integer(fields.rng,-1)
+  local hole=integer(fields.hole,0)
+  local x,y=integer(fields.x,0),integer(fields.y,0)
+  local strokes=integer(fields.strokes,-1)
+  local club=integer(fields.club,0)
+  local stage=fields.stage
+  if seed<1 or seed>=MODULUS or rng<0 or rng>=MODULUS or
+     hole<1 or hole>9 or not in_bounds(x,y) or
+     strokes<0 or strokes>999 or club<1 or club>#CLUBS or
+     (stage~='aim' and stage~='finished') then return false end
+  local scores,pars={},{}
+  for num in (fields.scores or ''):gmatch('%d+') do scores[#scores+1]=tonumber(num) end
+  for num in (fields.pars or ''):gmatch('%d+') do pars[#pars+1]=tonumber(num) end
+  if #scores~=9 or #pars~=9 then return false end
+  for i=1,9 do
+    if scores[i]<0 or scores[i]>999 or pars[i]<0 or pars[i]>99 or
+       (scores[i]>0 and pars[i]==0) then return false end
+  end
+  S={seed=seed,rng=rng,hole=hole,x=x,y=y,strokes=strokes,
+     club=club,stage=stage,scores=scores,pars=pars}
+  COURSE=make_course(seed,hole)
+  if COURSE.map[index(x,y)]=='tree' or COURSE.map[index(x,y)]=='water' then return false end
+  if (stage=='finished') ~= (x==COURSE.hx and y==COURSE.hy) then return false end
+  confirm_new,message=false,nil
   return true
 end
 
-local DIRECTIONS = { {-1,-1}, {0,-1}, {1,-1}, {-1,0}, {1,0}, {-1,1}, {0,1}, {1,1} }
-
-local function range()
-  local lie = COURSE.map[index(S.x, S.y)]
-  local bonus = lie == 'fairway' and 1 or (lie == 'sand' and -1 or 0)
-  return math.max(1, math.min(7, S.die + bonus)), bonus
-end
-
 local function legal_moves()
-  local result = {}
-  if S.stage ~= 'aim' then return result end
-  local max_dist = range()
-  for _, dir in ipairs(DIRECTIONS) do
-    local dx, dy = dir[1], dir[2]
-    for dist = 1, max_dist do
-      local nx, ny = S.x + dx * dist, S.y + dy * dist
-      if not in_bounds(nx, ny) then break end
-      local tile = COURSE.map[index(nx, ny)]
-      if tile == 'tree' then break end -- tree stops the ball in flight
-      if tile ~= 'water' then
-        result[#result + 1] = { x=nx, y=ny }
-      end
-    end
-  end
-  return result
+  if S.stage~='aim' then return {} end
+  return targets(COURSE,S.x,S.y,S.club)
 end
 
-local function roll()
-  if S.stage ~= 'roll' then return false end
-  S.rng = step_rng(S.rng)
-  S.die = (S.rng % 6) + 1
-  S.stage = 'aim'
-  message = 'Tap any ring to land'
+local function select_club(n)
+  if S.stage~='aim' or n<1 or n>#CLUBS then return false end
+  S.club=n
+  message=CLUBS[n].name .. ' ' .. CLUBS[n].distance .. ' squares'
   save()
   return true
 end
 
-local function shoot(x, y)
-  if S.stage ~= 'aim' then return false end
-  local legal = false
-  for _, move in ipairs(legal_moves()) do
-    if move.x == x and move.y == y then legal = true; break end
+local function shoot(x,y)
+  if S.stage~='aim' then return false end
+  local legal=false
+  for _,move in ipairs(legal_moves()) do
+    if move.x==x and move.y==y then legal=true;break end
   end
-  if not legal then message = 'Choose a ringed dot'; return false end
-  S.x, S.y = x, y
-  S.strokes = S.strokes + 1
-  S.die = 0
-  if x == COURSE.hx and y == COURSE.hy then
-    S.stage = 'finished'
-    S.scores[S.hole] = S.strokes
-    message = 'In the hole! ' .. S.strokes .. ' strokes'
+  if not legal then message='Choose a ringed dot';return false end
+  S.x,S.y=x,y
+  S.strokes=S.strokes+1
+  if x==COURSE.hx and y==COURSE.hy then
+    S.stage='finished'
+    S.scores[S.hole]=S.strokes
+    S.pars[S.hole]=COURSE.par
+    message='Holed in ' .. S.strokes .. '! Target ' .. COURSE.par
   else
-    S.stage = 'roll'
-    message = 'Nice shot. Roll again'
+    message='Choose your next shot'
   end
   save()
   return true
 end
 
 local function next_hole()
-  if S.stage ~= 'finished' then return false end
-  if S.hole == 9 then
-    start_round(step_rng(S.rng))
-    return true
-  end
-  S.hole = S.hole + 1
-  S.strokes, S.die, S.stage = 0, 0, 'roll'
-  COURSE = make_course(S.seed, S.hole)
-  S.x, S.y = COURSE.tx, COURSE.ty
-  message = 'New hole. Tap ROLL'
+  if S.stage~='finished' then return false end
+  if S.hole==9 then start_round(step_rng(S.rng));return true end
+  S.hole=S.hole+1
+  S.strokes,S.club,S.stage=0,2,'aim'
+  COURSE=make_course(S.seed,S.hole)
+  S.x,S.y=COURSE.tx,COURSE.ty
+  message='New puzzle: choose a club'
   save()
   return true
 end
@@ -232,63 +286,100 @@ local function button(g, x, y, w, h, s)
   centered(g, x + w / 2, y + 14, s, 'large')
 end
 
+-- Monochrome terrain language:
+-- grass/fairway = unfilled connected stepped outline + sparse little ticks
+-- water = connected outline + waves, sand = connected outline + stipple
+-- trees = small solid triangles, background = regular paper dots
+local function region(tile)
+  if tile == 'fairway' or tile == 'green' or tile == 'tee' or tile == 'cup' then
+    return 'grass'
+  elseif tile == 'water' or tile == 'sand' then
+    return tile
+  end
+  return nil
+end
+
 local function draw_tile(g, x, y, tile)
   if tile == 'water' then
     for row = -1, 1 do
-      local ry = y + row * 8
-      g:line(x - 12, ry, x - 5, ry - 3)
-      g:line(x - 5, ry - 3, x + 2, ry)
-      g:line(x + 2, ry, x + 10, ry - 3)
+      local ry = y + row * 11
+      g:line(x - 12, ry, x - 6, ry + 4)
+      g:line(x - 6, ry + 4, x, ry)
+      g:line(x, ry, x + 6, ry + 4)
+      g:line(x + 6, ry + 4, x + 12, ry)
     end
   elseif tile == 'tree' then
-    g:circle(x, y - 4, 10)
-    g:line(x, y + 6, x, y + 14)
-    g:line(x - 4, y + 14, x + 4, y + 14)
+    -- Short horizontal bars form a readable solid triangle without polygons.
+    for row = 0, 7 do
+      local half = 2 + row * 1.7
+      local yy = y - 14 + row * 3
+      g:line(math.floor(x-half), yy, math.floor(x+half), yy)
+    end
   elseif tile == 'sand' then
-    g:circle(x - 9, y - 5, 2)
-    g:circle(x + 7, y - 8, 2)
-    g:circle(x - 1, y + 9, 2)
-    g:circle(x + 10, y + 6, 2)
-  elseif tile == 'rough' then
-    g:line(x - 9, y + 6, x - 12, y - 2)
-    g:line(x - 9, y + 6, x - 5, y - 3)
-    g:line(x + 7, y + 8, x + 9, y - 1)
+    for i = 0, 3 do
+      local dx = (i * 11) % 27 - 13
+      local dy = (i * 17) % 29 - 14
+      g:circle(x + dx, y + dy, 1, { fill = true })
+    end
+  elseif tile == 'fairway' or tile == 'green' then
+    -- An understated texture differentiates fairway from blank rough.
+    g:line(x - 12, y + 12, x - 9, y + 9)
   elseif tile == 'tee' then
-    centered(g, x, y - 12, 'T', 'small')
+    g:line(x - 10, y + 12, x + 10, y + 12)
   elseif tile == 'cup' then
-    g:circle(x, y + 5, 6)
-    g:line(x, y - 14, x, y + 4)
-    g:line(x, y - 14, x + 13, y - 10)
-    g:line(x + 13, y - 10, x, y - 6)
-  elseif tile == 'green' then
-    g:circle(x, y, 4)
+    g:circle(x, y + 9, 5, { fill = true })
+    g:line(x, y - 16, x, y + 6)
+    g:line(x, y - 16, x + 13, y - 12)
+    g:line(x + 13, y - 12, x, y - 8)
   end
 end
 
 local function draw_board(g)
-  g:rect(BX, BY, COLS * CELL, ROWS * CELL)
-  for y = 0, ROWS do
-    for x = 0, COLS do
-      g:circle(BX + x * CELL, BY + y * CELL, 1)
+  local width, height = COLS * CELL, ROWS * CELL
+  -- A half-cell dot grid is the paper texture (19x25 = 475 dots).
+  -- Draw dots first, so regions remain readable over the background.
+  for row = 0, ROWS * 2 do
+    for col = 0, COLS * 2 do
+      local px = BX + col * CELL / 2
+      local py = BY + row * CELL / 2
+      g:circle(px, py, 1, { fill = true })
     end
   end
+
+  -- Draw only the EXTERIOR edge of each same-terrain cluster, not every tile.
+  -- This produces the stepped fairway/water/sand silhouettes in the reference.
   for y = 1, ROWS do
     for x = 1, COLS do
-      local cx = BX + (x - 1) * CELL + CELL / 2
-      local cy = BY + (y - 1) * CELL + CELL / 2
-      draw_tile(g, cx, cy, COURSE.map[index(x, y)])
+      local tile = COURSE.map[index(x, y)]
+      local kind = region(tile)
+      if kind then
+        local x0, y0 = BX + (x - 1) * CELL, BY + (y - 1) * CELL
+        local function same(nx, ny)
+          return in_bounds(nx, ny) and region(COURSE.map[index(nx, ny)]) == kind
+        end
+        if not same(x, y-1) then g:line(x0, y0, x0+CELL, y0) end
+        if not same(x, y+1) then g:line(x0, y0+CELL, x0+CELL, y0+CELL) end
+        if not same(x-1, y) then g:line(x0, y0, x0, y0+CELL) end
+        if not same(x+1, y) then g:line(x0+CELL, y0, x0+CELL, y0+CELL) end
+      end
+      local cx, cy = BX + (x - 0.5) * CELL, BY + (y - 0.5) * CELL
+      draw_tile(g, cx, cy, tile)
     end
   end
+
+  -- The only targets shown are real, valid landing places for this die roll.
   if S.stage == 'aim' then
     for _, move in ipairs(legal_moves()) do
-      local cx = BX + (move.x - 0.5) * CELL
-      local cy = BY + (move.y - 0.5) * CELL
-      g:circle(cx, cy, 17, { line_width=2 })
+      local cx, cy = BX + (move.x - 0.5) * CELL, BY + (move.y - 0.5) * CELL
+      g:circle(cx, cy, 15, { line_width = 2 })
     end
   end
+
+  -- The player's ball is a white circle with two black outline rings.
   local px, py = BX + (S.x - 0.5) * CELL, BY + (S.y - 0.5) * CELL
-  g:circle(px, py, 9, { fill=true })
-  g:circle(px, py, 13)
+  g:circle(px, py, 13, { line_width = 2 })
+  g:circle(px, py, 10, { line_width = 2 })
+  g:rect(BX, BY, width, height)
 end
 
 local function draw_summary(g)
@@ -313,60 +404,58 @@ end
 
 local function draw(g)
   g:clear(0)
-  put(g, 28, 18, 'POCKET GOLF', 'large')
-  put(g, 28, 60, 'HOLE ' .. S.hole .. '/9  PAR ' .. COURSE.par .. '  SHOTS ' .. S.strokes, 'medium')
-  local total, par = totals()
-  put(g, 28, 96, 'SCORECARD  ' .. total .. ' / PAR ' .. par, 'small')
-  g:line(28, 129, 452, 129)
-  if confirm_new then
-    draw_confirm(g)
-  elseif S.hole == 9 and S.stage == 'finished' then
-    draw_summary(g)
-  else
-    draw_board(g)
-    put(g, 42, 633, '~ water   o tree   : sand   T tee', 'small')
-  end
-  local status = message or 'Tap ROLL to begin'
-  if not confirm_new and S.stage == 'aim' then
-    local max_dist, bonus = range()
-    local change = bonus > 0 and ' (+1)' or (bonus < 0 and ' (-1)' or '')
-    status = 'DIE ' .. S.die .. change .. '  RANGE ' .. max_dist
-  end
-  centered(g, 240, 666, status, 'small')
+  put(g,33,11,'POCKET GOLF','large')
+  put(g,33,49,'HOLE ' .. S.hole .. '/9  TARGET ' .. COURSE.par .. '  SHOTS ' .. S.strokes,'medium')
+  g:line(33,87,447,87)
+  -- A compact NEW button leaves enough space for the course and club picker.
   if not confirm_new then
-    button(g, 28, 711, 132, 56, 'NEW')
-    local label = (S.stage == 'finished') and
-                  (S.hole == 9 and 'AGAIN' or 'NEXT') or
-                  (S.stage == 'aim' and 'TAP A RING' or 'ROLL')
-    button(g, 180, 711, 272, 56, label)
+    g:rect(378,12,69,38)
+    centered(g,412,23,'NEW','small')
   end
-  centered(g, 240, 779, 'One hole at a time', 'small')
+  if confirm_new then draw_confirm(g)
+  elseif S.hole==9 and S.stage=='finished' then draw_summary(g)
+  else draw_board(g) end
+
+  if not confirm_new then
+    if S.stage=='finished' then
+      centered(g,240,665,message or 'Hole complete','medium')
+      button(g,33,714,414,58,S.hole==9 and 'PLAY AGAIN' or 'NEXT HOLE')
+    else
+      local club=CLUBS[S.club]
+      local status=message or 'Select a club, then tap a ring'
+      centered(g,240,659,status,'small')
+      centered(g,240,684,'EXACT SHOTS:  1 / 2 / 4 SQUARES','small')
+      local xs={33,174,315}
+      for i=1,#CLUBS do
+        local b=CLUBS[i]
+        button(g,xs[i],714,132,58,b.name .. ' ' .. b.distance)
+        if i==S.club then g:rect(xs[i]+3,717,126,52) end
+      end
+    end
+  end
 end
 
 local function inside(x, y, bx, by, bw, bh)
   return x >= bx and x < bx + bw and y >= by and y < by + bh
 end
 
-local function tap(x, y)
+local function tap(x,y)
   if confirm_new then
-    if inside(x,y,55,410,170,65) then confirm_new=false; message=nil
-    elseif inside(x,y,255,410,170,65) then start_round(step_rng(S.rng))
-    end
+    if inside(x,y,55,410,170,65) then confirm_new=false;message=nil
+    elseif inside(x,y,255,410,170,65) then start_round(step_rng(S.rng)) end
     return
   end
-  if inside(x,y,28,711,132,56) then
-    confirm_new = true
+  if inside(x,y,378,12,69,38) then confirm_new=true;return end
+  if S.stage=='finished' then
+    if inside(x,y,33,714,414,58) then next_hole() end
     return
   end
-  if inside(x,y,180,711,272,56) then
-    if S.stage == 'roll' then roll()
-    elseif S.stage == 'finished' then next_hole()
-    end
-    return
+  for i,x0 in ipairs({33,174,315}) do
+    if inside(x,y,x0,714,132,58) then select_club(i);return end
   end
-  if S.stage == 'aim' and inside(x,y,BX,BY,COLS*CELL,ROWS*CELL) then
-    local cx = math.floor((x - BX) / CELL) + 1
-    local cy = math.floor((y - BY) / CELL) + 1
+  if inside(x,y,BX,BY,COLS*CELL,ROWS*CELL) then
+    local cx=math.floor((x-BX)/CELL)+1
+    local cy=math.floor((y-BY)/CELL)+1
     shoot(cx,cy)
   end
 end
@@ -434,8 +523,8 @@ function on_input(c, ev)
         if now and now - last_key_ms >= 0 and now - last_key_ms < 220 then return end
         last_key_ms = now or last_key_ms
         if not confirm_new then
-          if S.stage == 'roll' then roll()
-          elseif S.stage == 'finished' then next_hole() end
+          if S.stage=='finished' then next_hole()
+          else select_club(((S.club - 1 + (ev.key=='up' and 1 or -1) + #CLUBS) % #CLUBS) + 1) end
         end
       end
     end
@@ -456,10 +545,12 @@ if rawget(_G, '__TEST') then
     begin = start_round,
     state = function() return S end,
     course = function() return COURSE end,
-    roll = roll,
     shoot = shoot,
     legal = legal_moves,
-    range = range,
+    select = select_club,
+    targets = targets,
+    solve = shortest_path,
+    clubs = CLUBS,
     next_hole = next_hole,
     totals = totals,
     rng = step_rng,

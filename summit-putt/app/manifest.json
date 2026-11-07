@@ -1,0 +1,10 @@
+{
+  "app_id": "summitputt",
+  "display_name": "Summit Putt",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "A small original card-and-terrain golf puzzle for Licorice.",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

@@ -49,7 +49,7 @@ local ARROWS={'^','>','v','<'}
 local function inside(x,y) return x>=1 and x<=N and y>=1 and y<=N end
 local function index(x,y) return (y-1)*N+x end
 local function used(mask,i) return math.floor(mask/2^(i-1))%2==1 end
-local function setused(mask,i) return mask+2^(i-1) end
+local function setused(mask,i) return mask+math.floor(2^(i-1)) end
 local function high(ch)
   return ch=='H' or ch=='^' or ch=='v' or ch=='<' or ch=='>' or ch=='A' or ch=='G'
 end
@@ -117,14 +117,14 @@ local function save()
   if not C or not C.storage or not STATE then return end
   local history={}
   for _,h in ipairs(STATE.history) do
-    history[#history+1]=table.concat({h.x,h.y,h.mask,h.selected},',')
+    history[#history+1]=table.concat({h.x,h.y,math.floor(h.mask),h.selected},',')
   end
   local body=table.concat({
     'version=1',
     'level='..STATE.level,
     'x='..STATE.x,
     'y='..STATE.y,
-    'mask='..STATE.mask,
+    'mask='..math.floor(STATE.mask),
     'selected='..STATE.selected,
     'unlocked='..STATE.unlocked,
     'stage='..STATE.stage,

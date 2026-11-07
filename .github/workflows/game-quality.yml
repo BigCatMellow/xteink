@@ -15,7 +15,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y lua5.4
-          python -m pip install cryptography
+          python -m pip install cryptography pillow
       - name: Fetch pinned community packer
         run: |
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools

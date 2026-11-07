@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 from sync_game_ui import GAMES, ROOT
+from verify_package_icons import verify_icon
 
 
 def run(command, cwd=ROOT):
@@ -25,6 +26,7 @@ def main():
     }
     assert discovered == set(GAMES), f'Game registry mismatch: {discovered ^ set(GAMES)}'
     run([sys.executable, ROOT / 'scripts/sync_game_ui.py', '--check'])
+    run([sys.executable, ROOT / 'scripts/make_icons.py', '--check'])
     run(['lua', ROOT / 'tests/test_game_ui.lua'])
     for game in GAMES:
         folder = ROOT / game
@@ -46,6 +48,7 @@ def main():
             output.parent.mkdir(exist_ok=True)
             run([sys.executable, '-I', args.packer.resolve(), folder / 'app', '-o', output])
             assert output.read_bytes()[:4] == b'XTAP' and output.stat().st_size > 256
+            verify_icon(output, folder / 'app/icon.png')
     print(f'PASS: all {len(GAMES)} active games passed the quality gate')
 
 

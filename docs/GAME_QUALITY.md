@@ -20,6 +20,15 @@ only explanation of a state; avoid gratuitous refreshes and animations.
 
 ## Required regressions
 
+Every active app must have a distinct 96×96, 1-bit `app/icon.png`, rendered from
+its SVG in `assets/icons/`. Keep important ink at least 6px away from the edges
+because the app grid rounds its icon slots. Run `python3 scripts/make_icons.py`
+to regenerate or `--check` to compare source/export pixels. `--sheet dist/icons.png`
+creates a review sheet at 96px and 64px. No new raster art dependency is needed.
+The packer embeds these PNGs as native XTAB/XIC icon data. The quality runner
+decodes that data and compares every pixel with the source icon, catching missing
+sections, incorrect dimensions, wrong bit order and inverted black/white.
+
 - Exercise all authored boards and solved screens using `tests/game_canvas.lua`.
   The two font profiles have distinct 20/24/30px line heights, variable glyph
   widths and an additional 25% width margin. These are conservative models,

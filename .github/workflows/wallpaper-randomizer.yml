@@ -36,6 +36,7 @@ jobs:
           mkdir -p dist
           python /tmp/xtapp-tools/xtpack.py wallpaper-randomizer/app -o dist/wallpaper-randomizer.xtapp
           python -c "from pathlib import Path; p=Path('dist/wallpaper-randomizer.xtapp'); assert p.read_bytes()[:4]==b'XTAP' and p.stat().st_size>256"
+          python scripts/verify_package_icons.py dist/wallpaper-randomizer.xtapp
       - uses: actions/upload-artifact@v4
         with:
           name: wallpaper-randomizer-xtapp

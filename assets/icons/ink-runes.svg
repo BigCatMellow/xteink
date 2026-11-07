@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M44 29H52 M67 44V52" stroke-width="4"/>
+  <rect x="14" y="14" width="30" height="30" rx="3"/>
+  <rect x="52" y="14" width="30" height="30" rx="3"/>
+  <rect x="52" y="52" width="30" height="30" rx="3"/>
+  <polyline points="21,37 21,21 29,30 37,21 37,37"/>
+  <path d="M61 21H73 M67 21V37 M61 37H73 M59 75V59H71L75 63L71 67H59 M67 67L75 75"/>
+</svg>

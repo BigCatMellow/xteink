@@ -20,6 +20,11 @@ Read [docs/GAME_QUALITY.md](docs/GAME_QUALITY.md) before changing a game.
   checks and build packages when code changes; the quality workflow does both.
 - Update the manifest version for changed installable apps. Install over existing
   apps; do not uninstall or discard saves to test an update.
+- Every active app needs a distinct native icon. Keep editable vectors in
+  `assets/icons/`, generate `app/icon.png` with `scripts/make_icons.py`, and
+  verify the packaged XTAB/XIC section with `scripts/verify_package_icons.py`.
+- Deliver all our `.xtapp` installers in `SD:/Apps/`, not the card root. Preserve
+  `XTApps/` as the firmware-managed location for installed apps and save data.
 - Host font models do not prove physical rendering. State device checks still
   needed; never call a package device-tested because CI passes.
 

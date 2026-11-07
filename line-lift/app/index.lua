@@ -7,6 +7,7 @@ local GX,GY,STEP=45,151,39
 local MAX=12
 local CTX,STATE,LEVEL,ERROR,MESSAGE
 local tutorial=false
+local show_hint=false
 local last_key_ms=-1000
 
 -- Rod: orientation, fixed coordinate, start, end, pull end, group, layer.
@@ -191,7 +192,7 @@ local function fresh_level(n,unlocked)
   LEVEL=interpret(n)
   STATE={level=n,unlocked=math.max(n,unlocked or n),mask=0,snags=0}
   MESSAGE='Trace the crossing gaps'
-  tutorial=false
+  tutorial=false;show_hint=false
   write_save()
 end
 
@@ -215,7 +216,7 @@ local function restore()
   LEVEL=lev
   STATE={level=n,unlocked=unlocked,mask=mask,snags=snags}
   MESSAGE=nil
-  tutorial=false
+  tutorial=false;show_hint=false
   return true
 end
 
@@ -347,12 +348,14 @@ local function draw_help(g)
   face(g,34,477,'the entire puzzle.','medium')
   face(g,34,540,'Double circles are paired:','medium')
   face(g,34,577,'both lines lift together.','medium')
+  face(g,34,616,'HINT rings every safe pull.','small')
   button(g,96,691,288,67,'BACK TO PUZZLE')
 end
 
 local function draw(g)
   g:clear(0)
   face(g,30,14,'LINE LIFT','large')
+  button(g,294,16,72,45,show_hint and 'HIDE' or 'HINT')
   button(g,382,16,68,45,tutorial and 'X' or '?')
   local cleared=0
   for i=1,#LEVEL.groups do if not active(i) then cleared=cleared+1 end end
@@ -365,6 +368,15 @@ local function draw(g)
   end
   for _,rod in ipairs(LEVEL.rods) do
     if active(rod.group) then draw_pin(g,rod) end
+  end
+  if show_hint then
+    for gi,group in ipairs(LEVEL.groups) do
+      if active(gi) and not blocked_by(gi) then
+        local rod=LEVEL.rods[group.rods[1]]
+        local x,y=pull_point(rod)
+        g:circle(x,y,25,{line_width=2})
+      end
+    end
   end
 
   if all_cleared() then
@@ -386,6 +398,11 @@ local function hit(x,y,a,b,w,h)
   return x>=a and x<a+w and y>=b and y<b+h
 end
 local function tap(x,y)
+  if hit(x,y,294,16,72,45) and not tutorial then
+    show_hint=not show_hint
+    if show_hint then MESSAGE='HINT: safe pulls are ringed' else MESSAGE='Hint hidden' end
+    return
+  end
   if hit(x,y,382,16,68,45) then tutorial=not tutorial;return end
   if tutorial then
     if hit(x,y,96,691,288,67) then tutorial=false end

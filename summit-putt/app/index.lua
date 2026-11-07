@@ -5,6 +5,7 @@ local N=7
 local CELL,BX,BY=54,51,141
 local MAX_LEVEL=10
 local C,STATE,BOARD,ERR,MSG=nil,nil,nil,nil,nil
+local show_help=false
 local key_ms=-1000
 
 -- These maps are original (not Golf Peaks maps).
@@ -308,10 +309,24 @@ local function draw_tiles(g)
   g:circle(x,y,7)
 end
 
+local function draw_help(g)
+  center(g,240,138,'HOW TO PLAY','large')
+  text(g,36,202,'1. Tap an unused number card.','small')
+  text(g,36,240,'2. Tap a direction to move exactly that far.','small')
+  text(g,36,295,'Cards are single-use. A blocked move costs nothing.','small')
+  text(g,36,350,'Avoid gaps and water. Sand accepts only a 1 card.','small')
+  text(g,36,405,'Hatched tiles are high ground. Enter a ramp','small')
+  text(g,36,435,'from the direction shown by its arrow.','small')
+  text(g,36,490,'Reach the flag exactly. UNDO restores a card.','small')
+  box(g,30,694,420,65,'BACK TO PUZZLE')
+end
+
 local function draw(g)
   g:clear(0)
   text(g,30,14,'SUMMIT PUTT','large')
+  if not show_help then box(g,402,12,48,42,'?') end
   text(g,30,50,string.format('PUZZLE %d/%d  %s',STATE.level,MAX_LEVEL,BOARD.name),'small')
+  if show_help then draw_help(g); return end
   box(g,30,82,195,42,'UNDO')
   box(g,255,82,195,42,'RESTART')
   draw_tiles(g)
@@ -347,6 +362,11 @@ local function within(x,y,px,py,w,h)
   return x>=px and x<px+w and y>=py and y<py+h
 end
 local function touch(x,y)
+  if show_help then
+    if within(x,y,30,694,420,65) then show_help=false end
+    return
+  end
+  if within(x,y,402,12,48,42) then show_help=true;return end
   if within(x,y,30,82,195,42) then undo();return end
   if within(x,y,255,82,195,42) then start_level(STATE.level,STATE.unlocked);return end
   if STATE.stage=='won' then

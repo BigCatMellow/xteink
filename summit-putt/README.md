@@ -27,6 +27,7 @@ Successful levels unlock the next one. The app saves current position, cards con
 - Touch any of the four large direction buttons to take a shot.
 - **UNDO** restores the previous position **and card**, even after completing a stage.
 - **RESTART** retries the current level; previously unlocked levels are retained.
+- **?** shows the in-game rule guide, including the elevation and ramp rules introduced later.
 - The reader's physical page buttons cycle through unused cards.
 - After solving a level, tap **NEXT PUZZLE**. Finishing level 10 permits replay.
 

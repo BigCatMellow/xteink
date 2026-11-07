@@ -29,6 +29,7 @@ No guessing is needed: all crossing relationships are visible. The code uses the
 - **Tap a lettered circle:** attempt to remove its rod or pair.
 - **?**: show the static rules screen; **BACK TO PUZZLE** to close.
 - **RESTART:** reset current puzzle (no animation).
+- **HINT:** ring every pull that is currently safe; it never moves or removes a line for you.
 - **PREV:** revisit the preceding puzzle; cleared levels remain unlocked.
 - **NEXT:** appears only after all current rods are removed.
 - Physical **next page** advances only after clearing a level; physical **previous page** revisits the previous puzzle. Neither button can accidentally remove a rod.

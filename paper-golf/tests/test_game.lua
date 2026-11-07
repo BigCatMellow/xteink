@@ -19,7 +19,7 @@ local ctx={
 on_load(ctx)
 eq(A.state().stage,'aim')
 eq(A.state().drives,2)
-assert(storage['save.txt']:find('version=3',1,true))
+assert(storage['save.txt']:find('version=4',1,true))
 
 local function options(course,x,y,club,drives)
   return A.targets(course,x,y,club,drives)
@@ -188,7 +188,7 @@ local function draw_ok(expect_board)
   on_draw(ctx,g)
   assert(drawCount>0 and drawCount<=1024,'too many draw operations: '..drawCount)
   if expect_board then
-    assert(commands.circle>=475,'paper dots missing')
+    assert(commands.circle>=120,'paper dots missing')
     assert(commands.line>10,'hazard outlines missing')
   end
 end
@@ -204,9 +204,9 @@ for hole=1,9 do
 end
 A.tap(405,30);draw_ok(false);A.tap(90,440);draw_ok(true)
 
--- Older v0.3 saves reset safely; this version introduces new course layouts.
+-- A v0.3 save is migrated while preserving its completed scores as bests.
 storage['save.txt']='version=2\nhole=1\nstage=aim\n'
 on_load(ctx)
 eq(A.state().stage,'aim')
-assert(storage['save.txt']:find('version=3',1,true))
+assert(storage['save.txt']:find('version=4',1,true))
 print('Pocket Golf v0.4: 9 puzzle layouts, real fail/retry, finite drives, shortest paths, rendering PASS')

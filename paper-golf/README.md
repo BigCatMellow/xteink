@@ -2,7 +2,7 @@
 
 Offline, stroke-limited puzzle golf for **XTOS Licorice** on the X4 Pro's 480 × 800 monochrome e-ink screen.
 
-**Status: v0.4 puzzle challenge prototype.** The source and build can be tested on a computer, but the game has **not yet been verified on a physical X4 Pro**.
+**Status: v0.5 puzzle challenge prototype.** The source and build can be tested on a computer, but the game has **not yet been verified on a physical X4 Pro**.
 
 Original, unofficial game inspired by paper-based roll-and-write golf. It does **not** reproduce Gladden Design's Paper Apps Golf art, layouts, branding, or proprietary rules. Paper Apps Golf is a separate commercial product: https://gladdendesign.com/products/paper-apps-golf
 
@@ -16,6 +16,7 @@ The course artwork now follows a **minimal top-down paper-grid aesthetic** rathe
 - **Trees:** solid small triangles; rough remains mostly empty dotted paper.
 - **Ball:** double outline ring. **Cup:** black dot and a small outlined flag.
 - **Available shots:** thin circles appear on reachable grid positions after a roll.
+- **Personal bests:** the fewest strokes on each completed hole persist across new rounds.
 
 The 9×12 course now takes most of the portrait screen. A compact header, a small NEW button, and three large club selectors preserve e-ink-friendly touch controls. The app draws all graphics in black on white and doesn't rely on colored shades. This intentionally follows the *visual structure* of the supplied reference, without copying a specific course.
 
@@ -32,6 +33,8 @@ This is now a **deterministic shot-planning puzzle, not a luck-based dice game**
 5. **Run out of shots or get trapped, and the hole fails.** Tap **RETRY HOLE** to try again without losing the earlier scores. Finish all nine for a final scorecard.
 
 The real challenge is positioning the ball for the **next** shot and keeping a drive available for the hardest obstacle. A long shot can strand the ball in rough, require a recovery shot, or leave no good route to the cup. No randomness enters shots, power, or hazards.
+
+Tap **?** at the top of the course for the on-device terrain and club legend. The paper texture is deliberately sparse to keep redraws clean on e-ink.
 
 No animation, accounts, or online connection. Course seed, current ball, chosen club, stroke count, and scorecard are saved automatically.
 

@@ -5,7 +5,7 @@ local COLS, ROWS = 9, 12
 local CELL, BX, BY = 46, 33, 94
 local MODULUS = 4294967296
 local CTX, S, COURSE, ERR
-local confirm_new, message = false, nil
+local confirm_new, show_help, message = false, false, nil
 local last_key_ms = -1000
 
 local function index(x, y) return (y - 1) * COLS + x end
@@ -254,14 +254,21 @@ local function totals()
   return strokes,par
 end
 
+local function copy_scores(values)
+  local out={}
+  for i=1,9 do out[i]=tonumber(values and values[i]) or 0 end
+  return out
+end
+
 local function save()
   if not CTX or not CTX.storage then return end
   local fields={
-    'version=3','seed='..S.seed,'rng='..S.rng,
+    'version=4','seed='..S.seed,'rng='..S.rng,
     'hole='..S.hole,'x='..S.x,'y='..S.y,
     'strokes='..S.strokes,'club='..S.club,
     'drives='..S.drives,'stage='..S.stage,
     'scores='..table.concat(S.scores,','),
+    'bests='..table.concat(S.bests,','),
     'pars='..table.concat(S.pars,',')
   }
   pcall(function() CTX.storage:write('save.txt',table.concat(fields,'\n')) end)
@@ -276,12 +283,13 @@ local function reset_hole()
   return true
 end
 
-local function start_round(seed)
+local function start_round(seed,bests)
   seed=(integer(seed,1)%(MODULUS-1))+1
   S={
     seed=seed,rng=step_rng(seed),hole=1,x=0,y=0,
     strokes=0,club=2,drives=DRIVE_ALLOWANCE,stage='aim',
     scores={0,0,0,0,0,0,0,0,0},
+    bests=copy_scores(bests),
     pars={0,0,0,0,0,0,0,0,0}
   }
   reset_hole()
@@ -292,7 +300,7 @@ local function restore()
   if not ok or type(data)~='string' then return false end
   local f={}
   for k,v in data:gmatch('([%w_]+)=([^\n]*)') do f[k]=v end
-  if f.version~='3' then return false end
+  if f.version~='3' and f.version~='4' then return false end
   local seed,rng=integer(f.seed,0),integer(f.rng,-1)
   local hole,x,y=integer(f.hole,0),integer(f.x,0),integer(f.y,0)
   local strokes,club,drives=integer(f.strokes,-1),integer(f.club,0),integer(f.drives,-1)
@@ -302,19 +310,22 @@ local function restore()
      drives<0 or drives>DRIVE_ALLOWANCE then return false end
   local stage=f.stage
   if stage~='aim' and stage~='finished' and stage~='failed' then return false end
-  local scores,pars={},{}
+  local scores,pars,bests={},{},{}
   for n in (f.scores or ''):gmatch('%d+') do scores[#scores+1]=tonumber(n) end
   for n in (f.pars or ''):gmatch('%d+') do pars[#pars+1]=tonumber(n) end
+  for n in (f.bests or ''):gmatch('%d+') do bests[#bests+1]=tonumber(n) end
   if #scores~=9 or #pars~=9 then return false end
+  if #bests==0 and f.version=='3' then bests=copy_scores(scores) end
+  if #bests~=9 then return false end
   for i=1,9 do
-    if scores[i]<0 or scores[i]>100 or pars[i]<0 or pars[i]>100 then return false end
+    if scores[i]<0 or scores[i]>100 or pars[i]<0 or pars[i]>100 or bests[i]<0 or bests[i]>100 then return false end
   end
   local course=make_course(seed,hole)
   if strokes>course.limit or
      course.map[index(x,y)]=='tree' or course.map[index(x,y)]=='water' then return false end
   if (stage=='finished')~=(x==course.hx and y==course.hy) then return false end
   S={seed=seed,rng=rng,hole=hole,x=x,y=y,strokes=strokes,
-     club=club,drives=drives,stage=stage,scores=scores,pars=pars}
+     club=club,drives=drives,stage=stage,scores=scores,bests=bests,pars=pars}
   COURSE=course
   confirm_new,message=false,nil
   return true
@@ -358,6 +369,7 @@ local function shoot(x,y)
     S.stage='finished'
     S.scores[S.hole]=S.strokes
     S.pars[S.hole]=COURSE.par
+    if S.bests[S.hole]==0 or S.strokes<S.bests[S.hole] then S.bests[S.hole]=S.strokes end
     message='Solved in '..S.strokes..' shots!'
   elseif S.strokes>=COURSE.limit then
     S.stage='failed'
@@ -375,7 +387,7 @@ end
 
 local function next_hole()
   if S.stage~='finished' then return false end
-  if S.hole==9 then start_round(step_rng(S.rng));return true end
+  if S.hole==9 then start_round(step_rng(S.rng),S.bests);return true end
   S.hole=S.hole+1
   reset_hole()
   return true
@@ -454,12 +466,12 @@ end
 
 local function draw_board(g)
   local width, height = COLS * CELL, ROWS * CELL
-  -- A half-cell dot grid is the paper texture (19x25 = 475 dots).
-  -- Draw dots first, so regions remain readable over the background.
-  for row = 0, ROWS * 2 do
-    for col = 0, COLS * 2 do
-      local px = BX + col * CELL / 2
-      local py = BY + row * CELL / 2
+  -- A restrained full-cell dot grid reads as paper while keeping redraws
+  -- light enough for e-ink.
+  for row = 0, ROWS do
+    for col = 0, COLS do
+      local px = BX + col * CELL
+      local py = BY + row * CELL
       g:circle(px, py, 1, { fill = true })
     end
   end
@@ -520,16 +532,31 @@ local function draw_confirm(g)
   button(g, 255, 410, 170, 65, 'YES')
 end
 
+local function draw_help(g)
+  centered(g,240,138,'HOW TO PLAY','large')
+  put(g,38,202,'PUTT 1  |  CHIP 2  |  DRIVE 4 squares','small')
+  put(g,38,245,'Pick a club, then tap a ringed landing spot.','small')
+  put(g,38,303,'Trees block shots. Water may be crossed,','small')
+  put(g,38,333,'but never landed on. Sand allows putts only.','small')
+  put(g,38,391,'Rough blocks drives. You get two drives per hole.','small')
+  put(g,38,449,'Finish at the cup with a PUTT.','small')
+  put(g,38,507,'BEST remembers your fewest strokes per hole.','small')
+  button(g,33,694,414,64,'BACK TO COURSE')
+end
+
 local function draw(g)
   g:clear(0)
   put(g,33,11,'POCKET GOLF','large')
   put(g,33,48,'HOLE '..S.hole..'/9  GOAL '..COURSE.par..'  SHOTS '..S.strokes..'/'..COURSE.limit,'medium')
   g:line(33,87,447,87)
-  if not confirm_new then
+  if not confirm_new and not show_help then
+    g:rect(330,12,38,38)
+    centered(g,349,23,'?','small')
     g:rect(378,12,69,38)
     centered(g,412,23,'NEW','small')
   end
-  if confirm_new then draw_confirm(g)
+  if show_help then draw_help(g)
+  elseif confirm_new then draw_confirm(g)
   elseif S.hole==9 and S.stage=='finished' then draw_summary(g)
   else draw_board(g) end
 
@@ -558,11 +585,16 @@ local function inside(x, y, bx, by, bw, bh)
 end
 
 local function tap(x,y)
+  if show_help then
+    if inside(x,y,33,694,414,64) then show_help=false end
+    return
+  end
   if confirm_new then
     if inside(x,y,55,410,170,65) then confirm_new=false;message=nil
     elseif inside(x,y,255,410,170,65) then start_round(step_rng(S.rng)) end
     return
   end
+  if inside(x,y,330,12,38,38) then show_help=true;return end
   if inside(x,y,378,12,69,38) then confirm_new=true;return end
   if S.stage=='finished' then
     if inside(x,y,33,714,414,58) then next_hole() end

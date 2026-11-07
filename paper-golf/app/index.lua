@@ -273,6 +273,7 @@ local function reset_hole()
   S.strokes,S.club,S.drives,S.stage=0,2,DRIVE_ALLOWANCE,'aim'
   confirm_new,message=false,'Plan your route'
   save()
+  return true
 end
 
 local function start_round(seed)

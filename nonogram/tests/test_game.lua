@@ -54,10 +54,10 @@ end
 
 -- Touch cycles blank -> black -> X -> blank; undo has true snapshots.
 local board=s.boards[1]
-assert(A.paint(1,1));eq(board[1],1)
+assert(A.paint(1,1));eq(s.boards[1][1],1)
 assert(A.paint(1,1));eq(board[1],2)
-assert(A.paint(1,1));eq(board[1],0)
-assert(A.undo());eq(board[1],2,'undo last mark')
+assert(A.paint(1,1));eq(s.boards[1][1],0)
+assert(A.undo());eq(s.boards[1][1],2,'undo last mark')
 assert(A.undo());eq(board[1],1)
 assert(A.undo());eq(board[1],0)
 assert(not A.undo())

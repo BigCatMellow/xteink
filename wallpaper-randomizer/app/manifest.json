@@ -1,9 +1,9 @@
 {
   "app_id": "wallrandom",
   "display_name": "Wallpaper Randomizer",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "author": "BigCatMellow",
-  "description": "Persistent lossless XTH preview cache; sleep rotation paused.",
+  "description": "Compare maximum-quality JPEG with lossless XTH preview; sleep rotation paused.",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": [],

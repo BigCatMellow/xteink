@@ -4,6 +4,12 @@ local P={}
 local tiny_hex='89504e470d0a1a0a0000000d4948445200000020000000200800000000561125280000001b49444154789c63648082501c3413030130aa6054c1a882e1aa0000934d013f3d72cfda0000000049454e44ae426082'
 local tiny=tiny_hex:gsub('..',function(h) return string.char(tonumber(h,16)) end)
 
+function P.jpeg_prefix(name)
+  local key=0
+  for i=1,#name do key=(key*131+name:byte(i))%8388593 end
+  return 'wpj1-'..string.format('%06x',key)
+end
+
 function P.note(c,stage,detail)
   local device=c.device or {}
   local text='stage='..stage..'\ndetail='..tostring(detail or '')..
@@ -26,7 +32,7 @@ end
 
 function P.timing(c,metrics)
   local lines={}
-  for _,name in ipairs({'total_ms','layer_ms','cache_ms','encode_ms','decode_ms','copy_ms','queue_ms',
+  for _,name in ipairs({'cache_kind','total_ms','layer_ms','cache_ms','encode_ms','decode_ms','copy_ms','queue_ms',
     'cache_hits','encoded_strips','strips'}) do
     lines[#lines+1]=name..'='..tostring(metrics[name] or 0)
   end
@@ -34,11 +40,27 @@ function P.timing(c,metrics)
 end
 
 function P.run(c,kind,name,read)
+  local function now()
+    local ok,value=pcall(function() return c.clock:millis() end)
+    return ok and tonumber(value) or 0
+  end
+  local started=now()
   P.note(c,'start',kind)
   local ok,picture,message=pcall(function()
     local png,w,h
     if kind=='png' then
       png,w,h=tiny,32,32
+    elseif kind=='jpeg' then
+      local raw=read(name)
+      local valid,err=XTH.validate(raw)
+      if not valid then error(err) end
+      local base=P.jpeg_prefix(name)
+      if read(base..'.idx')~=raw then error('Prepare the quick preview for this image') end
+      png=read(base..'.jpg')
+      if type(png)~='string' or #png<4 or png:sub(1,2)~='\255\216' or png:sub(-2)~='\255\217' then
+        error('Quick JPEG cache is missing or damaged')
+      end
+      w,h=480,800
     else
       P.note(c,'file-read-start',name)
       local raw=read(name)
@@ -55,15 +77,32 @@ function P.run(c,kind,name,read)
       P.note(c,'tile-encode-ok',#png..' bytes')
     end
     if not c.image then error('Image decoder unavailable') end
+    if c.budget then pcall(function() c.budget:extend() end) end
+    -- The exact-source marker is no longer needed. Let the host reclaim it
+    -- before decoding a full image; no compositor layer is allocated here.
+    if kind=='jpeg' and c.gc then pcall(function() c.gc:collect() end) end
     P.note(c,'decode-start',kind..' '..w..'x'..h)
+    local decode_started=now()
     local image,err=c.image:decode(png)
+    local decoded=now()
     if not image then error('Decoder rejected image: '..tostring(err)) end
+    if kind=='jpeg' and ((image.width and image.width~=w) or (image.height and image.height~=h)) then
+      image:release();error('Quick JPEG has incorrect dimensions')
+    end
     P.note(c,'decode-ok',kind)
     local result={}
+    if kind=='jpeg' then
+      result.metrics={cache_kind='jpeg100',total_ms=math.max(0,decoded-started),
+        cache_ms=math.max(0,decode_started-started),decode_ms=math.max(0,decoded-decode_started),
+        cache_hits=1,encoded_strips=0,strips=1}
+    end
     function result:draw(g)
       P.note(c,'draw-start',kind)
-      local good,why=pcall(function() g:image(image,math.floor((480-w)/2),math.floor((800-h)/2)) end)
-      if not good then P.note(c,'draw-error',why);return nil,tostring(why) end
+      local good,value,why=pcall(function() return g:image(image,math.floor((480-w)/2),math.floor((800-h)/2)) end)
+      if not good or ((value==nil or value==false) and why) then
+        local message=not good and value or why
+        P.note(c,'draw-error',message);return nil,tostring(message)
+      end
       P.note(c,'draw-ok',kind)
       return true
     end

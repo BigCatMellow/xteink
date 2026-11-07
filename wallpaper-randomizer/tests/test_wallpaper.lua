@@ -104,4 +104,17 @@ on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=450})
 assert(main.is_building())
 on_leave();table.remove(queue,1)()
 assert(not main.is_building() and not main.is_preview(),'closing cancels pending completion')
+on_load(ctx)
+local Probe=require('probe')
+local jpegbase=Probe.jpeg_prefix('one.xth')
+storage[jpegbase..'.idx']='XTH-ONE'
+storage[jpegbase..'.jpg']='\255\216\255\217'
+ctx.image.decode=function(_,bytes)
+  assert(bytes==storage[jpegbase..'.jpg'])
+  return {width=480,height=800,release=function() end}
+end
+on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=365})
+assert(main.is_preview() and not main.is_building() and #queue==0,'quick preview uses one direct decode')
+assert(storage['preview-timing.txt']:find('cache_kind=jpeg100',1,true))
+on_leave()
 print('Wallpaper preview: async completion, cancellation, checkpoints and automatic-render guard PASS')

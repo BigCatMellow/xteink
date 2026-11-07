@@ -94,6 +94,18 @@ local function test_png()
   if img then photo=img;preview=true end
 end
 
+local function show_quick()
+  if #names==0 then status='Add XTHs to the app folder';return end
+  release();preview=false
+  local img,message=Probe.run(C,'jpeg',names[1],read)
+  status=message
+  if img then
+    photo=img;preview=true;preview_full=true
+    Probe.timing(C,img.metrics)
+    status=string.format('%.2fs / maximum-quality JPEG',(img.metrics.total_ms or 0)/1000)
+  end
+end
+
 local function redraw()
   if C then pcall(function() C:invalidate() end) end
 end
@@ -123,13 +135,14 @@ function on_draw(c,g)
   local large=C.fonts and C.fonts.large
   local small=C.fonts and C.fonts.small
   g:text(30,50,'WALLPAPER',{font=large})
-  g:text(30,87,'CACHED PREVIEW 0.4.5',{font=medium})
+  g:text(30,87,'QUICK PREVIEW 0.4.6',{font=medium})
   g:line(30,134,450,134)
   g:text(30,173,tostring(#names)..' XTH images ready',{font=medium})
   g:text(30,230,'Automatic wallpaper is paused.',{font=medium})
   g:text(30,263,'Full preview builds off-screen.',{font=medium})
-  g:text(30,310,'Prepared images skip XTH encoding.',{font=small})
-  g:text(30,338,'No hourly wake test enabled.',{font=small})
+  g:text(30,310,'Maximum quality; full resolution.',{font=small})
+  g:rect(30,336,420,66)
+  g:text(120,357,'QUICK PREVIEW',{font=medium})
   g:rect(30,420,420,66)
   g:text(120,441,'FULL PREVIEW',{font=medium})
   g:rect(30,508,200,64)
@@ -151,7 +164,9 @@ function on_input(c,ev)
   if preview then
     preview=false;release();redraw();return true
   end
-  if x>=30 and x<450 and y>=420 and y<486 then
+  if x>=30 and x<450 and y>=336 and y<402 then
+    if not building then show_quick() end
+  elseif x>=30 and x<450 and y>=420 and y<486 then
     if not building then show_full() end
   elseif x>=30 and x<230 and y>=508 and y<572 then
     test_png()

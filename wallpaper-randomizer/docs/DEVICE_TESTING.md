@@ -1,6 +1,6 @@
 # XTH wallpaper physical-device checks
 
-**v0.4.5 is a cached manual preview test only.** v0.4.1 failed on the reader (preview crashed,
+**v0.4.6 is a manual JPEG/PNG comparison only.** v0.4.1 failed on the reader (preview crashed,
 stock sleep screen shown). Its log stopped at `status=loaded` and reported
 `interval=3600`. Preserve that evidence before updating.
 
@@ -13,7 +13,7 @@ reached `layer-display-returned`; the user reported an acceptable delay.
 This confirms prepared-strip decoding and display on X4 Pro Licorice
 26110201, not automatic sleep rotation, cold preparation or restart persistence.
 
-Install v0.4.5 over the existing app and tap FULL PREVIEW. A prepared image should report 25 cached strips;
+Install v0.4.6 over the existing app and tap FULL PREVIEW. A prepared image should report 25 cached strips;
 close/reopen the app and repeat to test persistence. Compare elapsed build
 times and read `preview-timing.txt` after reconnecting. Expect `cache_hits=25`,
 `encoded_strips=0` and `encode_ms=0` for both prepared runs. Verify a complete,
@@ -22,6 +22,17 @@ that it displays without 50 intermediate screen refreshes. Close during a build
 and switch diagnostic tests to check cancellation. Reconnect and read
 `preview-diagnostics.txt` if anything fails. The tests below are
 the future acceptance criteria, not claims that the current build passes them.
+
+Prepare maximum-quality JPEGs with `tools/prepare_jpeg.py SD_ROOT`, then tap
+QUICK PREVIEW. Expect `cache_kind=jpeg100`, `cache_hits=1` and `strips=1`.
+Compare its entire image with FULL PREVIEW, particularly small text, diagonals,
+fine texture and both middle grays. Record the displayed build time and visible
+refresh delay separately; no sub-second result is established yet. Reopen and
+repeat, including the largest prepared image (currently g3). JPEG decode must
+retain one image and allocate no compositor layer. Desktop errors at most
+1/255 and unchanged modeled 4-bit shades do not prove physical equivalence.
+Missing or changed preparation must show a readable error, and FULL PREVIEW
+must still work. Do not remove user originals to conduct these checks.
 
 Before enabling automatic mode, also test a new image with no prepared cache:
 the first successful preview should encode 25 strips and commit its cache;

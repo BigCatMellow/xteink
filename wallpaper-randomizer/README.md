@@ -4,12 +4,15 @@ An experimental XTOS Licorice app for native **480 × 800 `.xth`** wallpapers. F
 
 **Status: v0.4.5 cached preview confirmed on the reader at 2.347 seconds. This is not a working automatic wallpaper release.** v0.4.1 crashed; v0.4.3 displayed the complete image in 30–60 seconds. The reader measured v0.4.4 at 10.167 seconds, including 8.025 seconds of encoding and 1.731 seconds of native decoding. v0.4.5 saves the encoded strips for reuse after closing/reopening the app. Its device log confirms 25 cache hits, zero encoded strips and zero encoding time; the user reported the preview delay was acceptable. Physical restart persistence and cold cache creation still need separate checks. The reader is X4 Pro, Licorice 26110201, with 32-bit Lua integers. It also reported `interval=3600` despite a one-year request, so the no-hourly-wake requirement remains unresolved.
 
+**v0.4.6 adds QUICK PREVIEW using one full-resolution, quality-100 grayscale JPEG.** It needs no compositor layer or strip callbacks. Speed and appearance still need a reader comparison; under one second is a target, not a verified result. FULL PREVIEW retains the working lossless PNG path. The app still selects XTH originals; prepared JPEGs are derived files, never replacements for them.
+
 ## Install
 
 1. Download `wallpaper-randomizer.xtapp` from the [latest successful build](https://github.com/BigCatMellow/xteink/actions/workflows/wallpaper-randomizer.yml). Place it in `SD:/Apps/`, exit USB mode, and install it through **All Files → Apps**. Update over the existing app; do not uninstall first.
 2. In USB mode, copy your `.xth` files into **`XTApps/wallrandom/files/`**, creating `files/` if needed. Use flat filenames such as `g10.xth`; no subfolders or spaces. Existing JPEG/PNG files are ignored and can stay during testing.
 3. Open **Ink App → Wallpaper Randomizer**. This build clears its custom lock-screen registration so the failed renderer is no longer invoked during sleep.
 4. Tap **FULL PREVIEW**. The app builds one off-screen layer in short callbacks, using prepared strips when available. Missing caches are encoded and saved once while the app is open. The menu shows a static waiting message while work runs; it does not redraw the screen for each strip. Tap the image to return. A valid prepared image should report **25 cached strips**; close/reopen the app and repeat to check persistence.
+   **QUICK PREVIEW** compares the prepared maximum-quality JPEG. Tap the image to return and read its elapsed time. Its log reports `cache_kind=jpeg100`, one cache hit and one decode. Check lettering, diagonals, fine detail and both middle grays against FULL PREVIEW before accepting this format.
 5. **TEST PNG** and **TEST TILE** retain the two smaller diagnostic tests. A PNG's fourth bar is white and blends with the background.
 6. Tap the image to return and read the elapsed build time. Reconnect USB to inspect `XTApps/wallrandom/files/preview-timing.txt`: `total_ms`, `layer_ms`, `encode_ms`, `decode_ms`, `copy_ms`, `queue_ms`, `cache_ms`, `cache_hits`, `encoded_strips`, and `strips`. A warm cache should show `cache_hits=25`, `encoded_strips=0`, and `encode_ms=0`. These measure build operations, not physical e-ink refresh time. `preview-diagnostics.txt` keeps sparse recovery checkpoints and errors.
 
@@ -32,6 +35,10 @@ python3 wallpaper-randomizer/tools/prepare_cache.py /path/to/SD --check
 
 The tool reads XTHs already in `XTApps/wallrandom/files/`, creates only derived cache files there, and verifies every decoded pixel. `--output-dir /path/to/staging` prepares or checks a separate staging directory. Pillow is required. Prepared strips preserve all four native shades; loading, decoding and e-ink refresh still take time.
 
+For QUICK PREVIEW, run `python3 wallpaper-randomizer/tools/prepare_jpeg.py /path/to/SD` (or add `--check` to verify, `--output-dir` to stage). It produces `wpj1-*.jpg` and exact-source `.idx` markers, committed last. No resizing, contrast adjustment, color subsampling, sharpening or dithering is applied. JPEG is **not lossless**, even at quality 100. Desktop checks on the current 15 XTHs found maximum decoded error **1/255**, and zero changed pixels under either tested 4-bit quantization (floor `/16` or nearest `/17`). These models do not establish the firmware's actual conversion or physical appearance. The older converter used quality 88 and contrast adjustment; this comparison uses the decoded XTH shades directly. Changed source bytes invalidate the prepared JPEG. Missing or damaged files give an error; FULL PREVIEW remains available. Fifteen images add 30 files and leave old JPEGs and lossless caches untouched.
+
+The JPEG timing includes source/marker/image reads, validation and pre-decode diagnostics/collection in `cache_ms`, then one native `decode_ms`. `total_ms` ends after decode and excludes later status logging, drawing and physical e-ink refresh. FULL PREVIEW's build timer begins after its initial source read, so the scopes differ slightly; neither is a tap-to-visible-screen measurement.
+
 v0.4.1 processed all 50 strips in one callback and retained all 50 decoded image objects. v0.4.3 fixed that with one off-screen layer and one live strip. v0.4.4 keeps that resource limit and doubles the strip height, halving image callbacks. It replaces three card writes per strip with five recovery writes per frame, plus startup/completion/error logs. The encoder transposes eight source pixels per pair of XTH bytes using a bounded 256-entry cache, and combines Adler sums once per row rather than twice per pixel. Integer intermediates remain safe on 32-bit Lua.
 
 After completion the app retains only the layer; redraws do not re-decode the image. Closing or switching tests cancels queued work. The v0.4.5 device log on 2026-11-07 reports `total_ms=2347`, `layer_ms=86`, `cache_ms=244`, `encode_ms=0`, `decode_ms=1676`, `copy_ms=129`, `queue_ms=202`, `cache_hits=25`, `encoded_strips=0`, and `strips=25`. It reached `layer-display-returned`. Native decoding now dominates build time; the totals exclude physical e-ink refresh.
@@ -40,7 +47,7 @@ Host tests reconstruct all strips with Pillow and compare every output pixel aga
 
 ## Sleep and battery behavior
 
-The selection algorithm remains in source for investigation, but v0.4.5 does not enable automatic sleep rotation. The app must not be re-enabled until performance and the user's no-hourly-wake requirement are verified.
+The selection algorithm remains in source for investigation, but v0.4.6 does not enable automatic sleep rotation. The intended behavior is one random image when entering a new sleep, unchanged throughout that sleep. The app must not be re-enabled until performance and the user's no-hourly-wake requirement are verified.
 
 The prior build requested a one-year interval; the device reported 3600 seconds. The upstream Notes app records measurements on the **same 26110201 firmware**: [`ctx.lock:set_interval` refuses 0 and values above 3600](https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/main/apps/notes/lockscreen.lua#L134), and hourly wakes remain even without a clock. This is independent device evidence, not an additional test of this reader. Increasing the requested interval or ignoring timer callbacks does not establish a timer-free sleep screen. Another supported rendering/lifecycle route is needed to meet the no-hourly-wake requirement. Stable wallpaper alone is not proof that the reader did not wake or refresh.
 
@@ -53,6 +60,7 @@ cd wallpaper-randomizer
 lua5.4 tests/test_wallpaper.lua
 python3 tests/test_xth.py
 python3 tests/test_cache.py
+python3 tests/test_jpeg.py
 python3 /path/to/touch-licorice-apps/xtpack.py app -o wallpaper-randomizer.xtapp
 ```
 

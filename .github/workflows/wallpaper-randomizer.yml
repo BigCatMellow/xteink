@@ -24,6 +24,8 @@ jobs:
         run: python wallpaper-randomizer/tests/test_xth.py
       - name: Verify persistent cache, invalidation and interrupted builds
         run: python wallpaper-randomizer/tests/test_cache.py
+      - name: Verify direct JPEG quality and image lifecycle
+        run: python wallpaper-randomizer/tests/test_jpeg.py
       - name: Fetch pinned packer
         run: |
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools

@@ -1,0 +1,10 @@
+{
+  "app_id": "nonogram",
+  "display_name": "Nonogram",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Original uniquely solvable nonogram picture puzzles for XTEINK X4 Pro",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

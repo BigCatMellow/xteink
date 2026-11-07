@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GAMES = ('line-lift', 'summit-putt', 'link-grid', 'ink-runes',
-         'lantern-logic', 'ray-vault', 'island-links', 'oddity-hunt')
+         'lantern-logic', 'ray-vault', 'island-links', 'oddity-hunt', 'word-hunt', 'nonogram')
 
 
 def main():

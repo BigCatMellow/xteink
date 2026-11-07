@@ -14,6 +14,16 @@ A small, offline **XTOS Licorice Ink App** that cycles through your own 480 × 8
 
 The included `tools/prepare_images.py` crops and converts ordinary PNG/JPG/WebP/BMP pictures into properly sized grayscale JPEGs. The images themselves are **not committed** and are **not embedded into the `.xtapp` package**.
 
+### Native XTH wallpaper switcher
+
+For a crisp stock wallpaper, use `tools/native_xth_wallpaper.py` instead of the Ink App: it reads a frame directly from `Pushed Images/` and updates the reader's native wallpaper cache without JPEG conversion. Run it only while the reader is mounted in USB mode:
+
+```bash
+python wallpaper-randomizer/tools/native_xth_wallpaper.py /media/mellow/4A21-0000
+```
+
+It chooses a random `.xth` frame without immediately repeating the previous choice. Use `--frame g11.xth --dry-run` to verify a specific frame first. This is a desktop-side switcher: stock firmware does not expose a supported way to advance a native wallpaper automatically on every sleep.
+
 ## Install on Licorice
 
 1. Open the [Wallpaper Randomizer build](https://github.com/BigCatMellow/xteink/actions/workflows/wallpaper-randomizer.yml). Download the latest successful **wallpaper-randomizer-xtapp** artifact and extract `wallpaper-randomizer.xtapp`.

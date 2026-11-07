@@ -1,7 +1,6 @@
 -- Recovery entry: automatic rendering is paused after a confirmed device crash.
 -- The selection helpers are retained for future work and host tests only.
 local W, H = 480, 800
-local XTH=require('xth')
 local IDLE_REFRESH_SEC = 31536000 -- request only; firmware may clamp this
 local picked, picture, status = nil, nil, nil
 local current_ctx
@@ -91,12 +90,6 @@ local function select(c)
     pcall(function() c.storage:write('rotation.txt',payload) end)
   end
   return name,nil
-end
-
-local function decode(c,name)
-  local bytes=read(c,name)
-  if not bytes then return nil,'Cannot read '..name end
-  return XTH.open(c,bytes)
 end
 
 local function diagnostics(c,message)

@@ -64,27 +64,92 @@ assert(X.validate(raw))
 assert(not X.validate(raw:sub(1,-2)))
 assert(not X.validate('BAD!'..raw:sub(5)))
 assert(not X.validate(raw:sub(1,9)..string.char(1)..raw:sub(11)))
-local releases,decodes,draws=0,0,0
-local c={image={decode=function(_,png)
-  local n=decodes;decodes=decodes+1
-  local out=assert(io.open(arg[2]..'/'..n..'.png','wb'))
-  out:write(png);out:close()
-  return {release=function() releases=releases+1 end}
-end}}
-local picture=assert(X.open(c,raw))
-local g={image=function(_,img,x,y) assert(x==0 and y==draws%50*16);draws=draws+1 end}
-assert(picture:draw(g))
-assert(decodes==50 and releases==0)
-assert(picture:draw(g))
-assert(decodes==50 and draws==100,'redraw should reuse decoded strips')
-picture:release();assert(releases==50)
-picture:release();assert(releases==50,'release is idempotent')
-local failed=assert(X.open({image={decode=function()
-  if releases==50 then releases=51;return {release=function() releases=releases+1 end} end
-  return nil,'unsupported'
-end}},raw))
-local ok,err=failed:draw(g)
-assert(not ok and err:find('unsupported') and releases==52,'decode failure releases earlier strips')
+local function runtime(write_files)
+  local stats={decodes=0,releases=0,copies=0,alive=0,peak=0,layer_alive=0}
+  local queue={}
+  local c={after=function(_,ms,fn) assert(ms==1);queue[#queue+1]=fn end}
+  c.image={decode=function(_,png)
+    if write_files then
+      local out=assert(io.open(arg[2]..'/'..stats.decodes..'.png','wb'))
+      out:write(png);out:close()
+    end
+    stats.decodes=stats.decodes+1;stats.alive=stats.alive+1
+    stats.peak=math.max(stats.peak,stats.alive)
+    local image={released=false}
+    function image:release()
+      assert(not self.released,'strip released twice')
+      self.released=true;stats.alive=stats.alive-1;stats.releases=stats.releases+1
+    end
+    return image
+  end}
+  c.layers={create=function(_,w,h)
+    assert(w==480 and h==800)
+    stats.layer_alive=stats.layer_alive+1
+    local layer={released=false}
+    function layer:draw(fn)
+      assert(not self.released)
+      fn({clear=function() end,image=function(_,image,x,y)
+        assert(not image.released,'image must survive until copy completes')
+        assert(x==0 and y==stats.copies*16,'strip positions must cover every row')
+        stats.copies=stats.copies+1
+      end})
+    end
+    function layer:release()
+      assert(not self.released);self.released=true;stats.layer_alive=stats.layer_alive-1
+    end
+    return layer
+  end}
+  local function drain()
+    while #queue>0 do
+      local before=stats.decodes
+      local fn=table.remove(queue,1);fn(c)
+      assert(stats.decodes-before<=1,'callback must never batch 50 decodes')
+    end
+  end
+  return c,stats,drain,queue
+end
+local c,stats,drain=runtime(true)
+local completed
+local picture=assert(X.compose(c,raw,function(result,err) assert(not err);completed=result end))
+assert(stats.decodes==0 and not completed,'compose must yield before doing expensive work')
+drain()
+assert(completed==picture and stats.copies==50 and stats.peak==1)
+assert(stats.alive==0 and stats.releases==50 and stats.layer_alive==1)
+local main_draws=0
+local g={image=function(_,layer,x,y)
+  assert(x==0 and y==0 and not layer.released);main_draws=main_draws+1
+end}
+assert(picture:draw(g));assert(picture:draw(g))
+assert(main_draws==2 and stats.decodes==50,'redraw must reuse one layer')
+picture:release();picture:release();assert(stats.layer_alive==0)
+
+local cancel_c,cancel_stats,cancel_drain,cancel_queue=runtime(false)
+local cancel=assert(X.compose(cancel_c,raw,function() error('cancelled build must not complete') end))
+table.remove(cancel_queue,1)()
+assert(cancel_stats.alive==1)
+cancel:release();cancel_drain()
+assert(cancel_stats.decodes==1 and cancel_stats.alive==0 and cancel_stats.layer_alive==0)
+
+local bad_c,bad_stats,bad_drain=runtime(false)
+bad_c.image.decode=function() return nil,'unsupported decoder' end
+local failure
+assert(X.compose(bad_c,raw,function(result,err) assert(not result);failure=err end))
+bad_drain()
+assert(failure:find('unsupported decoder') and bad_stats.layer_alive==0)
+local bad_layer_c,bad_layer_stats,bad_layer_drain=runtime(false)
+local create_layer=bad_layer_c.layers.create
+bad_layer_c.layers.create=function(self,w,h)
+  local layer=create_layer(self,w,h)
+  layer.draw=function() return nil,'layer copy rejected' end
+  return layer
+end
+local layer_error
+assert(X.compose(bad_layer_c,raw,function(result,err) assert(not result);layer_error=err end))
+bad_layer_drain()
+assert(layer_error:find('layer copy rejected') and bad_layer_stats.alive==0 and bad_layer_stats.layer_alive==0)
+local no_scheduler={image=c.image,layers=c.layers,after=function() error('scheduler unavailable') end}
+assert(not X.compose(no_scheduler,raw,function() end))
+assert(stats.layer_alive==0,'schedule failure must release its layer')
 -- Production diagnostics exercise exactly one small native image per press.
 local Probe=require('probe')
 local checkpoint,decode_count='',0

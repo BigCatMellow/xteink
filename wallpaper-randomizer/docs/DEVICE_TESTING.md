@@ -1,13 +1,15 @@
 # XTH wallpaper physical-device checks
 
-**v0.4.2 is diagnostic only.** v0.4.1 failed on the reader (preview crashed,
+**v0.4.3 is a manual full-preview test only.** v0.4.1 failed on the reader (preview crashed,
 stock sleep screen shown). Its log stopped at `status=loaded` and reported
 `interval=3600`. Preserve that evidence before updating.
 
-Install v0.4.2 over the existing app, open it to clear the failed custom sleep
-screen, then test the small PNG first. If that displays, test one XTH tile.
-Reconnect and read `preview-diagnostics.txt`; do not repeat full-screen tests
-until the decoder/encoding/draw failure has been isolated. The tests below are
+v0.4.2's small PNG and single XTH strip were confirmed visible on the reader.
+Install v0.4.3 over the existing app, then tap FULL PREVIEW. Verify a complete,
+unscaled image with accurate gray levels, no seams, and no overlaid text. Check
+that it displays without 50 intermediate screen refreshes. Close during a build
+and switch diagnostic tests to check cancellation. Reconnect and read
+`preview-diagnostics.txt` if anything fails. The tests below are
 the future acceptance criteria, not claims that the current build passes them.
 
 Host tests verify pixels and selection logic; these steps verify the reader itself.

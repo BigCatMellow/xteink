@@ -59,35 +59,77 @@ function X.strip(raw,y0,height)
   return '\137PNG\r\n\26\n'..chunk('IHDR',header)..chunk('IDAT',zlib)..chunk('IEND','')
 end
 
-function X.open(ctx,raw)
+-- Build off-screen in short callbacks. At most one decoded strip stays alive;
+-- its pixels are copied into one reusable layer before that strip is released.
+function X.compose(ctx,raw,complete,note)
   local valid,err=X.validate(raw)
   if not valid then return nil,err end
   if not ctx.image then return nil,'Image blitter unavailable' end
-  local tiles={}
+  if not ctx.layers or not ctx.after then return nil,'Layer or scheduler API unavailable' end
+  note=note or function() end
+  note('layer-create-start','480x800')
+  local good,layer,why=pcall(function() return ctx.layers:create(480,800) end)
+  if not good or not layer then return nil,'Cannot create wallpaper layer: '..tostring(why or layer) end
+  local pending,y,disposed,ready=nil,0,false,false
   local picture={}
   function picture:release()
-    for _,tile in ipairs(tiles) do pcall(function() tile.image:release() end) end
-    tiles={}
-    raw=nil
+    disposed=true
+    if pending then pcall(function() pending:release() end);pending=nil end
+    if layer then pcall(function() layer:release() end);layer=nil end
+    raw=nil;ready=false
   end
-  -- Decode one short strip at a time, retaining the image objects until the
-  -- session ends: g:image may queue commands that still refer to them.
   function picture:draw(g)
-    if raw then
-      for y=0,799,X.tile_height do
-        local png=X.strip(raw,y,math.min(X.tile_height,800-y))
-        local ok,img,why=pcall(function() return ctx.image:decode(png) end)
-        if not ok or not img then
-          self:release()
-          return nil,'XTH tile decode failed: '..tostring(why or img)
-        end
-        tiles[#tiles+1]={image=img,y=y}
-      end
-      raw=nil
-    end
-    for _,tile in ipairs(tiles) do g:image(tile.image,0,tile.y) end
+    if disposed then return nil,'Preview was released' end
+    if not ready then return nil,'Preview is still building' end
+    note('layer-display-start','480x800')
+    local result,why=g:image(layer,0,0)
+    if (result==nil or result==false) and why then return nil,tostring(why) end
+    note('layer-display-returned','480x800')
     return true
   end
+  local function failed(message)
+    note('compose-error',message)
+    picture:release()
+    complete(nil,tostring(message))
+  end
+  local step
+  local function schedule()
+    local ok,message=pcall(function() ctx:after(1,step) end)
+    if not ok then failed(message);return false end
+    return true
+  end
+  step=function()
+    if disposed then return end
+    local ok,message=pcall(function()
+      -- Retain the last strip until its layer draw has returned and a fresh
+      -- callback begins. Do not release objects while a draw queues them.
+      if pending then pending:release();pending=nil end
+      if y>=800 then
+        raw=nil;ready=true
+        note('compose-ready','50 strips, one retained layer')
+        complete(picture)
+        return
+      end
+      if ctx.budget then pcall(function() ctx.budget:extend() end) end
+      note('strip-encode-start',y)
+      local png=X.strip(raw,y,math.min(X.tile_height,800-y))
+      note('strip-decode-start',y)
+      local image,decode_error=ctx.image:decode(png)
+      if not image then error('Strip '..y..': '..tostring(decode_error)) end
+      pending=image
+      note('strip-copy-start',y)
+      local copied,copy_error=layer:draw(function(g)
+        if y==0 then g:clear(0) end
+        local result,why=g:image(image,0,y)
+        if (result==nil or result==false) and why then error(tostring(why)) end
+      end)
+      if (copied==nil or copied==false) and copy_error then error(tostring(copy_error)) end
+      y=y+X.tile_height
+      schedule()
+    end)
+    if not ok then failed(message) end
+  end
+  if not schedule() then return nil,'Cannot schedule wallpaper build' end
   return picture
 end
 

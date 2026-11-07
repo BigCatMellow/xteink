@@ -2,7 +2,11 @@
 -- Opening this build clears its custom lock-screen registration.
 local W,H=480,800
 local Probe=require('probe')
+local XTH=require('xth')
 local C, names, status, preview, photo=nil,{},nil,false,nil
+local building=false
+local preview_full=false
+local generation=0
 
 local function accepted(s)
   return type(s)=='string' and #s<=96 and
@@ -45,8 +49,29 @@ local function read(name)
 end
 
 local function release()
+  generation=generation+1;building=false;preview_full=false
   if photo then pcall(function() photo:release() end) end
   photo=nil
+end
+
+local function show_full()
+  if #names==0 then status='Add XTHs to the app folder';return end
+  release();preview=false
+  local token=generation
+  local owner=C
+  local raw=read(names[1])
+  if not raw then status='Cannot read '..names[1];return end
+  Probe.note(C,'full-preview-start',names[1])
+  building=true;status='Building off-screen; please wait'
+  local picture,err=XTH.compose(C,raw,function(result,message)
+    if token~=generation then if result then result:release() end;return end
+    building=false
+    if result then photo=result;preview=true;preview_full=true;status='Full preview ready'
+    else photo=nil;preview=false;status=message end
+    pcall(function() owner:invalidate() end)
+  end,function(stage,detail) Probe.note(owner,stage,detail) end)
+  if not picture then building=false;status=err;return end
+  photo=picture
 end
 
 local function show_preview()
@@ -69,6 +94,7 @@ local function redraw()
 end
 
 function on_load(c)
+  release();preview=false
   C=c or ctx
   if C.lockscreen then pcall(function() C.lockscreen:clear_default() end) end
   scan()
@@ -82,7 +108,7 @@ function on_draw(c,g)
   if preview and photo then
     local ok,result,err=pcall(function() return photo:draw(g) end)
     if ok and result then
-      g:text(30,700,'Tap to return',{font=C.fonts and C.fonts.small})
+      if not preview_full then g:text(30,700,'Tap to return',{font=C.fonts and C.fonts.small}) end
       return
     end
     status='Preview failed: '..tostring(err or result)
@@ -92,17 +118,17 @@ function on_draw(c,g)
   local large=C.fonts and C.fonts.large
   local small=C.fonts and C.fonts.small
   g:text(30,50,'WALLPAPER',{font=large})
-  g:text(30,87,'DIAGNOSTICS 0.4.2',{font=medium})
+  g:text(30,87,'PREVIEW TEST 0.4.3',{font=medium})
   g:line(30,134,450,134)
   g:text(30,173,tostring(#names)..' XTH images ready',{font=medium})
   g:text(30,230,'Automatic wallpaper is paused.',{font=medium})
-  g:text(30,263,'Test one small image at a time.',{font=medium})
-  g:text(30,310,'First: TEST PNG. If it displays,',{font=small})
-  g:text(30,338,'return here and try TEST TILE.',{font=small})
+  g:text(30,263,'Full preview builds off-screen.',{font=medium})
+  g:text(30,310,'One strip per callback; one layer.',{font=small})
+  g:text(30,338,'No hourly wake test enabled.',{font=small})
   g:rect(30,420,420,66)
-  g:text(120,441,'TEST SMALL PNG',{font=medium})
+  g:text(120,441,'FULL PREVIEW',{font=medium})
   g:rect(30,508,200,64)
-  g:text(55,527,'CHECK XTH',{font=medium})
+  g:text(55,527,'TEST PNG',{font=medium})
   g:rect(247,508,203,64)
   g:text(272,527,'TEST TILE',{font=medium})
   g:line(30,625,450,625)
@@ -121,11 +147,9 @@ function on_input(c,ev)
     preview=false;release();redraw();return true
   end
   if x>=30 and x<450 and y>=420 and y<486 then
-    test_png()
+    if not building then show_full() end
   elseif x>=30 and x<230 and y>=508 and y<572 then
-    scan();release();preview=false
-    local _,message=Probe.run(C,'file',names[1],read)
-    status=message
+    test_png()
   elseif x>=247 and x<450 and y>=508 and y<572 then
     show_preview()
   else return false end
@@ -139,6 +163,7 @@ if rawget(_G,'__TEST') then
   __TEST.main={
     scan=scan, names=function() return names end,
     status=function() return status end,
-    is_preview=function() return preview end
+    is_preview=function() return preview end,
+    is_building=function() return building end
   }
 end

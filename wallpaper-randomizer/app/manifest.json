@@ -1,9 +1,9 @@
 {
   "app_id": "wallrandom",
   "display_name": "Wallpaper Randomizer",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "author": "BigCatMellow",
-  "description": "Single-image diagnostics; automatic wallpaper paused after device crash.",
+  "description": "Incremental XTH preview using one compositor layer; sleep rotation paused.",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": [],

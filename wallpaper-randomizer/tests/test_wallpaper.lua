@@ -1,15 +1,20 @@
 -- Host lifecycle tests; byte-level renderer tests live in test_xth.py.
 package.path='app/?.lua;'..package.path
-package.loaded.xth={open=function(_,bytes)
-  if bytes=='BROKEN' then return nil,'Invalid XTH' end
-  return {draw=function(_,g) g:image({bytes=bytes},0,0);return true end,release=function() end}
+package.loaded.xth={compose=function(c,bytes,complete)
+  local released=false
+  local picture={draw=function(_,g) g:image({bytes=bytes},0,0);return true end,
+    release=function() released=true end}
+  c:after(1,function() if not released then complete(picture) end end)
+  return picture
 end,validate=function(bytes) return bytes~='BROKEN','Invalid XTH' end,
 strip=function() return 'PNG-TILE' end}
 _G.__TEST={}
 local pictures={['alpha.xth']='XTH-ALPHA',['bravo.xth']='XTH-BRAVO',['charlie.XTH']='XTH-CHARLIE'}
 local storage,frames={},{}
 local now,enabled,disabled=1000000,0,0
+local queue={}
 local ctx={
+  after=function(_,_,fn) queue[#queue+1]=fn end,
   files={
     list=function()
       local out={'note.txt','../bad.xth','legacy.jpg','legacy.png'}
@@ -72,8 +77,16 @@ on_load(ctx)
 local main=__TEST.main
 assert(#main.names()==2 and enabled==0 and disabled==2,'diagnostics disable the failed default entry')
 on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=450})
-assert(enabled==0 and main.is_preview(),'first button tests one tiny PNG; never enables sleep')
+assert(enabled==0 and main.is_building() and not main.is_preview(),'full preview builds off-screen')
+assert(#queue==1)
+on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=450})
+assert(#queue==1,'repeated taps must not start competing builds')
+table.remove(queue,1)()
+assert(main.is_preview() and not main.is_building())
 on_draw(ctx,g)
+on_input(ctx,{type='pointer',phase='up',gesture='tap',x=200,y=200})
+on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=540})
+assert(main.is_preview());on_draw(ctx,g)
 assert(storage['preview-diagnostics.txt']:find('stage=draw-ok',1,true))
 on_input(ctx,{type='pointer',phase='up',gesture='tap',x=200,y=200})
 on_input(ctx,{type='pointer',phase='up',gesture='tap',x=300,y=540})
@@ -81,7 +94,11 @@ assert(main.is_preview());on_draw(ctx,g)
 on_input(ctx,{type='pointer',phase='up',gesture='tap',x=200,y=200})
 assert(not main.is_preview())
 ctx.image.decode=function() error('simulated native decode error') end
-on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=450})
+on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=540})
 assert(not main.is_preview())
 assert(storage['preview-diagnostics.txt']:find('stage=lua-error',1,true))
-print('Wallpaper diagnostics: single-image tests, crash checkpoints and automatic-render guard PASS')
+on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=450})
+assert(main.is_building())
+on_leave();table.remove(queue,1)()
+assert(not main.is_building() and not main.is_preview(),'closing cancels pending completion')
+print('Wallpaper preview: async completion, cancellation, checkpoints and automatic-render guard PASS')

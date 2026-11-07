@@ -1,0 +1,314 @@
+-- Word Bridge: zero-animation four-letter chain puzzles for XTEINK X4 Pro.
+-- Choose from twelve words; each move changes exactly one letter.
+local UI=require('ui')
+local LEVELS=require('levels')
+local TOTAL=#LEVELS
+local C,S,ERR,MSG=nil,nil,nil,nil
+local HELP=false
+local KEY_MS=-1000
+local function index_of(words,word)
+  for i,w in ipairs(words) do if w==word then return i end end
+  return nil
+end
+local function diff(a,b)
+  local count=0
+  for i=1,4 do if a:sub(i,i)~=b:sub(i,i) then count=count+1 end end
+  return count
+end
+local function copy(path)
+  local result={}
+  for i,n in ipairs(path) do result[i]=n end
+  return result
+end
+local function path_string(path)
+  local values={}
+  for i,index in ipairs(path) do values[i]=tostring(index) end
+  return table.concat(values,',')
+end
+local function decode_path(encoded,level)
+  if type(encoded)~='string' or not encoded:match('^%d+[,%d]*$') then return nil end
+  local puzzle=LEVELS[level]
+  local path={}
+  local seen={}
+  for part in encoded:gmatch('[^,]+') do
+    local i=tonumber(part)
+    if not i or i~=math.floor(i) or i<1 or i>#puzzle.words or seen[i] then return nil end
+    seen[i]=true
+    path[#path+1]=i
+  end
+  if #path<1 or #path>puzzle.limit+1 then return nil end
+  if puzzle.words[path[1]]~=puzzle.start then return nil end
+  for i=2,#path do
+    if diff(puzzle.words[path[i-1]],puzzle.words[path[i]])~=1 then return nil end
+    if i<#path and puzzle.words[path[i]]==puzzle.goal then return nil end
+  end
+  return path
+end
+local function level() return LEVELS[S.level] end
+local function done(n)
+  local puzzle=LEVELS[n or S.level]
+  local path=S.paths[n or S.level]
+  return puzzle.words[path[#path]]==puzzle.goal
+end
+local function current()
+  local p=level()
+  local path=S.paths[S.level]
+  return p.words[path[#path]]
+end
+local function in_path(index)
+  for _,i in ipairs(S.paths[S.level]) do if i==index then return true end end
+  return false
+end
+local function save()
+  if not S or not C or not C.storage then return end
+  local lines={'version=1','level='..S.level,'unlocked='..S.unlocked}
+  for i=1,TOTAL do
+    lines[#lines+1]='P'..i..'='..path_string(S.paths[i])
+    lines[#lines+1]='H'..i..'='..tostring(S.hints[i])
+  end
+  pcall(function() C.storage:write('word-bridge.txt',table.concat(lines,'\n')) end)
+end
+local function start()
+  S={level=1,unlocked=1,paths={},hints={}}
+  for i,p in ipairs(LEVELS) do
+    S.paths[i]={assert(index_of(p.words,p.start))}
+    S.hints[i]=0
+  end
+  HELP=false;MSG='Select a word one letter away'
+  save()
+end
+local function restore()
+  if not C or not C.storage then return false end
+  local ok,data=pcall(function() return C.storage:read('word-bridge.txt') end)
+  if not ok or type(data)~='string' then return false end
+  local f={}
+  for key,value in data:gmatch('([%w_]+)=([^\n]*)') do f[key]=value end
+  if f.version~='1' then return false end
+  local n,u=tonumber(f.level),tonumber(f.unlocked)
+  if not n or n~=math.floor(n) or n<1 or n>TOTAL or
+     not u or u~=math.floor(u) or u<n or u>TOTAL then return false end
+  local paths,hints={},{}
+  for i=1,TOTAL do
+    local path=decode_path(f['P'..i],i)
+    local hint=tonumber(f['H'..i])
+    if not path or not hint or hint~=math.floor(hint) or hint<-1 or hint>12 then return false end
+    if hint>0 then
+      local p=LEVELS[i]
+      local used={}
+      for _,v in ipairs(path) do used[v]=true end
+      if used[hint] or diff(p.words[path[#path]],p.words[hint])~=1 then return false end
+    end
+    if LEVELS[i].words[path[#path]]==LEVELS[i].goal and i<TOTAL and u<i+1 then return false end
+    paths[i]=path;hints[i]=hint
+  end
+  S={level=n,unlocked=u,paths=paths,hints=hints}
+  HELP=false;MSG=nil
+  return true
+end
+local function visit(n)
+  if not S or n<1 or n>TOTAL or n>S.unlocked then return false end
+  S.level=n;HELP=false;MSG=nil
+  save()
+  return true
+end
+local function next_level() return S and visit(S.level+1) or false end
+local function previous() return S and visit(S.level-1) or false end
+local function move(i)
+  if not S or not level().words[i] or done() then return false end
+  local p=level()
+  local path=S.paths[S.level]
+  if in_path(i) then MSG='That word was already used';return true end
+  if diff(current(),p.words[i])~=1 then MSG='Change exactly one letter';return true end
+  if #path-1>=p.limit then MSG='No moves left: use UNDO';return true end
+  path[#path+1]=i
+  if S.hints[S.level]~=0 then S.hints[S.level]=-1 end
+  if done() then
+    S.unlocked=math.min(TOTAL,math.max(S.unlocked,S.level+1))
+    MSG='BRIDGE COMPLETE!'
+  elseif #path-1>=p.limit then MSG='Out of moves: UNDO'
+  else MSG='One letter changed' end
+  save()
+  return true
+end
+local function undo()
+  if not S or #S.paths[S.level]<=1 then return false end
+  table.remove(S.paths[S.level])
+  if S.hints[S.level]~=0 then S.hints[S.level]=-1 end
+  MSG='Last word removed'
+  save()
+  return true
+end
+local function restart()
+  if not S then return false end
+  local p=level()
+  S.paths[S.level]={assert(index_of(p.words,p.start))}
+  S.hints[S.level]=0
+  MSG='New attempt'
+  save()
+  return true
+end
+-- Shortest path on the remaining word cards, excluding already-used cards.
+local function next_hint()
+  local p=level()
+  local path=S.paths[S.level]
+  local seen={}
+  for _,i in ipairs(path) do seen[i]=true end
+  local currentIndex=path[#path]
+  local target=index_of(p.words,p.goal)
+  local queue={{currentIndex,nil,0}}
+  local front=1
+  seen[currentIndex]=true
+  while front<=#queue do
+    local item=queue[front];front=front+1
+    local at,first,dist=item[1],item[2],item[3]
+    if at==target then
+      if dist<=p.limit-(#path-1) then return first end
+      return nil
+    end
+    for i=1,#p.words do
+      if not seen[i] and diff(p.words[at],p.words[i])==1 then
+        seen[i]=true
+        queue[#queue+1]={i,first or i,dist+1}
+      end
+    end
+  end
+  return nil
+end
+local function hint()
+  if not S or done() then return false end
+  if S.hints[S.level]~=0 then
+    MSG=S.hints[S.level]>0 and 'Double ring marks a next word' or 'Hint already used'
+    return true
+  end
+  local nextWord=next_hint()
+  if not nextWord then MSG='No route remains: use UNDO';return true end
+  S.hints[S.level]=nextWord
+  MSG='A possible next word is ringed'
+  save()
+  return true
+end
+local function text(g,x,y,s,style,align,width) UI.text(g,C,x,y,s,style,align,width) end
+local function button(g,x,y,w,h,s) UI.button(g,C,x,y,w,h,s) end
+local function grid_point(i)
+  local col=(i-1)%3
+  local row=math.floor((i-1)/3)
+  return 22+col*150,275+row*58,136,54
+end
+local function draw_help(g)
+  text(g,240,155,'HOW TO BRIDGE','large','center',420)
+  UI.paragraph(g,C,28,219,424,120,
+    'Change one letter at a time. Select your next word from the twelve cards.', 'medium')
+  UI.paragraph(g,C,28,351,424,114,
+    'Reach the goal within the move limit. You cannot use the same card twice.', 'medium')
+  UI.paragraph(g,C,28,479,424,120,
+    'UNDO removes your last word. HINT marks one possible next step. RESET restarts this puzzle.', 'medium')
+  button(g,75,703,330,68,'BACK TO WORDS')
+end
+local function render(g)
+  g:clear(0)
+  text(g,22,18,'WORD BRIDGE','large',nil,280)
+  button(g,418,13,43,45,HELP and 'X' or '?')
+  if S.level<S.unlocked and S.level<TOTAL then button(g,312,13,96,45,'NEXT') end
+  text(g,22,76,'PUZZLE '..S.level..' / '..TOTAL,'medium')
+  text(g,22,118,'CHANGE ONE LETTER PER MOVE','small',nil,435)
+  g:line(22,154,458,154,{line_width=2})
+  if HELP then draw_help(g);return end
+  local p=level()
+  button(g,22,172,205,82,'NOW: '..current())
+  button(g,249,172,209,82,'GOAL: '..p.goal)
+  UI.region(22,275,436,228)
+  for i,word in ipairs(p.words) do
+    local x,y,w,h=grid_point(i)
+    g:rect(x,y,w,h,{line_width=2})
+    if in_path(i) then
+      g:circle(x+12,y+12,4,{fill=true})
+    elseif diff(current(),word)==1 and not done() then
+      g:circle(x+w-11,y+11,4,{line_width=2})
+    end
+    if p.words[S.paths[S.level][#S.paths[S.level]]]==word then
+      g:rect(x+3,y+3,w-6,h-6,{line_width=2})
+    end
+    if S.hints[S.level]==i then
+      g:circle(x+w-11,y+h-11,5,{line_width=2})
+      g:circle(x+w-11,y+h-11,8,{line_width=1})
+    end
+    text(g,x+w/2,y+14,word,'medium','center',w-20)
+  end
+  local used=#S.paths[S.level]-1
+  text(g,240,544,'MOVES '..used..' / '..p.limit,'medium','center',430)
+  text(g,240,592,MSG or (done() and 'BRIDGE COMPLETE!' or 'Select one-letter neighbor'),'small','center',430)
+  text(g,240,633,'Dots show available and used word cards','small','center',440)
+  button(g,20,698,104,72,S.level>1 and 'PREV' or 'START')
+  button(g,132,698,104,72,'UNDO')
+  button(g,244,698,104,72,'HINT')
+  button(g,356,698,104,72,'RESET')
+end
+local function hit(x,y,bx,by,w,h)
+  return x>=bx and x<bx+w and y>=by and y<by+h
+end
+local function tap(x,y)
+  if hit(x,y,418,13,43,45) then HELP=not HELP;return true end
+  if HELP then
+    if hit(x,y,75,703,330,68) then HELP=false;return true end
+    return false
+  end
+  if hit(x,y,312,13,96,45) then return next_level() end
+  if hit(x,y,20,698,104,72) then return previous() end
+  if hit(x,y,132,698,104,72) then return undo() end
+  if hit(x,y,244,698,104,72) then return hint() end
+  if hit(x,y,356,698,104,72) then return restart() end
+  for i=1,12 do
+    local a,b,w,h=grid_point(i)
+    if hit(x,y,a,b,w,h) then return move(i) end
+  end
+  return false
+end
+local function refresh()
+  if C then pcall(function() C:invalidate() end) end
+end
+function on_load(context)
+  C=context or ctx;ERR=nil
+  local ok,e=pcall(function() if not restore() then start() end end)
+  if not ok then ERR=tostring(e) end
+end
+function on_draw(context,g)
+  if context then C=context end
+  if not g then return end
+  if ERR then UI.error(g,C,'WORD BRIDGE',ERR);return end
+  local ok,e=pcall(function() render(g) end)
+  if not ok then ERR=tostring(e);UI.error(g,C,'WORD BRIDGE',ERR) end
+end
+function on_input(context,event)
+  if context then C=context end
+  if ERR or not S or type(event)~='table' then return false end
+  local changed=false
+  local ok,e=pcall(function()
+    if event.type=='pointer' or event.type=='touch' then
+      if event.type=='pointer' and event.phase~='up' then return end
+      if event.gesture and event.gesture~='tap' and event.gesture~='double_tap' then return end
+      changed=tap(tonumber(event.x) or -1,tonumber(event.y) or -1)
+    elseif event.type=='key' and (not event.phase or event.phase=='down') and
+       (event.key=='up' or event.key=='down') then
+      local now=tonumber(event.time_ms)
+      if not now and C and C.clock then
+        local yes,value=pcall(function() return C.clock:millis() end)
+        if yes then now=tonumber(value) end
+      end
+      if now and now>=KEY_MS and now-KEY_MS<230 then return end
+      if now then KEY_MS=now end
+      changed=event.key=='up' and previous() or next_level()
+    end
+  end)
+  if not ok then ERR=tostring(e);changed=true end
+  if changed then refresh() end
+  return changed
+end
+function on_leave() if S then save() end end
+if rawget(_G,'__TEST') then
+  __TEST.api={
+    levels=LEVELS,state=function() return S end,
+    diff=diff,move=move,undo=undo,hint=hint,restart=restart,
+    done=done,next=next_level,prev=previous,visit=visit,
+    grid_point=grid_point,tap=tap,restore=restore
+  }
+end

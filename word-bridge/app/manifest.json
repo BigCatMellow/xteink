@@ -1,0 +1,10 @@
+{
+  "app_id": "wordbridge",
+  "display_name": "Word Bridge",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Twelve original no-animation four-letter word chain puzzles for X4 Pro.",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

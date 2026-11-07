@@ -18,7 +18,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y lua5.4
-          python -m pip install cryptography
+          python -m pip install cryptography Pillow
       - name: Verify native 1-bit launcher icon
         run: python scripts/make_icons.py --check
       - name: Verify twelve object scenes

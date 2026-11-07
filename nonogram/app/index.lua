@@ -222,12 +222,12 @@ local function format_run(list)
 end
 local function help_screen(g)
   text(g,240,174,'HOW TO SOLVE','large','center',420)
-  UI.paragraph(g,C,25,235,430,105,
-    'The numbers show runs of filled squares in each row and column, in order. Leave at least one gap between runs.', 'medium')
-  UI.paragraph(g,C,25,369,430,95,
-    'Tap cells to cycle blank, black and X. An X means you believe a square is empty.', 'medium')
-  UI.paragraph(g,C,25,490,430,110,
-    'Tap CHECK to submit the picture. Wrong boards stay editable. Progress and UNDO history are saved.', 'medium')
+  UI.paragraph(g,C,25,235,430,126,
+    'Numbers give the lengths of black runs. Separate each run by a blank cell.', 'medium')
+  UI.paragraph(g,C,25,369,430,110,
+    'Tap a cell: blank, black, X, then clear. X means empty.', 'medium')
+  UI.paragraph(g,C,25,490,430,147,
+    'CHECK submits the picture. Wrong grids remain editable. Progress and UNDO are saved.', 'medium')
   button(g,75,710,330,65,'BACK TO GRID')
 end
 local function draw(g)

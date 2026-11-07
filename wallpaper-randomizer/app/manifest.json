@@ -1,9 +1,9 @@
 {
   "app_id": "wallrandom",
   "display_name": "Wallpaper Randomizer",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": "BigCatMellow",
-  "description": "Rotate lossless PNG lock-screen images on sleep without immediate repeats.",
+  "description": "Read native XTH wallpapers from the app folder and rotate on sleep.",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": [],

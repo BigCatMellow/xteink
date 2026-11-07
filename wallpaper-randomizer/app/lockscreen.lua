@@ -1,16 +1,17 @@
 -- XTEINK X4 Pro / Licorice custom lock screen.
--- Picks one of the user's lossless PNGs each time the lock-screen session loads.
+-- Picks one of the user's native XTHs on the first wake of each sleep session.
 -- The wallpaper does not change on every on_draw or on_tick. It advances when
 -- the device enters sleep and stays fixed while asleep.
 -- This is NOT the unverified ctx.lockscreen:set_wallpaper() path.
 local W, H = 480, 800
-local IDLE_REFRESH_SEC = 31536000 -- one year: avoid battery-wasting redraws
+local XTH=require('xth')
+local IDLE_REFRESH_SEC = 31536000 -- request only; firmware may clamp this
 local picked, picture, status = nil, nil, nil
 local current_ctx
 
 local function usable_name(s)
   return type(s)=='string' and #s<=96 and
-    not s:find('[/%c\\]') and s:lower():match('%.png$')~=nil
+    not s:find('[/%c\\]') and s:lower():match('%.xth$')~=nil
 end
 
 local function filenames(c)
@@ -55,7 +56,7 @@ local function random_index(n, last, seq, tick)
   -- Choose uniformly from n-1 indices excluding the previous one.
   -- seq is persistent, so even identical clock values do not freeze rotation.
   local salt = (math.floor(tick or 0) + seq*1664525 + 1013904223) % 4294967296
-  local index_ = (salt % (n-1)) + 1
+  local index_ = (salt % (last and (n-1) or n)) + 1
   if last and index_>=last then index_=index_+1 end
   return index_
 end
@@ -73,10 +74,15 @@ end
 
 local function select(c)
   local names=filenames(c)
-  if #names==0 then return nil, 'No PNG images. Run the sync tool.' end
+  if #names==0 then return nil, 'Add XTH files to the app folder.' end
   local old=read(c,'rotation.txt') or ''
   local seq=tonumber(old:match('sequence=(%d+)')) or 0
   local last=old:match('last=([^\n]+)')
+  -- Firmware may wake a sleep screen on a timer. Keep the displayed image
+  -- through those wakes instead of advancing the deck while asleep.
+  if c.lock and c.lock.reason=='timer' then
+    for _,name in ipairs(names) do if name==last then return name,nil end end
+  end
   local last_index=nil
   for i,name in ipairs(names) do
     if name==last then last_index=i; break end
@@ -91,12 +97,17 @@ local function select(c)
 end
 
 local function decode(c,name)
-  if not c.image then return nil,'Image decoder unavailable' end
   local bytes=read(c,name)
   if not bytes then return nil,'Cannot read '..name end
-  local ok,img=pcall(function() return c.image:decode(bytes) end)
-  if not ok or not img then return nil,'Cannot decode '..name end
-  return img
+  return XTH.open(c,bytes)
+end
+
+local function diagnostics(c,message)
+  if not c or not c.storage then return end
+  pcall(function() c.storage:write('diagnostics.txt',
+    'reason='..tostring(c.lock and c.lock.reason)..'\ninterval='..
+    tostring(c.lock and c.lock.interval_sec)..'\nframe='..tostring(picked)..
+    '\nstatus='..tostring(message)..'\n') end)
 end
 
 function on_load(c)
@@ -105,13 +116,14 @@ function on_load(c)
   picked,picture,status=nil,nil,nil
   local ok,err=pcall(function()
     local cc=current_ctx
-    -- The manifest and this optional host setting both make idle redraws
-    -- effectively disabled. A new lock-screen session still selects an image.
+    -- Ask for a long idle interval; record the actual host value for device
+    -- testing. Do not claim periodic wakes are disabled until measured.
     if cc.lock then
       pcall(function() cc.lock:set_interval(IDLE_REFRESH_SEC) end)
     end
     picked,status=select(cc)
     if picked then picture,status=decode(cc,picked) end
+    diagnostics(cc,status or 'loaded')
   end)
   if not ok then status='Lock screen error: '..tostring(err) end
 end
@@ -121,12 +133,16 @@ function on_draw(c,g)
   local cc=c or current_ctx
   g:clear(0)
   if picture then
-    -- PNGs are pre-sized to 480x800; no on-device scaling needed.
-    g:image(picture,0,0)
-    return
+    local ok,result,err=pcall(function() return picture:draw(g) end)
+    if ok and result then diagnostics(cc,'rendered');return end
+    status='Render failed: '..tostring(err or result)
+    pcall(function() picture:release() end)
+    picture=nil
+    g:clear(0)
+    diagnostics(cc,status)
   end
   local font=cc and cc.fonts and cc.fonts.medium or nil
-  local message=status or 'Wallpaper Randomizer: add PNGs'
+  local message=status or 'Wallpaper Randomizer: add XTHs'
   if font then g:text(22,355,message:sub(1,42),{font=font})
   else g:text(22,355,message:sub(1,42)) end
 end

@@ -13,7 +13,7 @@ Projects and experiments for the XTEINK X4 Pro, primarily running XTOS Licorice.
 
 ## Utilities
 
-- [Wallpaper Randomizer](wallpaper-randomizer/README.md) — rotates lock-screen JPEGs.
+- [Wallpaper Randomizer](wallpaper-randomizer/README.md) — reads XTH wallpapers from its own folder and rotates on sleep.
 
 ## Builds
 

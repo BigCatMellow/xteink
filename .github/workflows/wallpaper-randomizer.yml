@@ -20,13 +20,8 @@ jobs:
           python -m pip install cryptography pillow
       - name: Test rotation logic
         run: cd wallpaper-randomizer && lua tests/test_wallpaper.lua
-      - name: Image conversion smoke test
-        run: |
-          python -c "from PIL import Image; Image.new('RGB',(640,800),'white').save('/tmp/test.png')"
-          mkdir -p /tmp/wallpaper-input
-          cp /tmp/test.png /tmp/wallpaper-input/
-          python wallpaper-randomizer/tools/prepare_images.py /tmp/wallpaper-input --output /tmp/wallpaper-out
-          python -c "from PIL import Image; i=Image.open('/tmp/wallpaper-out/wall001.jpg'); assert i.size == (480,800)"
+      - name: Verify XTH renderer pixels and image lifecycle
+        run: python wallpaper-randomizer/tests/test_xth.py
       - name: Fetch pinned packer
         run: |
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
@@ -35,6 +30,7 @@ jobs:
         run: |
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/index.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/lockscreen.lua
+          python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/xth.lua
       - name: Build XTApp
         run: |
           mkdir -p dist

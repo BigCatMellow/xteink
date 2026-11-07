@@ -1,87 +1,54 @@
 # Wallpaper Randomizer — XTEINK X4 Pro
 
-A small, offline **XTOS Licorice Ink App** that cycles through lossless 480 × 800 **PNG** wallpapers whenever its custom lock screen starts. It remembers the last displayed image, and never picks that same image on the next activation if there are at least two.
+An offline XTOS Licorice Ink App that reads native **480 × 800 `.xth`** wallpapers from its own folder and chooses a new one when its custom sleep screen starts. With two or more pictures it avoids consecutive repeats.
 
-**Status:** v0.2 prototype. This is an app-based *lock screen*, not a patch to the stock **Off wallpaper → Custom** option. It selects the next wallpaper when the reader enters sleep, then remains static while asleep. Firmware lifecycle behavior can still differ by version.
+**Status: v0.4 prototype, tested on the host; XTH rendering, runtime limits, and sleep lifecycle still need verification on the physical reader.** A passing build does not establish device compatibility or battery usage.
 
-## How it works
+## Install
 
-- The user copies pictures into the app's private folder: `XTApps/wallrandom/files/` on the microSD card.
-- `lockscreen.lua` lists PNG files, sorts them, and randomly picks from every file **except the last displayed**. It saves the filename and a counter in `rotation.txt`, so reboots don't cause consecutive repeats.
-- The image is decoded once per lock-screen session, not every screen redraw. The idle refresh interval is one year, so it does not perform hourly redraws or consume power while asleep.
-- **One picture:** displays that picture every time. **No pictures:** displays an instruction instead of crashing.
-- No network access, cloud sync, or changes to the device firmware are required.
+1. Download `wallpaper-randomizer.xtapp` from the [latest successful build](https://github.com/BigCatMellow/xteink/actions/workflows/wallpaper-randomizer.yml). Place it at the SD-card root, exit USB mode, and install it through **All Files**. Update over the existing app; do not uninstall first.
+2. In USB mode, copy your `.xth` files into **`XTApps/wallrandom/files/`**, creating `files/` if needed. Use flat filenames such as `g10.xth`; no subfolders or spaces. Existing JPEG/PNG files are ignored and can stay during testing.
+3. Set **Settings → Display → Off wallpaper → Default**.
+4. Open **Ink App → Wallpaper Randomizer**, tap **RESCAN**, and check the count. Try **PREVIEW** first; tap to close it.
+5. Tap **ENABLE LOCK SCREEN**, approve the system prompt, then sleep and wake the reader several times.
 
-The included `tools/prepare_images.py` crops and converts ordinary PNG/JPG/WebP/BMP pictures into properly sized grayscale JPEGs. The images themselves are **not committed** and are **not embedded into the `.xtapp` package**.
+You can add XTHs straight to this folder. No image conversion or computer sync tool is required. The firmware blocks apps from reading arbitrary SD folders such as `Pushed Images`; copy files from there into the app folder once if you want to reuse them. Keep originals: uninstalling an app deletes its private files.
 
-### Native XTH wallpaper switcher
+## Rendering
 
-For a crisp stock wallpaper, use `tools/native_xth_wallpaper.py` instead of the Ink App: it reads a frame directly from `Pushed Images/` and updates the reader's native wallpaper cache without JPEG conversion. Run it only while the reader is mounted in USB mode:
+`app/xth.lua` validates the XTH header and reads its two bitplanes: columns stored right-to-left, eight vertical pixels per byte. It preserves every source pixel and uses the native shade ordering: white, dark gray, light gray, black.
 
-```bash
-python wallpaper-randomizer/tools/native_xth_wallpaper.py /media/mellow/4A21-0000
-```
+The app image API does not have a verified direct XTH blit. The renderer bridges those pixels to the available image API using small **480 × 16 lossless grayscale PNG strips in memory**. No PNG files are written to the SD card. There is no JPEG compression, scaling, smoothing, or dithering. Strips avoid passing one full-screen PNG to a decoder that has failed on large PNGs in community tests. Their decoded images stay alive until the session closes, and are reused on redraw.
 
-It chooses a random `.xth` frame without immediately repeating the previous choice. Use `--frame g11.xth --dry-run` to verify a specific frame first. This is a desktop-side switcher: stock firmware does not expose a supported way to advance a native wallpaper automatically on every sleep.
+Host tests reconstruct the strips with Pillow and compare every output pixel against an independent XTH decoder. They also exercise malformed headers, partial decoder failure, redraw reuse and resource release. Firmware memory/instruction limits, decoder behavior and visible rendering speed remain device tests.
 
-### Automatic sleep rotation without JPEG
+## Sleep and battery behavior
 
-The custom lock-screen app is invoked at every sleep, so it can rotate without an hourly wake. It cannot read `Pushed Images/` directly: Licorice restricts every app to its own `XTApps/<app>/files/` folder. While the reader is mounted, mirror the native XTH files into that sandbox as lossless four-grey-level PNGs:
+The app chooses an image on a new lock-screen session, records it in `rotation.txt`, and keeps it through redraws and ticks. If the host reports `ctx.lock.reason == 'timer'`, it reuses the previous image rather than rotating while asleep.
 
-```bash
-python wallpaper-randomizer/tools/sync_xth_png.py /media/mellow/READER_LABEL
-```
+The manifest and `set_interval` request a one-year interval. **Whether the firmware accepts that interval or clamps it is unverified.** We cannot yet claim periodic wakes are disabled. `diagnostics.txt` records the host's reason, reported interval, selected frame and render status for the physical-device check. Stable wallpaper alone is not proof that the reader did not wake or refresh.
 
-This does not alter the XTH originals. It is a lossless copy for the app only; the reader still picks a new frame on every sleep and does not redraw hourly. Full-screen PNG decoding should be confirmed on the device before removing the prior JPEG files.
+Custom sleep screens are firmware-specific and require **Off wallpaper → Default**. This app does not change the stock Custom wallpaper cache. Full shutdown may behave differently from sleep; test the exact power-button action you use.
 
-## Install on Licorice
-
-1. Open the [Wallpaper Randomizer build](https://github.com/BigCatMellow/xteink/actions/workflows/wallpaper-randomizer.yml). Download the latest successful **wallpaper-randomizer-xtapp** artifact and extract `wallpaper-randomizer.xtapp`.
-2. Put the `.xtapp` at the root of the reader's microSD card using USB mode. In **All Files**, tap it and confirm installation.
-3. Go back to USB mode. Open `XTApps/wallrandom/files/` on the microSD card, **creating the `files` directory if needed**. Copy at least **two** JPEG images there, preferably portrait **480 × 800**. Use simple ASCII names such as `01.jpg`, `02.jpg`, etc. Avoid nested folders.
-4. In **Settings → Display**, select **Default** for **Off wallpaper** (not Custom, Cover, or Desk).
-5. Open **Ink App → Wallpaper Randomizer**. If Ink App is hidden, go to **Settings → About** and tap **Model** ten times quickly.
-6. Tap **RESCAN** to count photos, then **ENABLE LOCK SCREEN**, and approve Licorice's system confirmation.
-7. Lock/sleep the reader, wake it, and lock it again. Confirm images rotate.
-
-You can use **PREVIEW** in the app to confirm a JPEG decodes on the device. Tap the screen again to leave preview. Only tap **ENABLE** when you're ready to make it the active lock screen.
-
-### Converting a folder of images
-
-Install Python 3 and Pillow (`python -m pip install Pillow`), then run from this project folder:
+## Build and verify
 
 ```bash
-python tools/prepare_images.py /path/to/pictures --output prepared
+cd wallpaper-randomizer
+lua5.4 tests/test_wallpaper.lua
+python3 tests/test_xth.py
+python3 /path/to/touch-licorice-apps/xtpack.py app -o wallpaper-randomizer.xtapp
 ```
 
-The `prepared/` directory will contain `wall001.jpg`, `wall002.jpg`, and so on. Copy those JPEGs to `XTApps/wallrandom/files/` on your SD card.
+Python renderer tests require Pillow. To check your own art, append XTH paths to `tests/test_xth.py`. The packer includes `index.lua`, `lockscreen.lua` and `xth.lua` in the app.
 
-Original PNG/BMP images won't be recognized directly by this v0.1 app; convert them first. The device's image decoder has been confirmed for JPEG, whereas PNG support has varied by firmware build.
+See [physical-device checks](docs/DEVICE_TESTING.md) before calling this release device-verified.
 
-**Important:** Reinstalling the app *over* an existing install generally preserves its files. **Uninstalling** the app deletes its app-private storage, including your pictures and rotation history. Keep originals on your computer.
+## Earlier desktop tools
 
-## Limitations / verification
-
-- **Live lock-screen support is firmware-specific.** The official API is not public; community tests establish `lockscreen.lua` plus `ctx.lockscreen:set_default()`. The app chooses only when a lock-screen session starts, and uses a one-year idle-refresh interval to avoid periodic redraws.
-- **This cannot change the normal stock “Custom” wallpaper directly.** Attempts to use `ctx.lockscreen:set_wallpaper()` have not produced a working off-wallpaper on tested Licorice versions.
-- **A small app sandbox only.** Licorice mini-apps cannot scan arbitrary SD folders like CrossPoint's `/.sleep/`. Images must be in the app's private `files/` folder.
-- **Do not uninstall to update.** Uninstall removes app data.
-- The prototype uses JPEGs to limit decoding failures, and does not currently include a device-side file picker.
-- A custom lock-screen app may override the usual book-cover/Desk off-wallpaper behavior while enabled.
-- Installation/build success does **not** prove correct real-device lock lifecycle.
-
-## Project structure
-
-- `app/index.lua`: Enable, rescan, and preview management UI.
-- `app/lockscreen.lua`: Lock entry, persistent no-repeat image selection, JPEG renderer.
-- `app/manifest.json`: Licorice app manifest with lock-screen entry point.
-- `tools/prepare_images.py`: JPEG conversion tool.
-- `tests/test_wallpaper.lua`: Simulated host tests.
-- `docs/DEVICE_TESTING.md`: Physical-device acceptance checks.
-- `.github/workflows/wallpaper-randomizer.yml` (repo root): build and package workflow.
+`tools/native_xth_wallpaper.py` changes the stock cached wallpaper while connected to the computer. It does not randomize on sleep. `tools/prepare_images.py` and `tools/sync_xth_png.py` belong to previous JPEG/PNG prototypes; the v0.4 app reads XTHs instead.
 
 ## Sources
 
-- [Community Licorice API findings](https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/main/docs/firmware-notes.md)
-- [Working Notes lock-screen example](https://github.com/omer-faruq-xteink/touch-licorice-apps/tree/main/apps/notes)
-- [Community .xtapp packaging tool](https://github.com/omer-faruq-xteink/touch-licorice-apps)
+- [Community firmware/API findings](https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/main/docs/firmware-notes.md)
+- [Lock-screen lifecycle probe](https://github.com/omer-faruq-xteink/touch-licorice-apps/tree/main/tools/lockprobe)
+- [App packaging tool](https://github.com/omer-faruq-xteink/touch-licorice-apps)

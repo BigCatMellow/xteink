@@ -1,9 +1,11 @@
 -- Host lifecycle tests; byte-level renderer tests live in test_xth.py.
 package.path='app/?.lua;'..package.path
-package.loaded.xth={compose=function(c,bytes,complete)
+package.loaded.xth={compose=function(c,bytes,complete,note,options)
+  assert(options and options.name=='one.xth','full preview must pass its source name to the persistent cache')
   local released=false
   local picture={draw=function(_,g) g:image({bytes=bytes},0,0);return true end,
-    release=function() released=true end}
+    release=function() released=true end,
+    metrics={total_ms=1234,cache_hits=25,encoded_strips=0,encode_ms=0}}
   c:after(1,function() if not released then complete(picture) end end)
   return picture
 end,validate=function(bytes) return bytes~='BROKEN','Invalid XTH' end,
@@ -83,6 +85,7 @@ on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=450})
 assert(#queue==1,'repeated taps must not start competing builds')
 table.remove(queue,1)()
 assert(main.is_preview() and not main.is_building())
+assert(storage['preview-timing.txt']:find('cache_hits=25',1,true),'completed cache metrics must reach the device log')
 on_draw(ctx,g)
 on_input(ctx,{type='pointer',phase='up',gesture='tap',x=200,y=200})
 on_input(ctx,{type='pointer',phase='up',gesture='tap',x=100,y=540})

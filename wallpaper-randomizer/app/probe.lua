@@ -26,7 +26,8 @@ end
 
 function P.timing(c,metrics)
   local lines={}
-  for _,name in ipairs({'total_ms','layer_ms','encode_ms','decode_ms','copy_ms','queue_ms','strips'}) do
+  for _,name in ipairs({'total_ms','layer_ms','cache_ms','encode_ms','decode_ms','copy_ms','queue_ms',
+    'cache_hits','encoded_strips','strips'}) do
     lines[#lines+1]=name..'='..tostring(metrics[name] or 0)
   end
   if c.storage then pcall(function() c.storage:write('preview-timing.txt',table.concat(lines,'\n')..'\n') end) end

@@ -70,11 +70,11 @@ local function show_full()
       photo=result;preview=true;preview_full=true
       if result.metrics then
         Probe.timing(owner,result.metrics)
-        status=string.format('Ready in %.1f seconds',(result.metrics.total_ms or 0)/1000)
+        status=string.format('%.1fs / %d cached strips',(result.metrics.total_ms or 0)/1000,result.metrics.cache_hits or 0)
       else status='Full preview ready' end
     else photo=nil;preview=false;status=message end
     pcall(function() owner:invalidate() end)
-  end,Probe.composer_log(owner))
+  end,Probe.composer_log(owner),{name=names[1]})
   if not picture then building=false;status=err;return end
   photo=picture
 end
@@ -103,7 +103,7 @@ function on_load(c)
   C=c or ctx
   if C.lockscreen then pcall(function() C.lockscreen:clear_default() end) end
   scan()
-  status='Preview improved; automatic mode paused'
+  status='Cache preview; automatic mode paused'
 end
 
 function on_draw(c,g)
@@ -123,12 +123,12 @@ function on_draw(c,g)
   local large=C.fonts and C.fonts.large
   local small=C.fonts and C.fonts.small
   g:text(30,50,'WALLPAPER',{font=large})
-  g:text(30,87,'FAST PREVIEW 0.4.4',{font=medium})
+  g:text(30,87,'CACHED PREVIEW 0.4.5',{font=medium})
   g:line(30,134,450,134)
   g:text(30,173,tostring(#names)..' XTH images ready',{font=medium})
   g:text(30,230,'Automatic wallpaper is paused.',{font=medium})
   g:text(30,263,'Full preview builds off-screen.',{font=medium})
-  g:text(30,310,'Larger strips; fewer card writes.',{font=small})
+  g:text(30,310,'Prepared images skip XTH encoding.',{font=small})
   g:text(30,338,'No hourly wake test enabled.',{font=small})
   g:rect(30,420,420,66)
   g:text(120,441,'FULL PREVIEW',{font=medium})

@@ -1,7 +1,8 @@
--- Native 480x800 XTH reader. Files remain XTH on the card. Small in-memory
--- grayscale PNG strips bridge the pixels to Licorice's image blitter; these
--- are never saved, resized, dithered, or JPEG-compressed.
+-- Native 480x800 XTH reader. Originals remain XTH on the card. Small lossless
+-- grayscale PNG strips bridge the pixels to Licorice's image blitter and may
+-- be cached in bounded app-storage bundles. No resizing or dithering.
 local X = {width=480, height=800, tile_height=32}
+local Cache=require('cache')
 local byte, char, concat = string.byte, string.char, table.concat
 local crc_table = {}
 for n=0,255 do
@@ -89,7 +90,7 @@ end
 
 -- Build off-screen in short callbacks. At most one decoded strip stays alive;
 -- its pixels are copied into one reusable layer before that strip is released.
-function X.compose(ctx,raw,complete,note)
+function X.compose(ctx,raw,complete,note,options)
   local valid,err=X.validate(raw)
   if not valid then return nil,err end
   if not ctx.image then return nil,'Image blitter unavailable' end
@@ -99,18 +100,32 @@ function X.compose(ctx,raw,complete,note)
     return ok and tonumber(value) or 0
   end
   local started=now()
+  local initial_cache_ms=0
+  local disk_cache
+  if options and options.name then
+    if X.tile_height~=Cache.tile then return nil,'Wallpaper cache strip size mismatch' end
+    local ok,value,why=pcall(function() return Cache.open(ctx,options.name,raw) end)
+    if not ok or not value then return nil,'Cannot open wallpaper cache: '..tostring(why or value) end
+    disk_cache=value
+    initial_cache_ms=math.max(0,now()-started)
+  end
   note=note or function() end
   note('layer-create-start','480x800')
   local good,layer,why=pcall(function() return ctx.layers:create(480,800) end)
-  if not good or not layer then return nil,'Cannot create wallpaper layer: '..tostring(why or layer) end
+  if not good or not layer then
+    if disk_cache then disk_cache:release() end
+    return nil,'Cannot create wallpaper layer: '..tostring(why or layer)
+  end
   local pending,y,disposed,ready=nil,0,false,false
-  local metrics={layer_ms=math.max(0,now()-started),encode_ms=0,decode_ms=0,copy_ms=0,queue_ms=0,strips=0,total_ms=0}
+  local metrics={layer_ms=math.max(0,now()-started-initial_cache_ms),encode_ms=0,decode_ms=0,copy_ms=0,
+    queue_ms=0,cache_ms=initial_cache_ms,cache_hits=0,encoded_strips=0,strips=0,total_ms=0}
   local scheduled=started
   local picture={metrics=metrics}
   function picture:release()
     disposed=true
     if pending then pcall(function() pending:release() end);pending=nil end
     if layer then pcall(function() layer:release() end);layer=nil end
+    if disk_cache then disk_cache:release();disk_cache=nil end
     raw=nil;ready=false
   end
   function picture:draw(g)
@@ -142,6 +157,10 @@ function X.compose(ctx,raw,complete,note)
       -- callback begins. Do not release objects while a draw queues them.
       if pending then pending:release();pending=nil end
       if y>=800 then
+        if disk_cache then
+          local tick=now();disk_cache:finish();disk_cache=nil
+          metrics.cache_ms=metrics.cache_ms+math.max(0,now()-tick)
+        end
         raw=nil;ready=true
         metrics.total_ms=math.max(0,now()-started)
         note('compose-ready',metrics.strips..' strips, one retained layer')
@@ -150,14 +169,32 @@ function X.compose(ctx,raw,complete,note)
       end
       if ctx.budget then pcall(function() ctx.budget:extend() end) end
       local tick=now()
-      note('strip-encode-start',y)
-      local png=X.strip(raw,y,math.min(X.tile_height,800-y))
-      metrics.encode_ms=metrics.encode_ms+math.max(0,now()-tick)
+      local png
+      if disk_cache then
+        png=disk_cache:get(y)
+        metrics.cache_ms=metrics.cache_ms+math.max(0,now()-tick)
+      end
+      if png then
+        metrics.cache_hits=metrics.cache_hits+1
+      else
+        tick=now()
+        note('strip-encode-start',y)
+        png=X.strip(raw,y,math.min(X.tile_height,800-y))
+        metrics.encode_ms=metrics.encode_ms+math.max(0,now()-tick)
+        metrics.encoded_strips=metrics.encoded_strips+1
+        if disk_cache then
+          tick=now();disk_cache:put(y,png)
+          metrics.cache_ms=metrics.cache_ms+math.max(0,now()-tick)
+        end
+      end
       note('strip-decode-start',y)
       tick=now()
       local image,decode_error=ctx.image:decode(png)
       metrics.decode_ms=metrics.decode_ms+math.max(0,now()-tick)
-      if not image then error('Strip '..y..': '..tostring(decode_error)) end
+      if not image then
+        if disk_cache then disk_cache:invalidate() end
+        error('Strip '..y..': '..tostring(decode_error))
+      end
       pending=image
       note('strip-copy-start',y)
       tick=now()

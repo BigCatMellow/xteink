@@ -1,18 +1,29 @@
 # XTH wallpaper physical-device checks
 
-**v0.4.4 is an optimized manual preview test only.** v0.4.1 failed on the reader (preview crashed,
+**v0.4.5 is a cached manual preview test only.** v0.4.1 failed on the reader (preview crashed,
 stock sleep screen shown). Its log stopped at `status=loaded` and reported
 `interval=3600`. Preserve that evidence before updating.
 
 v0.4.2's small PNG and single XTH strip were confirmed visible on the reader.
-v0.4.3's complete image was confirmed visible, taking 30–60 seconds. Install
-v0.4.4 over it and tap FULL PREVIEW. Compare the elapsed build time and read
-`preview-timing.txt` after reconnecting. Verify a complete,
+v0.4.3's complete image was confirmed visible, taking 30–60 seconds. v0.4.4
+measured 10.167 seconds, including 8.025 seconds encoding. Install v0.4.5 over
+it and tap FULL PREVIEW. A prepared image should report 25 cached strips;
+close/reopen the app and repeat to test persistence. Compare elapsed build
+times and read `preview-timing.txt` after reconnecting. Expect `cache_hits=25`,
+`encoded_strips=0` and `encode_ms=0` for both prepared runs. Do not assume
+desktop-compressed PNG decoding or card I/O is device-verified yet. Verify a complete,
 unscaled image with accurate gray levels, no seams, and no overlaid text. Check
 that it displays without 50 intermediate screen refreshes. Close during a build
 and switch diagnostic tests to check cancellation. Reconnect and read
 `preview-diagnostics.txt` if anything fails. The tests below are
 the future acceptance criteria, not claims that the current build passes them.
+
+Before enabling automatic mode, also test a new image with no prepared cache:
+the first successful preview should encode 25 strips and commit its cache;
+after closing/reopening, the next preview should encode none. On a backed-up
+test collection, replace an XTH with another valid image under the same name;
+ensure the old cache is rejected and the new image is shown. Never delete or
+replace the user's originals to conduct this check.
 
 Host tests verify pixels and selection logic; these steps verify the reader itself.
 

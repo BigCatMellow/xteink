@@ -22,6 +22,8 @@ jobs:
         run: cd wallpaper-randomizer && lua tests/test_wallpaper.lua
       - name: Verify XTH renderer pixels and image lifecycle
         run: python wallpaper-randomizer/tests/test_xth.py
+      - name: Verify persistent cache, invalidation and interrupted builds
+        run: python wallpaper-randomizer/tests/test_cache.py
       - name: Fetch pinned packer
         run: |
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
@@ -32,6 +34,7 @@ jobs:
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/lockscreen.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/xth.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/probe.lua
+          python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/cache.lua
       - name: Build XTApp
         run: |
           mkdir -p dist

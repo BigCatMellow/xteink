@@ -1,8 +1,5 @@
--- XTEINK X4 Pro / Licorice custom lock screen.
--- Picks one of the user's native XTHs on the first wake of each sleep session.
--- The wallpaper does not change on every on_draw or on_tick. It advances when
--- the device enters sleep and stays fixed while asleep.
--- This is NOT the unverified ctx.lockscreen:set_wallpaper() path.
+-- Recovery entry: automatic rendering is paused after a confirmed device crash.
+-- The selection helpers are retained for future work and host tests only.
 local W, H = 480, 800
 local XTH=require('xth')
 local IDLE_REFRESH_SEC = 31536000 -- request only; firmware may clamp this
@@ -114,18 +111,13 @@ function on_load(c)
   current_ctx=c or ctx
   if picture then pcall(function() picture:release() end) end
   picked,picture,status=nil,nil,nil
-  local ok,err=pcall(function()
-    local cc=current_ctx
-    -- Ask for a long idle interval; record the actual host value for device
-    -- testing. Do not claim periodic wakes are disabled until measured.
-    if cc.lock then
-      pcall(function() cc.lock:set_interval(IDLE_REFRESH_SEC) end)
-    end
-    picked,status=select(cc)
-    if picked then picture,status=decode(cc,picked) end
-    diagnostics(cc,status or 'loaded')
-  end)
-  if not ok then status='Lock screen error: '..tostring(err) end
+  -- Device evidence: renderer crashed; the host clamps the interval to 3600s.
+  -- Disarm this entry while the user runs the single-image diagnostic tests.
+  status='Wallpaper paused. Open app diagnostics.'
+  if current_ctx.lockscreen then
+    pcall(function() current_ctx.lockscreen:clear_default() end)
+  end
+  diagnostics(current_ctx,'disabled-after-device-crash')
 end
 
 function on_draw(c,g)

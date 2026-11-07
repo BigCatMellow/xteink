@@ -31,6 +31,7 @@ jobs:
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/index.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/lockscreen.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/xth.lua
+          python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/probe.lua
       - name: Build XTApp
         run: |
           mkdir -p dist

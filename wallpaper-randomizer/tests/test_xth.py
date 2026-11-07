@@ -85,6 +85,22 @@ local failed=assert(X.open({image={decode=function()
 end}},raw))
 local ok,err=failed:draw(g)
 assert(not ok and err:find('unsupported') and releases==52,'decode failure releases earlier strips')
+-- Production diagnostics exercise exactly one small native image per press.
+local Probe=require('probe')
+local checkpoint,decode_count='',0
+local pc={storage={write=function(_,_,text) checkpoint=text end},image={decode=function(_,png)
+  assert(checkpoint:find('stage=decode-start',1,true))
+  decode_count=decode_count+1
+  local out=assert(io.open(arg[2]..'/probe-'..decode_count..'.png','wb'))
+  out:write(png);out:close()
+  return {release=function() end}
+end}}
+local small=assert(Probe.run(pc,'png',nil,function() error('PNG test should not read XTH') end))
+assert(decode_count==1)
+small:release()
+local stripe=assert(Probe.run(pc,'tile','fixture.xth',function() return raw end))
+assert(decode_count==2,'strip probe must never decode 50 retained images')
+stripe:release()
 '''
 
 
@@ -111,6 +127,11 @@ def check(path, output):
             assert strip.size == (480, 16) and strip.mode == 'L'
             result.paste(strip, (0, i * 16))
     assert result.tobytes() == reference(path.read_bytes()), path.name
+    with Image.open(output / 'probe-1.png') as tiny:
+        assert tiny.size == (32, 32) and tiny.getpixel((0, 0)) == 0 and tiny.getpixel((31, 0)) == 255
+    with Image.open(output / 'probe-2.png') as stripe:
+        assert stripe.size == (480, 16)
+        assert stripe.tobytes() == reference(path.read_bytes())[128*480:144*480]
     print(f'{path.name}: all 384000 pixels match, all four shades preserved')
 
 

@@ -1,7 +1,7 @@
--- Wallpaper Randomizer management screen for XTOS Licorice.
--- Locking is opt-in; only the user pressing ENABLE invokes the host dialog.
+-- Recovery diagnostics for a device-confirmed rendering crash.
+-- Opening this build clears its custom lock-screen registration.
 local W,H=480,800
-local XTH=require('xth')
+local Probe=require('probe')
 local C, names, status, preview, photo=nil,{},nil,false,nil
 
 local function accepted(s)
@@ -51,22 +51,17 @@ end
 
 local function show_preview()
   if #names==0 then status='Add XTHs to the app folder';return end
-  local last=read('rotation.txt') or ''
-  local choice=last:match('last=([^\n]+)')
-  local available=false
-  for _,name in ipairs(names) do if name==choice then available=true end end
-  if not available then choice=names[1] end
-  local bytes=read(choice)
-  if not bytes then status='Cannot read '..choice;return end
-  local img,err=XTH.open(C,bytes)
-  if not img then status=err;return end
-  release();photo=img;preview=true;status=choice
+  release();preview=false
+  local img,message=Probe.run(C,'tile',names[1],read)
+  status=message
+  if img then photo=img;preview=true end
 end
 
-local function set_lock()
-  if not C.lockscreen then status='Lock screen API unavailable';return end
-  local ok,err=pcall(function() return C.lockscreen:set_default() end)
-  status=ok and 'Confirm the system lock-screen prompt' or ('Cannot enable: '..tostring(err))
+local function test_png()
+  release();preview=false
+  local img,message=Probe.run(C,'png',nil,read)
+  status=message
+  if img then photo=img;preview=true end
 end
 
 local function redraw()
@@ -75,8 +70,9 @@ end
 
 function on_load(c)
   C=c or ctx
+  if C.lockscreen then pcall(function() C.lockscreen:clear_default() end) end
   scan()
-  status=#names..' XTH image(s) found'
+  status='Full renderer paused after device crash'
 end
 
 function on_draw(c,g)
@@ -85,7 +81,10 @@ function on_draw(c,g)
   g:clear(0)
   if preview and photo then
     local ok,result,err=pcall(function() return photo:draw(g) end)
-    if ok and result then return end
+    if ok and result then
+      g:text(30,700,'Tap to return',{font=C.fonts and C.fonts.small})
+      return
+    end
     status='Preview failed: '..tostring(err or result)
     release();preview=false;g:clear(0)
   end
@@ -93,22 +92,22 @@ function on_draw(c,g)
   local large=C.fonts and C.fonts.large
   local small=C.fonts and C.fonts.small
   g:text(30,50,'WALLPAPER',{font=large})
-  g:text(30,87,'RANDOMIZER',{font=large})
+  g:text(30,87,'DIAGNOSTICS 0.4.2',{font=medium})
   g:line(30,134,450,134)
   g:text(30,173,tostring(#names)..' XTH images ready',{font=medium})
-  g:text(30,230,'Each lock selects a new image.',{font=medium})
-  g:text(30,263,'No immediate repeats.',{font=medium})
-  g:text(30,310,'Copy your .xth files to:',{font=small})
-  g:text(30,338,'XTApps/wallrandom/files/',{font=small})
+  g:text(30,230,'Automatic wallpaper is paused.',{font=medium})
+  g:text(30,263,'Test one small image at a time.',{font=medium})
+  g:text(30,310,'First: TEST PNG. If it displays,',{font=small})
+  g:text(30,338,'return here and try TEST TILE.',{font=small})
   g:rect(30,420,420,66)
-  g:text(65,441,'ENABLE LOCK SCREEN',{font=medium})
+  g:text(120,441,'TEST SMALL PNG',{font=medium})
   g:rect(30,508,200,64)
-  g:text(74,527,'RESCAN',{font=medium})
+  g:text(55,527,'CHECK XTH',{font=medium})
   g:rect(247,508,203,64)
-  g:text(283,527,'PREVIEW',{font=medium})
+  g:text(272,527,'TEST TILE',{font=medium})
   g:line(30,625,450,625)
   g:text(30,660,(status or ''):sub(1,39),{font=small})
-  g:text(30,734,'Tap ENABLE once, then approve.',{font=small})
+  g:text(30,734,'Checkpoints saved for crash diagnosis.',{font=small})
 end
 
 function on_input(c,ev)
@@ -122,9 +121,11 @@ function on_input(c,ev)
     preview=false;release();redraw();return true
   end
   if x>=30 and x<450 and y>=420 and y<486 then
-    set_lock()
+    test_png()
   elseif x>=30 and x<230 and y>=508 and y<572 then
-    scan();status=#names..' XTH image(s) found'
+    scan();release();preview=false
+    local _,message=Probe.run(C,'file',names[1],read)
+    status=message
   elseif x>=247 and x<450 and y>=508 and y<572 then
     show_preview()
   else return false end

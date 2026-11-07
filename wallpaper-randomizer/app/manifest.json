@@ -1,9 +1,9 @@
 {
   "app_id": "wallrandom",
   "display_name": "Wallpaper Randomizer",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": "BigCatMellow",
-  "description": "Read native XTH wallpapers from the app folder and rotate on sleep.",
+  "description": "Single-image diagnostics; automatic wallpaper paused after device crash.",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": [],

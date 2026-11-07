@@ -58,6 +58,7 @@ def run_lua(source, args):
 LUA = r'''
 package.path='app/?.lua;'..package.path
 local X=require('xth')
+local STRIPS=math.ceil(800/X.tile_height)
 local file=assert(io.open(arg[1],'rb'))
 local raw=file:read('*a');file:close()
 assert(X.validate(raw))
@@ -67,8 +68,14 @@ assert(not X.validate(raw:sub(1,9)..string.char(1)..raw:sub(11)))
 local function runtime(write_files)
   local stats={decodes=0,releases=0,copies=0,alive=0,peak=0,layer_alive=0}
   local queue={}
-  local c={after=function(_,ms,fn) assert(ms==1);queue[#queue+1]=fn end}
+  local clock=0
+  local c={after=function(owner,ms,fn)
+    assert(ms==1)
+    queue[#queue+1]=function() clock=clock+5;fn(owner) end
+  end}
+  c.clock={millis=function() return clock end}
   c.image={decode=function(_,png)
+    clock=clock+2
     if write_files then
       local out=assert(io.open(arg[2]..'/'..stats.decodes..'.png','wb'))
       out:write(png);out:close()
@@ -83,14 +90,16 @@ local function runtime(write_files)
     return image
   end}
   c.layers={create=function(_,w,h)
+    clock=clock+4
     assert(w==480 and h==800)
     stats.layer_alive=stats.layer_alive+1
     local layer={released=false}
     function layer:draw(fn)
+      clock=clock+3
       assert(not self.released)
       fn({clear=function() end,image=function(_,image,x,y)
         assert(not image.released,'image must survive until copy completes')
-        assert(x==0 and y==stats.copies*16,'strip positions must cover every row')
+        assert(x==0 and y==stats.copies*X.tile_height,'strip positions must cover every row')
         stats.copies=stats.copies+1
       end})
     end
@@ -103,7 +112,7 @@ local function runtime(write_files)
     while #queue>0 do
       local before=stats.decodes
       local fn=table.remove(queue,1);fn(c)
-      assert(stats.decodes-before<=1,'callback must never batch 50 decodes')
+      assert(stats.decodes-before<=1,'callback must never batch all decodes')
     end
   end
   return c,stats,drain,queue
@@ -113,14 +122,19 @@ local completed
 local picture=assert(X.compose(c,raw,function(result,err) assert(not err);completed=result end))
 assert(stats.decodes==0 and not completed,'compose must yield before doing expensive work')
 drain()
-assert(completed==picture and stats.copies==50 and stats.peak==1)
-assert(stats.alive==0 and stats.releases==50 and stats.layer_alive==1)
+assert(completed==picture and stats.copies==STRIPS and stats.peak==1)
+assert(stats.alive==0 and stats.releases==STRIPS and stats.layer_alive==1)
+assert(picture.metrics.strips==STRIPS,'report the actual callback/strip count')
+assert(picture.metrics.layer_ms==4 and picture.metrics.decode_ms==STRIPS*2)
+assert(picture.metrics.copy_ms==STRIPS*3 and picture.metrics.queue_ms==(STRIPS+1)*5)
+assert(picture.metrics.total_ms==picture.metrics.layer_ms+picture.metrics.encode_ms+
+  picture.metrics.decode_ms+picture.metrics.copy_ms+picture.metrics.queue_ms,'timings must partition total build time')
 local main_draws=0
 local g={image=function(_,layer,x,y)
   assert(x==0 and y==0 and not layer.released);main_draws=main_draws+1
 end}
 assert(picture:draw(g));assert(picture:draw(g))
-assert(main_draws==2 and stats.decodes==50,'redraw must reuse one layer')
+assert(main_draws==2 and stats.decodes==STRIPS,'redraw must reuse one layer')
 picture:release();picture:release();assert(stats.layer_alive==0)
 
 local cancel_c,cancel_stats,cancel_drain,cancel_queue=runtime(false)
@@ -166,6 +180,23 @@ small:release()
 local stripe=assert(Probe.run(pc,'tile','fixture.xth',function() return raw end))
 assert(decode_count==2,'strip probe must never decode 50 retained images')
 stripe:release()
+-- Slow SD writes must be bounded and completion/error evidence retained.
+local writes={}
+local logged={storage={write=function(_,name,text) writes[#writes+1]={name=name,text=text} end}}
+local logger=Probe.composer_log(logged)
+logger('layer-create-start','480x800')
+for y=0,799,32 do
+  logger('strip-encode-start',y);logger('strip-decode-start',y);logger('strip-copy-start',y)
+end
+logger('compose-ready','done')
+assert(#writes==7,'one start + five recovery checkpoints + one completion')
+logger('compose-error','failure')
+assert(writes[#writes].text:find('failure',1,true),'errors must never be throttled')
+Probe.timing(logged,{total_ms=123,encode_ms=40,decode_ms=30,copy_ms=20,queue_ms=33,strips=25})
+assert(writes[#writes].name=='preview-timing.txt' and writes[#writes].text:find('total_ms=123',1,true))
+-- Exercise partial-byte row boundaries and small final blocks too.
+local edge=assert(io.open(arg[2]..'/unaligned.png','wb'))
+edge:write(X.strip(raw,3,19));edge:close()
 '''
 
 
@@ -186,17 +217,19 @@ def reference(raw):
 def check(path, output):
     run_lua(LUA, [str(path), str(output)])
     result = Image.new('L', (480, 800))
-    for i in range(50):
+    for i in range(25):
         with Image.open(output / f'{i}.png') as strip:
             strip.load()
-            assert strip.size == (480, 16) and strip.mode == 'L'
-            result.paste(strip, (0, i * 16))
+            assert strip.size == (480, 32) and strip.mode == 'L'
+            result.paste(strip, (0, i * 32))
     assert result.tobytes() == reference(path.read_bytes()), path.name
     with Image.open(output / 'probe-1.png') as tiny:
         assert tiny.size == (32, 32) and tiny.getpixel((0, 0)) == 0 and tiny.getpixel((31, 0)) == 255
     with Image.open(output / 'probe-2.png') as stripe:
         assert stripe.size == (480, 16)
         assert stripe.tobytes() == reference(path.read_bytes())[128*480:144*480]
+    with Image.open(output / 'unaligned.png') as stripe:
+        assert stripe.tobytes() == reference(path.read_bytes())[3*480:22*480]
     print(f'{path.name}: all 384000 pixels match, all four shades preserved')
 
 

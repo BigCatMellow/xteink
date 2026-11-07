@@ -13,6 +13,25 @@ function P.note(c,stage,detail)
   if c.storage then pcall(function() c.storage:write('preview-diagnostics.txt',text) end) end
 end
 
+function P.composer_log(c)
+  return function(stage,detail)
+    -- Five recovery checkpoints per frame, instead of three synchronous SD
+    -- writes per strip. Always preserve startup, errors and completion.
+    if stage:match('^strip%-') then
+      if stage~='strip-encode-start' or detail%160~=0 then return end
+    end
+    P.note(c,stage,detail)
+  end
+end
+
+function P.timing(c,metrics)
+  local lines={}
+  for _,name in ipairs({'total_ms','layer_ms','encode_ms','decode_ms','copy_ms','queue_ms','strips'}) do
+    lines[#lines+1]=name..'='..tostring(metrics[name] or 0)
+  end
+  if c.storage then pcall(function() c.storage:write('preview-timing.txt',table.concat(lines,'\n')..'\n') end) end
+end
+
 function P.run(c,kind,name,read)
   P.note(c,'start',kind)
   local ok,picture,message=pcall(function()

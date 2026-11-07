@@ -1,7 +1,7 @@
 -- Native 480x800 XTH reader. Files remain XTH on the card. Small in-memory
 -- grayscale PNG strips bridge the pixels to Licorice's image blitter; these
 -- are never saved, resized, dithered, or JPEG-compressed.
-local X = {width=480, height=800, tile_height=16}
+local X = {width=480, height=800, tile_height=32}
 local byte, char, concat = string.byte, string.char, table.concat
 local crc_table = {}
 for n=0,255 do
@@ -31,25 +31,53 @@ end
 
 -- XTH first plane is bit 1, second plane bit 0. Native indices are
 -- 0=white, 1=dark gray, 2=light gray, 3=black (not a linear ramp).
-local shades={[0]=char(255),char(85),char(170),char(0)}
+local shades={[0]=255,85,170,0}
+local characters={[0]=char(0),[85]=char(85),[170]=char(170),[255]=char(255)}
+local cache,cache_count={},0
+local function eight_pixels(first,second)
+  local key=(first<<8)|second
+  local values=cache[key]
+  if values then return values end
+  values={}
+  for k=0,7 do
+    local mask=128>>k
+    local level=((first&mask)~=0 and 2 or 0)+((second&mask)~=0 and 1 or 0)
+    values[k+1]=shades[level]
+  end
+  -- Bounded cache: a noisy input must not grow a 65536-entry Lua table.
+  if cache_count>=256 then cache={};cache_count=0 end
+  cache[key]=values;cache_count=cache_count+1
+  return values
+end
 function X.strip(raw,y0,height)
+  assert(y0>=0 and height>0 and y0+height<=800,'Invalid strip bounds')
   local rows={}
   local a,b=1,0 -- Adler32 over PNG filter bytes and pixel bytes.
-  for y=y0,y0+height-1 do
-    local row={char(0)} -- PNG filter type None.
-    b=(b+a)%65521
-    local mask=0x80 >> (y%8)
-    local offset=23 + y//8
+  -- Each pair of XTH bytes contains eight vertical pixels. Read it once,
+  -- rather than re-reading both planes eight times, and transpose that block.
+  for group_y=(y0//8)*8,y0+height-1,8 do
+    local first_bit=math.max(0,y0-group_y)
+    local last_bit=math.min(7,y0+height-1-group_y)
+    local block,sums,weights={},{},{}
+    for k=first_bit,last_bit do block[k]={char(0)};sums[k]=0;weights[k]=0 end
+    local offset=23+group_y//8
     for x=0,479 do
       local pos=offset+(479-x)*100
-      local value=((byte(raw,pos)&mask)~=0 and 2 or 0)
-        + ((byte(raw,pos+48000)&mask)~=0 and 1 or 0)
-      local pixel=shades[value]
-      row[x+2]=pixel
-      a=(a+byte(pixel))%65521
-      b=(b+a)%65521
+      local values=eight_pixels(byte(raw,pos),byte(raw,pos+48000))
+      for k=first_bit,last_bit do
+        local value=values[k+1]
+        block[k][x+2]=characters[value]
+        sums[k]=sums[k]+value
+        weights[k]=weights[k]+sums[k]
+      end
     end
-    rows[#rows+1]=concat(row)
+    for k=first_bit,last_bit do
+      -- Combine a whole row's Adler contribution. All intermediate sums stay
+      -- below 63 million, safe for the reader's 32-bit Lua integers.
+      b=(b+481*a+weights[k])%65521
+      a=(a+sums[k])%65521
+      rows[#rows+1]=concat(block[k])
+    end
   end
   local pixels=concat(rows)
   -- One DEFLATE stored block, wrapped in zlib. Each strip is below 65535 B.
@@ -66,12 +94,19 @@ function X.compose(ctx,raw,complete,note)
   if not valid then return nil,err end
   if not ctx.image then return nil,'Image blitter unavailable' end
   if not ctx.layers or not ctx.after then return nil,'Layer or scheduler API unavailable' end
+  local function now()
+    local ok,value=pcall(function() return ctx.clock:millis() end)
+    return ok and tonumber(value) or 0
+  end
+  local started=now()
   note=note or function() end
   note('layer-create-start','480x800')
   local good,layer,why=pcall(function() return ctx.layers:create(480,800) end)
   if not good or not layer then return nil,'Cannot create wallpaper layer: '..tostring(why or layer) end
   local pending,y,disposed,ready=nil,0,false,false
-  local picture={}
+  local metrics={layer_ms=math.max(0,now()-started),encode_ms=0,decode_ms=0,copy_ms=0,queue_ms=0,strips=0,total_ms=0}
+  local scheduled=started
+  local picture={metrics=metrics}
   function picture:release()
     disposed=true
     if pending then pcall(function() pending:release() end);pending=nil end
@@ -94,36 +129,46 @@ function X.compose(ctx,raw,complete,note)
   end
   local step
   local function schedule()
+    scheduled=now()
     local ok,message=pcall(function() ctx:after(1,step) end)
     if not ok then failed(message);return false end
     return true
   end
   step=function()
     if disposed then return end
+    metrics.queue_ms=metrics.queue_ms+math.max(0,now()-scheduled)
     local ok,message=pcall(function()
       -- Retain the last strip until its layer draw has returned and a fresh
       -- callback begins. Do not release objects while a draw queues them.
       if pending then pending:release();pending=nil end
       if y>=800 then
         raw=nil;ready=true
-        note('compose-ready','50 strips, one retained layer')
+        metrics.total_ms=math.max(0,now()-started)
+        note('compose-ready',metrics.strips..' strips, one retained layer')
         complete(picture)
         return
       end
       if ctx.budget then pcall(function() ctx.budget:extend() end) end
+      local tick=now()
       note('strip-encode-start',y)
       local png=X.strip(raw,y,math.min(X.tile_height,800-y))
+      metrics.encode_ms=metrics.encode_ms+math.max(0,now()-tick)
       note('strip-decode-start',y)
+      tick=now()
       local image,decode_error=ctx.image:decode(png)
+      metrics.decode_ms=metrics.decode_ms+math.max(0,now()-tick)
       if not image then error('Strip '..y..': '..tostring(decode_error)) end
       pending=image
       note('strip-copy-start',y)
+      tick=now()
       local copied,copy_error=layer:draw(function(g)
         if y==0 then g:clear(0) end
         local result,why=g:image(image,0,y)
         if (result==nil or result==false) and why then error(tostring(why)) end
       end)
       if (copied==nil or copied==false) and copy_error then error(tostring(copy_error)) end
+      metrics.copy_ms=metrics.copy_ms+math.max(0,now()-tick)
+      metrics.strips=metrics.strips+1
       y=y+X.tile_height
       schedule()
     end)

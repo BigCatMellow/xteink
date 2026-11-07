@@ -66,10 +66,15 @@ local function show_full()
   local picture,err=XTH.compose(C,raw,function(result,message)
     if token~=generation then if result then result:release() end;return end
     building=false
-    if result then photo=result;preview=true;preview_full=true;status='Full preview ready'
+    if result then
+      photo=result;preview=true;preview_full=true
+      if result.metrics then
+        Probe.timing(owner,result.metrics)
+        status=string.format('Ready in %.1f seconds',(result.metrics.total_ms or 0)/1000)
+      else status='Full preview ready' end
     else photo=nil;preview=false;status=message end
     pcall(function() owner:invalidate() end)
-  end,function(stage,detail) Probe.note(owner,stage,detail) end)
+  end,Probe.composer_log(owner))
   if not picture then building=false;status=err;return end
   photo=picture
 end
@@ -98,7 +103,7 @@ function on_load(c)
   C=c or ctx
   if C.lockscreen then pcall(function() C.lockscreen:clear_default() end) end
   scan()
-  status='Full renderer paused after device crash'
+  status='Preview improved; automatic mode paused'
 end
 
 function on_draw(c,g)
@@ -118,12 +123,12 @@ function on_draw(c,g)
   local large=C.fonts and C.fonts.large
   local small=C.fonts and C.fonts.small
   g:text(30,50,'WALLPAPER',{font=large})
-  g:text(30,87,'PREVIEW TEST 0.4.3',{font=medium})
+  g:text(30,87,'FAST PREVIEW 0.4.4',{font=medium})
   g:line(30,134,450,134)
   g:text(30,173,tostring(#names)..' XTH images ready',{font=medium})
   g:text(30,230,'Automatic wallpaper is paused.',{font=medium})
   g:text(30,263,'Full preview builds off-screen.',{font=medium})
-  g:text(30,310,'One strip per callback; one layer.',{font=small})
+  g:text(30,310,'Larger strips; fewer card writes.',{font=small})
   g:text(30,338,'No hourly wake test enabled.',{font=small})
   g:rect(30,420,420,66)
   g:text(120,441,'FULL PREVIEW',{font=medium})
@@ -133,7 +138,7 @@ function on_draw(c,g)
   g:text(272,527,'TEST TILE',{font=medium})
   g:line(30,625,450,625)
   g:text(30,660,(status or ''):sub(1,39),{font=small})
-  g:text(30,734,'Checkpoints saved for crash diagnosis.',{font=small})
+  g:text(30,734,'Render timings saved for comparison.',{font=small})
 end
 
 function on_input(c,ev)

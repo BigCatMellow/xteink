@@ -1,11 +1,13 @@
 # XTH wallpaper physical-device checks
 
-**v0.4.3 is a manual full-preview test only.** v0.4.1 failed on the reader (preview crashed,
+**v0.4.4 is an optimized manual preview test only.** v0.4.1 failed on the reader (preview crashed,
 stock sleep screen shown). Its log stopped at `status=loaded` and reported
 `interval=3600`. Preserve that evidence before updating.
 
 v0.4.2's small PNG and single XTH strip were confirmed visible on the reader.
-Install v0.4.3 over the existing app, then tap FULL PREVIEW. Verify a complete,
+v0.4.3's complete image was confirmed visible, taking 30–60 seconds. Install
+v0.4.4 over it and tap FULL PREVIEW. Compare the elapsed build time and read
+`preview-timing.txt` after reconnecting. Verify a complete,
 unscaled image with accurate gray levels, no seams, and no overlaid text. Check
 that it displays without 50 intermediate screen refreshes. Close during a build
 and switch diagnostic tests to check cancellation. Reconnect and read

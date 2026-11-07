@@ -1,6 +1,6 @@
 # Oddity Hunt — physical X4 Pro acceptance checklist
 
-1. Install `oddity-hunt.xtapp` over the existing copy, if any, using All Files.
+1. Install `oddity-hunt.xtapp` over the existing copy, if any, from **SD:/Apps/** using All Files, leaving **XTApps/** to the firmware.
 2. Open Ink App → Oddity Hunt. Confirm title, scene label, shelf illustration, five target labels, counters and bottom controls all fit on the 480×800 portrait screen.
 3. Inspect the drawings at actual size. Each target must be distinguishable, the linework crisp and dense enough to feel like a search game, without text overlay or unreadable symbols.
 4. Tap a correct item. Its picture should immediately gain a static circle; the corresponding checklist item should get a check mark. No movement or intermediate frames.

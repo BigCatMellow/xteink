@@ -27,10 +27,10 @@ A crowded shelf is more interesting than a bare number puzzle, but at 480×800 t
 
 1. Open the [Oddity Hunt GitHub Actions build](https://github.com/BigCatMellow/xteink/actions/workflows/oddity-hunt.yml).
 2. Download the **oddity-hunt-xtapp** artifact from the latest *successful* run.
-3. Extract `oddity-hunt.xtapp` and copy it to the reader's microSD card root.
+3. Extract `oddity-hunt.xtapp` and copy it to the reader's **SD:/Apps/** folder.
 4. Install through **All Files**, then open **Ink App → Oddity Hunt**.
 
-If Ink App is hidden, use Settings → About, then quickly tap Model ten times. No flashing or firmware replacement is required. For existing installations, install over the prior version to preserve app-private progress.
+Keep installed app data inside the firmware-managed **XTApps/** folder; do not uninstall the app just to update it. If Ink App is hidden, use Settings → About, then quickly tap Model ten times. No flashing or firmware replacement is required. For existing installations, install over the prior version to preserve app-private progress.
 
 ## QA, persistence and limitations
 
@@ -46,6 +46,7 @@ On a revisit, collected items, remaining hints and mistakes remain **exactly as 
 - `app/art.lua`: 20 original no-animation line-art illustrations.
 - `app/scenes.lua`: 12 authored scenes and deterministic object positions.
 - `app/ui.lua`: generated copy of `shared/game_ui.lua`.
+- `app/icon.png` and `assets/icons/oddity-hunt.svg`: distinct native 96×96 launcher icon and editable vector source.
 - `tests/test_game.lua`: state, input, save and measured layout checks.
 - `tests/validate_levels.py`: independent layout, decoy and hit-target verifier.
 - `.github/workflows/oddity-hunt.yml`: package build.

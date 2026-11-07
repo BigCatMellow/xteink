@@ -1,0 +1,10 @@
+{
+  "app_id": "rayvault",
+  "display_name": "Ray Vault",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Original no-animation hidden-atom deduction puzzles for X4 Pro",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

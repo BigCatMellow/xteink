@@ -30,7 +30,7 @@ local ctx={
       return {bytes=bytes,release=function() end}
     end
   },
-  lock={set_interval=function(_,seconds) assert(seconds==3600) end},
+  lock={set_interval=function(_,seconds) assert(seconds==31536000) end},
   lockscreen={set_default=function() enabled=enabled+1;return true end},
   clock={
     millis=function() return now end,

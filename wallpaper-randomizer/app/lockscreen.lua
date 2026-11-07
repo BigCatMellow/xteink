@@ -1,8 +1,10 @@
 -- XTEINK X4 Pro / Licorice custom lock screen.
 -- Picks one of the user's JPEGs each time the lock-screen session loads.
--- The wallpaper does not change on every on_draw or on_tick.
+-- The wallpaper does not change on every on_draw or on_tick. It advances when
+-- the device enters sleep and stays fixed while asleep.
 -- This is NOT the unverified ctx.lockscreen:set_wallpaper() path.
 local W, H = 480, 800
+local IDLE_REFRESH_SEC = 31536000 -- one year: avoid battery-wasting redraws
 local picked, picture, status = nil, nil, nil
 local current_ctx
 
@@ -103,9 +105,10 @@ function on_load(c)
   picked,picture,status=nil,nil,nil
   local ok,err=pcall(function()
     local cc=current_ctx
-    -- The app-host supports set_interval on the lock-screen context; optional.
+    -- The manifest and this optional host setting both make idle redraws
+    -- effectively disabled. A new lock-screen session still selects an image.
     if cc.lock then
-      pcall(function() cc.lock:set_interval(3600) end)
+      pcall(function() cc.lock:set_interval(IDLE_REFRESH_SEC) end)
     end
     picked,status=select(cc)
     if picked then picture,status=decode(cc,picked) end

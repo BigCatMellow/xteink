@@ -2,13 +2,13 @@
 
 A small, offline **XTOS Licorice Ink App** that cycles through your own 480 × 800 **JPEG** wallpapers whenever its custom lock screen starts. It remembers the last displayed image, and never picks that same image on the next activation if there are at least two.
 
-**Status:** v0.1 prototype. This is an app-based *lock screen*, not a patch to the stock **Off wallpaper → Custom** option. The Lua lock-screen mechanism is documented on Licorice, but rotation-on-every-sleep has **not yet been tested on a physical X4 Pro**. It must be checked because firmware lifecycle behavior may differ by version.
+**Status:** v0.2 prototype. This is an app-based *lock screen*, not a patch to the stock **Off wallpaper → Custom** option. It selects the next wallpaper when the reader enters sleep, then remains static while asleep. Firmware lifecycle behavior can still differ by version.
 
 ## How it works
 
 - The user copies pictures into the app's private folder: `XTApps/wallrandom/files/` on the microSD card.
 - `lockscreen.lua` lists JPEG files, sorts them, and randomly picks from every file **except the last displayed**. It saves the filename and a counter in `rotation.txt`, so reboots don't cause consecutive repeats.
-- The image is decoded once per lock-screen session, not every screen redraw. A longer refresh interval keeps it stable during that session.
+- The image is decoded once per lock-screen session, not every screen redraw. The idle refresh interval is one year, so it does not perform hourly redraws or consume power while asleep.
 - **One picture:** displays that picture every time. **No pictures:** displays an instruction instead of crashing.
 - No network access, cloud sync, or changes to the device firmware are required.
 
@@ -42,7 +42,7 @@ Original PNG/BMP images won't be recognized directly by this v0.1 app; convert t
 
 ## Limitations / verification
 
-- **Live lock-screen support is firmware-specific.** The official API is not public; community tests establish `lockscreen.lua` plus `ctx.lockscreen:set_default()`. Whether every sleep creates a fresh session must be confirmed on the user's firmware. It may also refresh at the configured interval, which is why the app chooses only at session load.
+- **Live lock-screen support is firmware-specific.** The official API is not public; community tests establish `lockscreen.lua` plus `ctx.lockscreen:set_default()`. The app chooses only when a lock-screen session starts, and uses a one-year idle-refresh interval to avoid periodic redraws.
 - **This cannot change the normal stock “Custom” wallpaper directly.** Attempts to use `ctx.lockscreen:set_wallpaper()` have not produced a working off-wallpaper on tested Licorice versions.
 - **A small app sandbox only.** Licorice mini-apps cannot scan arbitrary SD folders like CrossPoint's `/.sleep/`. Images must be in the app's private `files/` folder.
 - **Do not uninstall to update.** Uninstall removes app data.

@@ -1,6 +1,7 @@
 -- Summit Putt: original card-routing puzzle for XTOS Licorice on the X4 Pro.
 -- No animation, no network, no color dependence. 480x800 portrait.
 local W,H=480,800
+local UI=require('ui')
 local N=7
 local CELL,BX,BY=54,51,141
 local MAX_LEVEL=10
@@ -244,22 +245,16 @@ local function font(which)
   return C and C.fonts and C.fonts[which] or nil
 end
 local function text(g,x,y,s,which)
-  local f=font(which or 'medium')
-  if f then g:text(x,y,s,{font=f}) else g:text(x,y,s) end
+  UI.text(g,C,x,y,s,which)
 end
 local function center(g,x,y,s,which)
-  local f=font(which or 'medium')
-  if f then g:text(x,y,s,{font=f,align='center'})
-  else g:text(x-math.floor(#s*6),y,s) end
+  UI.text(g,C,x,y,s,which,'center')
 end
 local function box(g,x,y,w,h,label)
-  g:rect(x,y,w,h,{line_width=2})
-  g:rect(x+4,y+4,w-8,h-8,{line_width=1})
-  g:line(x+10,y+4,x+19,y+4)
-  g:line(x+w-19,y+h-4,x+w-10,y+h-4)
-  center(g,x+w/2,y+h/2-9,label,'medium')
+  UI.button(g,C,x,y,w,h,label,true)
 end
 local function draw_tiles(g)
+  UI.region(BX-9,BY-9,N*CELL+18,N*CELL+18)
   -- A tabletop topographic board: every mark is hard-edged vector geometry,
   -- so the terrain stays as crisp as a printed puzzle card on e-ink.
   g:rect(BX-9,BY-9,N*CELL+18,N*CELL+18,{line_width=2})
@@ -320,28 +315,25 @@ end
 
 local function draw_help(g)
   center(g,240,138,'HOW TO PLAY','large')
-  text(g,36,202,'1. Tap an unused number card.','small')
-  text(g,36,240,'2. Tap a direction to move exactly that far.','small')
-  text(g,36,295,'Cards are single-use. A blocked move costs nothing.','small')
-  text(g,36,350,'Avoid gaps and water. Sand accepts only a 1 card.','small')
-  text(g,36,405,'Hatched tiles are high ground. Enter a ramp','small')
-  text(g,36,435,'from the direction shown by its arrow.','small')
-  text(g,36,490,'Reach the flag exactly. UNDO restores a card.','small')
+  UI.paragraph(g,C,36,202,408,48,'1. Tap an unused number card.','small')
+  UI.paragraph(g,C,36,256,408,48,'2. Tap a direction to move exactly that far.','small')
+  UI.paragraph(g,C,36,310,408,48,'Cards are single-use. Blocked moves cost nothing.','small')
+  UI.paragraph(g,C,36,364,408,48,'Avoid gaps and water. From sand, use a 1 card.','small')
+  UI.paragraph(g,C,36,418,408,72,'Double edges mark high ground. Climb a ramp in its arrow direction.','small')
+  UI.paragraph(g,C,36,502,408,72,'Reach the flag exactly. UNDO restores your position and card.','small')
   box(g,30,694,420,65,'BACK TO PUZZLE')
 end
 
 local function draw(g)
   g:clear(0)
   text(g,30,14,'SUMMIT PUTT','large')
-  text(g,31,46,'TOPOGRAPHIC CARD PUZZLES','small')
   if not show_help then box(g,402,12,48,42,'?') end
-  text(g,30,72,string.format('PUZZLE %02d/%02d  //  %s',STATE.level,MAX_LEVEL,BOARD.name),'small')
+  text(g,30,58,string.format('PUZZLE %02d/%02d  //  %s',STATE.level,MAX_LEVEL,BOARD.name),'small')
   if show_help then draw_help(g); return end
-  box(g,30,82,195,42,'UNDO')
-  box(g,255,82,195,42,'RESTART')
+  box(g,30,88,195,40,'UNDO')
+  box(g,255,88,195,40,'RESTART')
   draw_tiles(g)
-  center(g,240,532,MSG or 'Select a card, then a direction','small')
-  text(g,30,544,'CLUB CARDS','small')
+  center(g,240,533,MSG or 'Select a card, then a direction','small')
 
   if STATE.stage=='won' then
     center(g,240,601,STATE.level==MAX_LEVEL and 'ALL PUZZLES CLEARED' or 'PUZZLE COMPLETE','large')
@@ -380,8 +372,8 @@ local function touch(x,y)
     return
   end
   if within(x,y,402,12,48,42) then show_help=true;return end
-  if within(x,y,30,82,195,42) then undo();return end
-  if within(x,y,255,82,195,42) then start_level(STATE.level,STATE.unlocked);return end
+  if within(x,y,30,88,195,40) then undo();return end
+  if within(x,y,255,88,195,40) then start_level(STATE.level,STATE.unlocked);return end
   if STATE.stage=='won' then
     if within(x,y,30,704,420,65) then next_level() end
     return
@@ -412,7 +404,7 @@ function on_draw(c,g)
   if c then C=c end
   if not g then return end
   if ERR then
-    g:clear(0);g:text(20,40,'Summit Putt: '..ERR:sub(1,40))
+    UI.error(g,C,'SUMMIT PUTT',ERR)
     return
   end
   local ok,err=pcall(function() draw(g) end)

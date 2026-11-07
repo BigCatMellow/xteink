@@ -1,4 +1,6 @@
 -- Ray Vault Lua host tests. Verify deterministic beam mechanics and 12 full rounds.
+package.path='app/?.lua;../tests/?.lua;'..package.path
+local measured=require('game_canvas').check
 _G.__TEST={}
 dofile('app/index.lua')
 local A=__TEST.api
@@ -106,11 +108,24 @@ for level=1,12 do
   eq(state.stage,'won')
   eq(state.shots,past)
   eq(state.unlocked,math.min(12,level+1))
+  measured(ctx,on_draw,'ray-vault solved '..level)
   on_leave();on_load(ctx)
   eq(A.state().stage,'won','saved solved state')
   eq(A.state().level,level)
   if level<12 then assert(A.next()) else assert(not A.next()) end
 end
+
+-- A correct but unsubmitted guess must survive closing before CHECK.
+A.start(5,8)
+for _,p in ipairs(A.levels[5]) do A.mark(p%6,math.floor(p/6)) end
+assert(A.correct())
+eq(A.state().stage,'play')
+on_leave();on_load(ctx)
+eq(A.state().level,5,'unsubmitted answer preserves current level')
+eq(A.state().unlocked,8,'unsubmitted answer preserves unlocks')
+eq(A.state().stage,'play','only CHECK can submit an answer')
+assert(A.correct(),'all guessed atoms preserved')
+assert(A.check());eq(A.state().stage,'won')
 
 -- Page controls and touch: only complete up events cause one screen update.
 A.start(2,12)
@@ -151,4 +166,23 @@ assert(type(on_tick)=='nil','no redraw timer')
 store['ray-vault.txt']='version=1\nlevel=999\nmarks=99\n'
 on_load(ctx)
 eq(A.state().level,1,'malformed save resets')
+-- Regression: visiting other levels must not discard unfinished work.
+A.start(2,12)
+assert(A.mark(0,0));assert(A.fire(1))
+local retained_reading=A.state().probes[1]
+assert(A.next());on_leave();on_load(ctx);assert(A.prev())
+eq(A.state().marks[1],1,'visits preserve atom guesses')
+eq(A.state().probes[1],retained_reading,'visits preserve probe readings')
+eq(A.state().shots,1,'visits preserve probe counts')
+for port=1,24 do A.fire(port);measured(ctx,on_draw,'ray-vault probe '..port) end
+
+-- All boards plus help are checked with distinct and enlarged font metrics.
+local layout=require('game_canvas').check
+for n=1,#A.levels do
+  A.start(n,12)
+  layout(ctx,on_draw,'ray-vault level '..n)
+end
+A.tap(420,30)
+layout(ctx,on_draw,'ray-vault help')
+A.tap(420,30)
 print('Ray Vault: 12 ray levels, reciprocal probes, guessing, save, touch, static display PASS')

@@ -2,7 +2,7 @@
 
 An original **minimalist tile-and-line puzzle** for **XTOS Licorice**, designed for the XTEINK X4 Pro's 480 × 800 monochrome e-ink display. Inspired by the elegant single-tap puzzles of *klocki*; **not a port or reproduction** of its levels, assets, or proprietary rules.
 
-**Status: v0.1.** All 20 puzzles are frozen and independently solver-checked for a **unique connected solution**. CI verifies source, interactions, and packaging. The app still needs a smoke test on a physical X4 Pro.
+**Status: v0.2.** All 20 puzzles are frozen and independently solver-checked for a **unique connected solution**. CI verifies source, measured layouts, navigation, saves and packaging. The app still needs a smoke test on a physical X4 Pro.
 
 ## Rules
 
@@ -40,6 +40,10 @@ The Lua gameplay tests independently exercise **all 20 correct solutions** as ta
 - **Physical page buttons:** previous/next level where permitted. Buttons never rotate a tile accidentally.
 
 Progress and current tile orientations save automatically to `link-grid.txt` in the app's private storage. No account or network access needed.
+
+Previous/Next now retain each visited board instead of silently restarting it.
+Existing version-1 saves remain readable. Layout and save regressions are checked
+by the repository [game quality gate](../docs/GAME_QUALITY.md).
 
 ## Install on Licorice
 

@@ -1,4 +1,6 @@
 -- Line Lift v0.1: original layouts, logic, failure, persistence and static UI.
+package.path='app/?.lua;../tests/?.lua;'..package.path
+local measured=require('game_canvas').check
 _G.__TEST={}
 dofile('app/index.lua')
 local A=__TEST.api
@@ -154,6 +156,7 @@ for n=1,#levels do
     assert(trials<=#lev.groups,'cannot take more than one action per group')
   end
   eq(trials,#lev.groups)
+  measured(ctx,on_draw,'line-lift solved '..n)
   if n<12 then assert(A.next()) end
 end
 eq(A.state().level,12)
@@ -228,4 +231,27 @@ on_load(ctx)
 eq(A.state().level,1,'bad save reset safely')
 eq(A.state().mask,0)
 
+-- Regression: visiting other levels must not discard unfinished work.
+A.fresh(3,12)
+for gi=1,#A.level().groups do if not A.blocked(gi) then assert(A.pull(gi));break end end
+local retained_mask=A.state().mask
+assert(retained_mask>0)
+assert(A.prev());on_leave();on_load(ctx);assert(A.next())
+eq(A.state().mask,retained_mask,'level visits preserve removed rods')
+eq(A.state().unlocked,12,'visits preserve all unlocks')
+A.tap(322,35)
+measured(ctx,on_draw,'line-lift hint')
+A.tap(322,35)
+A.state().snags=999999
+measured(ctx,on_draw,'line-lift maximum snag count')
+
+-- All boards plus help are checked with distinct and enlarged font metrics.
+local layout=require('game_canvas').check
+for n=1,#A.raw do
+  A.fresh(n,12)
+  layout(ctx,on_draw,'line-lift level '..n)
+end
+A.tap(405,30)
+layout(ctx,on_draw,'line-lift help')
+A.tap(405,30)
 print('Line Lift: 12 solvable static puzzles, layering, groups, reset, touch and save PASS')

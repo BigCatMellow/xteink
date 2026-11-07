@@ -2,7 +2,7 @@
 
 An original, offline card-routing golf puzzle made for **XTOS Licorice** on the XTEINK X4 Pro. Inspired by the *idea* of a golf ball controlled by single-use movement cards, not a port of **Golf Peaks**. Maps, title, graphics, level arrangements, and code are original; none of the commercial game's art or stages is included.
 
-**Status:** v0.3 — programmatic gameplay tests, an in-game rules guide, premium topographic board treatment, and packaging workflow; **not yet verified on a physical X4 Pro**.
+**Status:** v0.4 — measured typography, separated header/status/control rows, programmatic gameplay tests, an in-game rules guide, and packaging workflow; **not yet verified on a physical X4 Pro**.
 
 ## The difference from Paper Golf
 

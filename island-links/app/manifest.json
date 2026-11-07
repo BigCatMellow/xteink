@@ -1,7 +1,7 @@
 {
   "app_id": "islandlinks",
   "display_name": "Island Links",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "BigCatMellow",
   "description": "Original no-animation Bridges logic puzzles for X4 Pro",
   "entry": "index.lua",

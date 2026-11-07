@@ -2,7 +2,7 @@
 
 An original 6×6 **Black Box-style** logic game for the XTEINK X4 Pro running XTOS Licorice. Completely static, monochrome and offline. Inspired by a traditional deduction mechanic, not a reproduction of any commercial game's art, branding or published level set.
 
-**Version 0.1:** 12 frozen original atom arrangements; 3 atoms on levels 1–6 and 4 on 7–12.
+**Version 0.2:** 12 frozen original atom arrangements; 3 atoms on levels 1–6 and 4 on 7–12. Adds illustrated rules, measured layouts and safe resume before submitting an answer.
 
 ## Play
 
@@ -22,6 +22,10 @@ Tap an interior cell to cycle **atom guess → X (known empty) → clear**. Afte
 The Python test independently implements the beam rules. For each authored board, it enumerates **every combination** of 3 or 4 hidden atoms in a 6×6 grid and confirms that the full 24-port signature uniquely identifies the intended layout. Each selected board contains hits, reflections and deflected rays and requires at least three informative probes in a greedy identification analysis.
 
 The Lua tests verify reciprocal ray exits, all 12 winnable stages, input behavior, saving and the static rendering command budget. This is not a guarantee of how difficult the board will feel in real play.
+
+Previous/Next now retain each visited board instead of silently restarting it.
+Existing version-1 saves remain readable. Layout and save regressions are checked
+by the repository [game quality gate](../docs/GAME_QUALITY.md).
 
 ## Installation
 

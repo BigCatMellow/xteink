@@ -3,6 +3,7 @@
 -- A continuous rod passes over a rod interrupted by a small crossing gap.
 -- Tap a circular pull point; if another rod lies above it, the puzzle resets.
 local W,H=480,800
+local UI=require('ui')
 local GX,GY,STEP=45,151,39
 local MAX=12
 local CTX,STATE,LEVEL,ERROR,MESSAGE
@@ -186,6 +187,7 @@ local function write_save()
     'mask='..math.floor(STATE.mask),'snags='..STATE.snags
   },'\n')
   pcall(function() CTX.storage:write('line-lift.txt',s) end)
+  pcall(function() CTX.storage:write('line-lift-'..STATE.level..'.txt',s) end)
 end
 
 local function fresh_level(n,unlocked)
@@ -196,9 +198,9 @@ local function fresh_level(n,unlocked)
   write_save()
 end
 
-local function restore()
+local function restore(filename,expected)
   if not CTX or not CTX.storage then return false end
-  local ok,data=pcall(function() return CTX.storage:read('line-lift.txt') end)
+  local ok,data=pcall(function() return CTX.storage:read(filename or 'line-lift.txt') end)
   if not ok or type(data)~='string' then return false end
   local fields={}
   for k,v in data:gmatch('([%w_]+)=([^\n]*)') do fields[k]=v end
@@ -211,6 +213,7 @@ local function restore()
   local n,unlocked,mask,snags=natural(fields.level),natural(fields.unlocked),natural(fields.mask),natural(fields.snags)
   if not n or n<1 or n>MAX or not unlocked or unlocked<n or unlocked>MAX or
      not mask or mask<0 or not snags or snags<0 or snags>999999 then return false end
+  if expected and n~=expected then return false end
   local lev=interpret(n)
   if mask>=bit(#lev.groups+1) then return false end
   LEVEL=lev
@@ -220,6 +223,15 @@ local function restore()
   return true
 end
 
+local function visit(n)
+  local unlocked=STATE.unlocked
+  write_save()
+  if restore('line-lift-'..n..'.txt',n) then
+    STATE.unlocked=math.max(unlocked,STATE.unlocked)
+    write_save()
+  else fresh_level(n,unlocked) end
+  return true
+end
 local function pull(group)
   if not STATE or not group or not LEVEL.groups[group] or not active(group) or tutorial then return false end
   local above=blocked_by(group)
@@ -241,13 +253,13 @@ end
 
 local function next_level()
   if not STATE then return false end
-  if STATE.level>=MAX or not all_cleared() then return false end
-  fresh_level(STATE.level+1,STATE.unlocked)
+  if STATE.level>=MAX or (not all_cleared() and STATE.level>=STATE.unlocked) then return false end
+  visit(STATE.level+1)
   return true
 end
 
 local function previous_level()
-  if STATE and STATE.level>1 then fresh_level(STATE.level-1,STATE.unlocked); return true end
+  if STATE and STATE.level>1 then visit(STATE.level-1); return true end
   return false
 end
 local function reset()
@@ -268,24 +280,13 @@ end
 
 local function pull_point(rod) return point(rod,true) end
 local function face(g,x,y,label,which)
-  local font=CTX and CTX.fonts and CTX.fonts[which or 'medium']
-  if font then g:text(x,y,label,{font=font})
-  else g:text(x,y,label) end
+  UI.text(g,CTX,x,y,label,which)
 end
 local function centered(g,x,y,label,which)
-  local font=CTX and CTX.fonts and CTX.fonts[which or 'medium']
-  if font then
-    g:text(x,y,label,{font=font,align='center'})
-  else
-    g:text(x-#label*5,y,label)
-  end
+  UI.text(g,CTX,x,y,label,which,'center')
 end
 local function button(g,x,y,w,h,label)
-  g:rect(x,y,w,h,{line_width=2})
-  g:rect(x+4,y+4,w-8,h-8,{line_width=1})
-  g:line(x+11,y+4,x+20,y+4)
-  g:line(x+w-20,y+h-4,x+w-11,y+h-4)
-  centered(g,x+w/2,y+h/2-9,label,'medium')
+  UI.button(g,CTX,x,y,w,h,label,true)
 end
 
 local function draw_rod(g,rod)
@@ -363,18 +364,19 @@ end
 local function draw(g)
   g:clear(0)
   face(g,30,14,'LINE LIFT','large')
-  face(g,31,46,'PRECISION MECHANISM PUZZLES','small')
+  UI.text(g,CTX,31,49,'PRECISION PUZZLES','small',nil,245)
   button(g,294,16,72,45,show_hint and 'HIDE' or 'HINT')
   button(g,382,16,68,45,tutorial and 'X' or '?')
   local cleared=0
   for i=1,#LEVEL.groups do if not active(i) then cleared=cleared+1 end end
-  face(g,30,82,'MECHANISM '..string.format('%02d',STATE.level)..' / '..string.format('%02d',MAX),'medium')
-  face(g,294,82,cleared..' OF '..#LEVEL.groups..' RELEASED','small')
+  UI.text(g,CTX,30,82,'MECHANISM '..string.format('%02d',STATE.level)..' / '..string.format('%02d',MAX),'medium',nil,242)
+  UI.text(g,CTX,294,82,cleared..'/'..#LEVEL.groups..' RELEASED','small',nil,156)
   g:line(30,110,450,110,{line_width=2})
   g:line(30,118,450,118,{line_width=1})
   if tutorial then draw_help(g); return end
 
   g:rect(28,136,424,422,{line_width=1})
+  UI.region(18,126,444,442)
 
   for _,rod in ipairs(LEVEL.rods) do
     if active(rod.group) then draw_rod(g,rod) end
@@ -398,10 +400,11 @@ local function draw(g)
   end
   g:line(30,573,450,573,{line_width=1})
   centered(g,240,590,MESSAGE or 'Tap a circle to retract its line','medium')
-  centered(g,240,630,'LAYER KEY  CONTINUOUS ABOVE GAP  //  '..STATE.snags..' SNAGS','small')
+  centered(g,240,628,'CONTINUOUS ABOVE GAP','small')
+  centered(g,240,654,STATE.snags..' SNAGS','small')
   button(g,30,693,128,66,STATE.level>1 and 'PREV' or 'LEVEL 1')
   button(g,175,693,128,66,'RESTART')
-  if all_cleared() and STATE.level<MAX then
+  if (all_cleared() or STATE.level<STATE.unlocked) and STATE.level<MAX then
     button(g,320,693,130,66,'NEXT')
   elseif all_cleared() then
     button(g,320,693,130,66,'DONE')
@@ -455,18 +458,14 @@ function on_draw(c,g)
   if c then CTX=c end
   if not g then return end
   if ERROR then
-    g:clear(0)
-    g:text(28,35,'LINE LIFT ERROR')
-    g:text(28,78,ERROR:sub(1,45))
+    UI.error(g,CTX,'LINE LIFT',ERROR)
     return
   end
   local ok,e=pcall(function() draw(g) end)
   if not ok then
     ERROR=tostring(e)
     pcall(function()
-      g:clear(0)
-      g:text(28,35,'LINE LIFT ERROR')
-      g:text(28,78,ERROR:sub(1,45))
+      UI.error(g,CTX,'LINE LIFT',ERROR)
     end)
   end
 end
@@ -491,7 +490,7 @@ function on_input(c,e)
       if now then last_key_ms=now end
       -- Hardware buttons: move to next level after completion; otherwise page
       -- buttons do not accidentally choose/remove a rod.
-      if all_cleared() and e.key=='down' then next_level()
+      if e.key=='down' then next_level()
       elseif e.key=='up' and STATE.level>1 then previous_level() end
       handled=true
     end

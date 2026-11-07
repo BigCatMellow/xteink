@@ -1,4 +1,6 @@
 -- Island Links Lua host tests. Independent solution-uniqueness in verify_levels.py.
+package.path='app/?.lua;../tests/?.lua;'..package.path
+local measured=require('game_canvas').check
 _G.__TEST={}
 dofile('app/index.lua')
 local A=__TEST.api
@@ -96,6 +98,7 @@ for level=1,12 do
   end
   assert(A.solved(),'solved level '..level)
   eq(s.unlocked,math.min(12,level+1))
+  measured(ctx,on_draw,'island-links solved '..level)
   on_leave()
   on_load(ctx)
   eq(A.state().level,level)
@@ -156,4 +159,18 @@ assert(type(on_tick)=='nil','no animation timer')
 memory['island-links.txt']='version=1\nlevel=999\nweights=99\n'
 on_load(ctx)
 eq(A.state().level,1,'invalid save resets')
+-- Regression: visiting other levels must not discard unfinished work.
+A.start(2,12)
+assert(A.change(1))
+assert(A.next());on_leave();on_load(ctx);assert(A.prev())
+eq(A.state().weights[1],1,'visits preserve bridges')
+assert(A.undo(),'visits preserve bridge undo history')
+eq(A.state().weights[1],0)
+
+-- All boards plus help are checked with distinct and enlarged font metrics.
+local layout=require('game_canvas').check
+for n=1,#A.levels do
+  A.start(n,12)
+  layout(ctx,on_draw,'island-links level '..n)
+end
 print('Island Links: 12 levels, exact degrees, connectivity, undo, save and static UI PASS')

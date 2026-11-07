@@ -1,6 +1,6 @@
 # Line Lift — static crossing puzzles for XTEINK X4 Pro
 
-**Status: v0.3.** Includes an optional on-board hint that rings currently safe pulls; the hint never makes a move for the player. The interface uses a crisp mechanical-panel design made from native vector strokes for clean e-ink rendering.
+**Status: v0.4.** Includes an optional on-board hint that rings currently safe pulls; the hint never makes a move for the player. The interface uses a crisp mechanical-panel design made from native vector strokes for clean e-ink rendering.
 
 **Original minimalist deduction game for XTOS Licorice**, designed for the reader's **480 × 800 black-and-white e-ink screen**. Inspired by the *type of reasoning* in Maciej Targoni's [Hook](https://www.rainbowtrain.eu/hook), but this is **not a port**. All 12 layouts, line groupings, renderer, app code and name are independently authored.
 
@@ -37,6 +37,10 @@ No guessing is needed: all crossing relationships are visible. The code uses the
 - Physical **next page** advances only after clearing a level; physical **previous page** revisits the previous puzzle. Neither button can accidentally remove a rod.
 
 Progress, unlocked level, which groups are cleared, and the snag count are stored in the app's private save file.
+
+Previous/Next now retain each visited board instead of silently restarting it.
+Existing version-1 saves remain readable. Layout and save regressions are checked
+by the repository [game quality gate](../docs/GAME_QUALITY.md).
 
 ## Install
 

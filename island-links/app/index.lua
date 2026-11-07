@@ -120,6 +120,7 @@ local function save()
     'weights='..code(S.weights),'history='..table.concat(hist,';')
   },'\n')
   pcall(function() C.storage:write('island-links.txt',data) end)
+  pcall(function() C.storage:write('island-links-'..S.level..'.txt',data) end)
 end
 local function start(n,u)
   if n<1 or n>#LEVELS then return false end
@@ -131,9 +132,9 @@ local function start(n,u)
   save()
   return true
 end
-local function restore()
+local function restore(filename,expected)
   if not C or not C.storage then return false end
-  local ok,data=pcall(function() return C.storage:read('island-links.txt') end)
+  local ok,data=pcall(function() return C.storage:read(filename or 'island-links.txt') end)
   if not ok or type(data)~='string' then return false end
   local f={}
   for k,v in data:gmatch('([%w_]+)=([^\n]*)') do f[k]=v end
@@ -141,6 +142,7 @@ local function restore()
   local n,u=tonumber(f.level),tonumber(f.unlocked)
   if not n or n~=math.floor(n) or n<1 or n>#LEVELS or
      not u or u~=math.floor(u) or u<n or u>#LEVELS then return false end
+  if expected and n~=expected then return false end
   local p=nodes(n)
   local edges=links(p)
   local weights=decode(f.weights,#edges)
@@ -153,6 +155,15 @@ local function restore()
   end
   S={level=n,unlocked=u,points=p,edges=edges,weights=weights,history=hist}
   MSG=nil
+  return true
+end
+local function visit(n)
+  local unlocked=S.unlocked
+  save()
+  if restore('island-links-'..n..'.txt',n) then
+    S.unlocked=math.max(unlocked,S.unlocked)
+    save()
+  else start(n,unlocked) end
   return true
 end
 local function change(k)
@@ -180,27 +191,23 @@ local function reset()
 end
 local function previous()
   if not S or S.level==1 then return false end
-  return start(S.level-1,S.unlocked)
+  return visit(S.level-1)
 end
 local function next_level()
   if not S or S.level>=#LEVELS or
     (S.level>=S.unlocked and not solved()) then return false end
-  return start(S.level+1,S.unlocked)
+  return visit(S.level+1)
 end
 local function font(which)
   return C and C.fonts and C.fonts[which or 'medium']
 end
+local UI=require('ui')
 local function put(g,x,y,s,which,align)
-  local opts={}
-  local f=font(which)
-  if f then opts.font=f end
-  if align then opts.align=align end
-  g:text(x,y,s,opts)
+  UI.text(g,C,x,y,s,which,align)
 end
 local function centered(g,x,y,s,which) put(g,x,y,s,which,'center') end
 local function button(g,x,y,w,h,s)
-  g:rect(x,y,w,h,{line_width=2})
-  centered(g,x+w/2,y+h/2-9,s,'medium')
+  UI.button(g,C,x,y,w,h,s)
 end
 local function pos(q) return OX+CELL*q.x,OY+CELL*q.y end
 local function segment(g,p,q,offset)
@@ -218,6 +225,7 @@ local function draw(g)
   put(g,22,17,'ISLAND LINKS','large')
   put(g,22,59,'PUZZLE '..S.level..' / '..#LEVELS,'medium')
   g:line(22,105,458,105)
+  UI.region(OX+CELL-24,OY+CELL-24,4*CELL+48,4*CELL+48)
   for i,e in ipairs(S.edges) do
     local a,b=S.points[e.a],S.points[e.b]
     if S.weights[i]==0 then
@@ -237,7 +245,7 @@ local function draw(g)
   local mismatch,linksCount,cross,connected=stats(S.points,S.edges,S.weights)
   if solved() then centered(g,240,569,'NETWORK COMPLETE!','medium')
   else centered(g,240,569,'NUMBERS LEFT '..mismatch..'   CROSSES '..cross,'medium') end
-  centered(g,240,609,MSG or 'Connect every island into one network','small')
+  UI.paragraph(g,C,24,609,432,48,MSG or 'Connect every island into one network','small','center')
   button(g,22,684,103,72,S.level>1 and 'PREV' or 'START')
   button(g,133,684,104,72,'UNDO')
   button(g,245,684,104,72,'RESET')
@@ -279,7 +287,7 @@ function on_draw(c,g)
   if c then C=c end
   if not g then return end
   if ERR then
-    g:clear(0);g:text(20,40,'ISLAND LINKS ERROR');g:text(20,80,ERR:sub(1,45))
+    UI.error(g,C,'ISLAND LINKS',ERR)
     return
   end
   local ok,e=pcall(function() draw(g) end)

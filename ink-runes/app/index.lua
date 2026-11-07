@@ -132,6 +132,7 @@ local function save()
     'history='..table.concat(hist,';')
   },'\n')
   pcall(function() C.storage:write('ink-runes.txt',data) end)
+  pcall(function() C.storage:write('ink-runes-'..S.level..'.txt',data) end)
 end
 local function start(n,unlocked,seen)
   local b=board(n)
@@ -141,9 +142,9 @@ local function start(n,unlocked,seen)
   MSG='Trace three touching letters'
   save()
 end
-local function restore()
+local function restore(filename,expected)
   if not C or not C.storage then return false end
-  local ok,s=pcall(function() return C.storage:read('ink-runes.txt') end)
+  local ok,s=pcall(function() return C.storage:read(filename or 'ink-runes.txt') end)
   if not ok or type(s)~='string' then return false end
   local f={}
   for key,value in s:gmatch('([%w_]+)=([^\n]*)') do f[key]=value end
@@ -152,6 +153,7 @@ local function restore()
   if not n or n~=math.floor(n) or n<1 or n>#LEVELS or
      not u or u~=math.floor(u) or u<n or u>#LEVELS or
      type(f.seen)~='string' or f.seen:find('[^MVD]') then return false end
+  if expected and n~=expected then return false end
   local b=board(n)
   local ink=decoding(f.ink,b)
   if not ink then return false end
@@ -164,6 +166,19 @@ local function restore()
   S={level=n,unlocked=u,seen=f.seen,b=b,ink=ink,selected={},history=hist}
   help=false
   MSG=nil
+  return true
+end
+local function visit(n)
+  local unlocked=S.unlocked
+  local seen=S.seen
+  save()
+  if restore('ink-runes-'..n..'.txt',n) then
+    S.unlocked=math.max(unlocked,S.unlocked)
+    for ch in seen:gmatch('.') do
+      if not S.seen:find(ch,1,true) then S.seen=S.seen..ch end
+    end
+    save()
+  else start(n,unlocked,seen) end
   return true
 end
 local function choose(p)
@@ -213,12 +228,12 @@ end
 local function next_level()
   if not S or S.level>=#LEVELS then return false end
   if S.level>=S.unlocked and not complete(S.b,S.ink) then return false end
-  start(S.level+1,S.unlocked,S.seen)
+  visit(S.level+1)
   return true
 end
 local function prev_level()
   if not S or S.level<=1 then return false end
-  start(S.level-1,S.unlocked,S.seen)
+  visit(S.level-1)
   return true
 end
 local function reset()
@@ -226,19 +241,15 @@ local function reset()
   start(S.level,S.unlocked,S.seen)
   return true
 end
+local UI=require('ui')
 local function text(g,x,y,s,which,align)
-  local font=C and C.fonts and C.fonts[which or 'medium']
-  local opts={}
-  if font then opts.font=font end
-  if align then opts.align=align end
-  g:text(x,y,s,opts)
+  UI.text(g,C,x,y,s,which,align)
 end
 local function centered(g,x,y,s,which)
   text(g,x,y,s,which,'center')
 end
 local function button(g,x,y,w,h,label)
-  g:rect(x,y,w,h,{line_width=2})
-  centered(g,x+w/2,y+h/2-10,label,'medium')
+  UI.button(g,C,x,y,w,h,label)
 end
 local function geometry(n)
   local cell=math.floor(390/n)
@@ -252,8 +263,8 @@ local function draw_help(g)
   local y=361
   for _,word in ipairs(ORDER) do
     if S.seen:find(word:sub(1,1),1,true) then
-      text(g,33,y,word..'  '..POWERS[word],'medium')
-      y=y+52
+      UI.paragraph(g,C,33,y,414,60,word..'  '..POWERS[word],'medium')
+      y=y+76
     end
   end
   if y==361 then text(g,33,y,'No runes learned yet','medium') end
@@ -269,6 +280,19 @@ local function draw(g)
   if help then draw_help(g);return end
   local b,ink=S.b,S.ink
   local x0,y0,cell=geometry(b.n)
+  UI.region(x0,y0,b.n*cell,b.n*cell)
+  -- Join the selected cell centers before drawing the letter frames. The
+  -- order is now visible, rather than only showing disconnected outlines.
+  for k=2,#S.selected do
+    local a,q=S.selected[k-1],S.selected[k]
+    local ax,ay=(a-1)%b.n,math.floor((a-1)/b.n)
+    local qx,qy=(q-1)%b.n,math.floor((q-1)/b.n)
+    -- Only bridge the gap between frames, keeping the glyph itself clear.
+    local cx,cy=x0+(ax+0.5)*cell,y0+(ay+0.5)*cell
+    local dx,dy=qx-ax,qy-ay
+    g:line(cx+dx*(cell/2-7),cy+dy*(cell/2-7),
+      cx+dx*(cell/2+7),cy+dy*(cell/2+7),{line_width=3})
+  end
   for y=1,b.n do
     for x=1,b.n do
       local i=idx(x,y,b.n)
@@ -289,7 +313,7 @@ local function draw(g)
   end
   local done,total=progress(b,ink)
   centered(g,240,583,done..' / '..total..' COVERED','medium')
-  centered(g,240,622,MSG or 'Trace a known rune','small')
+  UI.paragraph(g,C,24,622,432,44,MSG or 'Trace a known rune','small','center')
   button(g,24,675,102,73,S.level>1 and 'PREV' or 'START')
   button(g,136,675,100,73,'UNDO')
   button(g,246,675,102,73,'RESET')
@@ -334,9 +358,7 @@ function on_draw(c,g)
   if c then C=c end
   if not g then return end
   if ERROR then
-    g:clear(0)
-    g:text(20,36,'INK RUNES ERROR')
-    g:text(20,72,ERROR:sub(1,48))
+    UI.error(g,C,'INK RUNES',ERROR)
     return
   end
   local ok,err=pcall(function() draw(g) end)

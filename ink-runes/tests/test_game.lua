@@ -1,4 +1,6 @@
 -- Ink Runes host simulator. Validates all 20 authored solutions and no animation.
+package.path='app/?.lua;../tests/?.lua;'..package.path
+local measured=require('game_canvas').check
 _G.__TEST={}
 dofile('app/index.lua')
 local A=__TEST.api
@@ -84,6 +86,7 @@ for level=1,20 do
   end
   assert(A.complete(s.b,s.ink),'level '..level..' cannot be completed')
   eq(s.unlocked,math.min(20,level+1),'progress advances once')
+  measured(ctx,on_draw,'ink-runes solved '..level)
   on_leave();on_load(ctx)
   assert(A.complete(A.state().b,A.state().ink),'completed board saved '..level)
   eq(A.state().level,level,'same level after load')
@@ -157,4 +160,27 @@ store['ink-runes.txt']='version=1\nlevel=200\nunlocked=201\nink=101\n'
 on_load(ctx)
 eq(A.state().level,1,'corrupt save safely resets')
 assert(store['ink-runes.txt']:find('version=1',1,true))
+-- Regression: visiting other levels must not discard unfinished work.
+A.start(8,20,'MVD')
+for _,p in ipairs(SOLUTIONS[8][1]) do assert(A.choose(p)) end
+local retained_ink=A.encoding(A.state().ink)
+local retained_history=#A.state().history
+assert(A.next());on_leave();on_load(ctx);assert(A.prev())
+eq(A.encoding(A.state().ink),retained_ink,'visits preserve covered tiles')
+eq(#A.state().history,retained_history,'visits preserve undo history')
+eq(A.state().unlocked,20)
+for _,p in ipairs(SOLUTIONS[8][2]) do
+  A.choose(p)
+  measured(ctx,on_draw,'ink-runes partial trace')
+end
+
+-- All boards plus help are checked with distinct and enlarged font metrics.
+local layout=require('game_canvas').check
+for n=1,#A.levels do
+  A.start(n,20,'MVD')
+  layout(ctx,on_draw,'ink-runes level '..n)
+end
+A.tap(415,30)
+layout(ctx,on_draw,'ink-runes help')
+A.tap(415,30)
 print('Ink Runes: all 20 levels, rune effects, undo, saving, touch, render PASS')

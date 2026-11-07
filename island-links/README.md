@@ -17,6 +17,10 @@ Levels 1–3 have 7 islands, 4–7 have 8, and 8–12 have 9. Each of the 12 aut
 
 Progress and a bounded undo history are saved locally. The app needs no internet, sound, animation, scrolling or timers.
 
+Previous/Next now retain each visited board instead of silently restarting it.
+Existing version-1 saves remain readable. Layout and save regressions are checked
+by the repository [game quality gate](../docs/GAME_QUALITY.md).
+
 ## Install on X4 Pro
 
 1. Open [Island Links builds](https://github.com/BigCatMellow/xteink/actions/workflows/island-links.yml).

@@ -2,7 +2,7 @@
 
 A standalone, offline, monochrome puzzle inspired by the **rule-discovery** idea of LOK by Blaž Urban Gracar, but not a port. The three rune words, powers, boards, implementation and graphics are original. No original LOK levels, vocabulary, writing or assets are copied.
 
-**Version 0.1:** Twenty frozen, solver-checked puzzles. Needs physical testing on the X4 Pro running XTOS Licorice.
+**Version 0.2:** Twenty frozen, solver-checked puzzles, visible trace order and measured text layouts. Needs physical testing on the X4 Pro running XTOS Licorice.
 
 ## Gameplay
 
@@ -25,6 +25,10 @@ Puzzles 1–6 are 4×4; 7–13 are 5×5; 14–20 are 6×6. The **?** notebook re
 - Physical page buttons navigate levels where permitted, not individual letters.
 
 All completed tiles are drawn black, with no animation, sound, timer, fades, or network. Current progress, unlocked levels, discovered runes, and undo history are saved locally in the app's private storage.
+
+Previous/Next now retain each visited board instead of silently restarting it.
+Existing version-1 saves remain readable. Layout and save regressions are checked
+by the repository [game quality gate](../docs/GAME_QUALITY.md).
 
 ## How to install
 

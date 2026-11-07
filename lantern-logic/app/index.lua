@@ -19,6 +19,7 @@ local LEVELS={
 {size=7,rows={"##.#...","...#...",".2.#.2.","...#..2","..1....","#.1...0","1.....#"}},
 }
 local D={{0,-1},{1,0},{0,1},{-1,0}}
+local UI=require('ui')
 local C,S,ERR,MSG=nil,nil,nil,nil
 local key_ms=-1000
 local function idx(x,y,n) return (y-1)*n+x end
@@ -113,6 +114,7 @@ local function save()
     'history='..table.concat(hist,';')
   },'\n')
   pcall(function() C.storage:write('lantern-logic.txt',data) end)
+  pcall(function() C.storage:write('lantern-logic-'..S.level..'.txt',data) end)
 end
 local function start(n,unlocked)
   local b=parse(n)
@@ -122,9 +124,9 @@ local function start(n,unlocked)
   MSG='Tap empty cell: bulb, X, clear'
   save()
 end
-local function restore()
+local function restore(filename,expected)
   if not C or not C.storage then return false end
-  local ok,s=pcall(function() return C.storage:read('lantern-logic.txt') end)
+  local ok,s=pcall(function() return C.storage:read(filename or 'lantern-logic.txt') end)
   if not ok or type(s)~='string' then return false end
   local f={}
   for k,v in s:gmatch('([%w_]+)=([^\n]*)') do f[k]=v end
@@ -132,6 +134,7 @@ local function restore()
   local n,u=tonumber(f.level),tonumber(f.unlocked)
   if not n or n~=math.floor(n) or n<1 or n>#LEVELS or
      not u or u~=math.floor(u) or u<n or u>#LEVELS then return false end
+  if expected and n~=expected then return false end
   local b=parse(n)
   local marks=decode(f.marks,b)
   if not marks then return false end
@@ -143,6 +146,15 @@ local function restore()
   end
   S={level=n,unlocked=u,b=b,marks=marks,history=hist}
   MSG=nil
+  return true
+end
+local function visit(n)
+  local unlocked=S.unlocked
+  save()
+  if restore('lantern-logic-'..n..'.txt',n) then
+    S.unlocked=math.max(unlocked,S.unlocked)
+    save()
+  else start(n,unlocked) end
   return true
 end
 local function choose(x,y)
@@ -175,29 +187,24 @@ local function reset()
 end
 local function previous()
   if not S or S.level==1 then return false end
-  start(S.level-1,S.unlocked)
+  visit(S.level-1)
   return true
 end
 local function next_level()
   if not S or S.level>=#LEVELS or
      (S.level>=S.unlocked and not complete(S.b,S.marks)) then return false end
-  start(S.level+1,S.unlocked)
+  visit(S.level+1)
   return true
 end
 local function font(which)
   return C and C.fonts and C.fonts[which or 'medium']
 end
 local function put(g,x,y,s,which,align)
-  local opt={}
-  local f=font(which)
-  if f then opt.font=f end
-  if align then opt.align=align end
-  g:text(x,y,s,opt)
+  UI.text(g,C,x,y,s,which,align)
 end
 local function centered(g,x,y,s,which) put(g,x,y,s,which,'center') end
 local function button(g,x,y,w,h,s)
-  g:rect(x,y,w,h,{line_width=2})
-  centered(g,x+w/2,y+h/2-10,s,'medium')
+  UI.button(g,C,x,y,w,h,s)
 end
 local function position(n)
   local cell=math.floor(392/n)
@@ -210,6 +217,7 @@ local function draw(g)
   g:line(24,111,456,111)
   local b,m=S.b,S.marks
   local bx,by,cell=position(b.n)
+  UI.region(bx,by,b.n*cell,b.n*cell)
   local dark,conflicts,bad,clues,lit=inspect(b,m)
   for y=1,b.n do
     for x=1,b.n do
@@ -223,7 +231,21 @@ local function draw(g)
         if ch=='#' then
           g:line(px+8,py+8,px+cell-8,py+cell-8,{line_width=2})
           g:line(px+cell-8,py+8,px+8,py+cell-8,{line_width=2})
-        else centered(g,cx,cy-16,ch,'large') end
+        else
+          centered(g,cx,cy-16,ch,'large')
+          local nearby=0
+          for _,d in ipairs(D) do
+            local a,q=x+d[1],y+d[2]
+            if inside(a,q,b.n) and m[idx(a,q,b.n)]==1 then nearby=nearby+1 end
+          end
+          if nearby==tonumber(ch) then
+            -- A small check under a satisfied clue, without covering its digit.
+            g:line(px+cell-17,py+9,px+cell-12,py+14,{line_width=2})
+            g:line(px+cell-12,py+14,px+cell-5,py+5,{line_width=2})
+          elseif nearby>tonumber(ch) then
+            g:line(px+6,py+cell-7,px+cell-6,py+cell-7,{line_width=3})
+          end
+        end
       elseif m[i]==1 then
         g:circle(cx,cy,12,{line_width=3})
         g:circle(cx,cy,5,{fill=true})
@@ -231,6 +253,21 @@ local function draw(g)
         g:line(cx+15,cy,cx+19,cy)
         g:line(cx,cy-19,cx,cy-15)
         g:line(cx,cy+15,cx,cy+19)
+        -- Corner brackets flag this bulb if another bulb sees it.
+        local clash=false
+        for _,d in ipairs(D) do
+          local a,q=x+d[1],y+d[2]
+          while inside(a,q,b.n) and not wall(b.tiles[idx(a,q,b.n)]) do
+            if m[idx(a,q,b.n)]==1 then clash=true;break end
+            a,q=a+d[1],q+d[2]
+          end
+        end
+        if clash then
+          g:line(px+5,py+15,px+5,py+5,{line_width=2})
+          g:line(px+5,py+5,px+15,py+5,{line_width=2})
+          g:line(px+cell-15,py+cell-5,px+cell-5,py+cell-5,{line_width=2})
+          g:line(px+cell-5,py+cell-5,px+cell-5,py+cell-15,{line_width=2})
+        end
       elseif m[i]==2 then
         g:line(cx-11,cy-11,cx+11,cy+11,{line_width=2})
         g:line(cx+11,cy-11,cx-11,cy+11,{line_width=2})
@@ -247,7 +284,8 @@ local function draw(g)
   else
     centered(g,240,574,'DARK '..dark..'   CLUES LEFT '..bad,'medium')
   end
-  centered(g,240,617,MSG or 'TAP: BULB  >  X  >  CLEAR','small')
+  UI.paragraph(g,C,24,617,432,48,MSG or 'TAP: BULB  >  X  >  CLEAR','small','center')
+  centered(g,240,651,'CHECK = CLUE MET / BRACKETS = CLASH','small')
   button(g,22,684,103,72,S.level>1 and 'PREV' or 'START')
   button(g,134,684,103,72,'UNDO')
   button(g,246,684,103,72,'RESET')
@@ -283,7 +321,7 @@ function on_draw(c,g)
   if c then C=c end
   if not g then return end
   if ERR then
-    g:clear(0);g:text(20,40,'LANTERN ERROR');g:text(20,80,ERR:sub(1,42))
+    UI.error(g,C,'LANTERN LOGIC',ERR)
     return
   end
   local ok,e=pcall(function() draw(g) end)

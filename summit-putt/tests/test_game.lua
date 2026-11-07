@@ -1,4 +1,6 @@
 -- Summit Putt's offline tests: solver, one-use cards, ramps, undo, save, and render.
+package.path='app/?.lua;../tests/?.lua;'..package.path
+local measured=require('game_canvas').check
 _G.__TEST={}
 dofile('app/index.lua')
 local A=__TEST.api
@@ -139,6 +141,7 @@ for level,path in ipairs(solution_paths) do
   end
   eq(A.state().stage,'won')
   local old_unlock=A.state().unlocked
+  measured(ctx,on_draw,'summit-putt solved '..level)
   on_leave()
   assert(A.read(),'save rejected for level '..level..':\n'..tostring(store['summit.txt']))
   on_load(ctx)
@@ -181,6 +184,47 @@ for level=1,8 do
   if found_stuck then break end
 end
 assert(found_stuck,'puzzles must allow a wrong solution to fail')
+-- The stuck-state layout has a different control row from ordinary play.
+-- Use a previously verified non-winning exhausted state for its rendering.
+local exhausted
+for level=1,8 do
+  A.start(level,10)
+  local q={{x=A.board().sx,y=A.board().sy,mask=0,path={}}}
+  local visited={}
+  for _,s in ipairs(q) do
+    if s.mask==2^#A.board().hand-1 and not(s.x==A.board().gx and s.y==A.board().gy) then
+      exhausted=s.path;break
+    end
+    for i,v in ipairs(A.board().hand) do
+      if not A.used(s.mask,i) then
+        for d=1,4 do
+          local x,y=independent_step(A.board(),s.x,s.y,v,d)
+          if x and not(x==A.board().gx and y==A.board().gy) then
+            local mask=s.mask+2^(i-1)
+            local key=x..':'..y..':'..mask
+            if not visited[key] then
+              local path={}
+              for _,m in ipairs(s.path) do path[#path+1]=m end
+              path[#path+1]={i=i,d=d}
+              q[#q+1]={x=x,y=y,mask=mask,path=path};visited[key]=true
+            end
+          end
+        end
+      end
+    end
+  end
+  if exhausted then break end
+end
+assert(exhausted)
+for _,m in ipairs(exhausted) do assert(A.choose(m.i));assert(A.advance(m.d)) end
+eq(A.state().stage,'stuck')
+measured(ctx,on_draw,'summit-putt out of cards')
+
+-- The relocated Undo button's hitbox must match its drawn position.
+A.start(1,10)
+assert(A.choose(first.i));assert(A.advance(first.dir))
+on_input(ctx,{type='pointer',phase='up',gesture='tap',x=120,y=108})
+eq(A.state().mask,0,'new Undo hitbox restores card')
 
 -- Key input cycles card selection, while invalid touch does not spend cards.
 A.start(2,10)
@@ -215,4 +259,13 @@ end
 store['summit.txt']='version=1\nlevel=999\n'
 on_load(ctx)
 eq(A.state().level,1,'corrupt save replaced')
+-- All boards plus help are checked with distinct and enlarged font metrics.
+local layout=require('game_canvas').check
+for n=1,#A.levels do
+  A.start(n,10)
+  layout(ctx,on_draw,'summit-putt level '..n)
+end
+A.touch(420,30)
+layout(ctx,on_draw,'summit-putt help')
+A.touch(420,30)
 print('Summit Putt: all 10 levels solved, card constraints, elevation, undo, persistence and drawing PASS')

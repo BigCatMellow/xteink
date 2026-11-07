@@ -1,5 +1,7 @@
 -- Link Grid v0.1 Lua host-simulation tests.
 -- Independent Python CSP test checks exact solution uniqueness.
+package.path='app/?.lua;../tests/?.lua;'..package.path
+local measured=require('game_canvas').check
 _G.__TEST={}
 dofile('app/index.lua')
 local A=__TEST.api
@@ -63,6 +65,23 @@ for level=1,20 do
   assert(A.solved(b,target),'reference solution must be valid for '..level)
 end
 
+-- A board visit must preserve its exact rotations, including after relaunch.
+A.start(5,8)
+local visiting=A.state()
+local target
+for i,v in ipairs(visiting.tiles) do
+  if v~=0 and not visiting.board.locked[i] and A.rotate(v)~=v then target=i;break end
+end
+A.rotate_tile((target-1)%4+1,math.floor((target-1)/4)+1)
+local expected=A.state().tiles[target]
+assert(A.next());on_leave();on_load(ctx)
+assert(A.prev());eq(A.state().tiles[target],expected,'NEXT/PREV retains moves')
+eq(A.state().unlocked,8,'visits preserve global unlocks')
+assert(A.restart())
+assert(A.state().tiles[target]~=expected,'RESET explicitly clears this board')
+memory={} -- isolate this navigation regression from the new-game progression test
+A.start(1,1)
+
 -- Test clockwise rotation, preserved shape, fixed/empty handling and persistence.
 local s=A.state()
 local b=s.board
@@ -120,6 +139,7 @@ for level=1,20 do
   assert(taps>=3,'puzzle requires deliberate input')
   assert(A.solved(board,state.tiles),'completed valid network')
   eq(state.unlocked,math.min(20,level+1),'progress unlock')
+  measured(ctx,on_draw,'link-grid solved '..level)
   on_leave()
   on_load(ctx)
   assert(A.solved(A.state().board,A.state().tiles),'solved state survives relaunch')
@@ -177,4 +197,10 @@ assert(type(on_tick)=='nil','no timer/update callbacks; static states only')
 memory['link-grid.txt']='version=1\nlevel=999\nunlocked=999\ntiles=XX\n'
 on_load(ctx)
 eq(A.state().level,1,'corrupt save resets')
+-- All boards plus help are checked with distinct and enlarged font metrics.
+local layout=require('game_canvas').check
+for n=1,#A.levels do
+  A.start(n,20)
+  layout(ctx,on_draw,'link-grid level '..n)
+end
 print('Link Grid: 20 levels, rotation, network checks, persistence and static render PASS')

@@ -1,7 +1,7 @@
 {
   "app_id": "inkrunes",
   "display_name": "Ink Runes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "BigCatMellow",
   "description": "Original mysterious rune-word puzzles in monochrome for the X4 Pro.",
   "entry": "index.lua",

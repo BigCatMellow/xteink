@@ -15,6 +15,10 @@ Place bulbs on white cells to illuminate every white square in the same row and 
 
 Boards 1–5 are 5×5, 6–11 are 6×6, and 12–16 are 7×7. Every board has exactly one bulb configuration solving all constraints, verified independently by the project's Python solver.
 
+Previous/Next now retain each visited board instead of silently restarting it.
+Existing version-1 saves remain readable. Layout and save regressions are checked
+by the repository [game quality gate](../docs/GAME_QUALITY.md).
+
 ## Install on Licorice
 
 1. Visit the [Lantern Logic build](https://github.com/BigCatMellow/xteink/actions/workflows/lantern-logic.yml).

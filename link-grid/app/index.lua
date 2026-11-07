@@ -2,6 +2,7 @@
 -- XTEINK X4 Pro (480x800). Touch interaction and discrete redraws only.
 -- No animation, frame loop, network access, timers, or grayscale.
 local TOTAL=20
+local UI=require('ui')
 local DIR={{0,-1},{1,0},{0,1},{-1,0}}
 local BIT={1,2,4,8} -- north/east/south/west
 local OPP={4,8,1,2}
@@ -124,6 +125,7 @@ local function save()
     'tiles='..table.concat(values)
   },'\n')
   pcall(function() CONTEXT.storage:write('link-grid.txt',data) end)
+  pcall(function() CONTEXT.storage:write('link-grid-'..STATE.level..'.txt',data) end)
 end
 local function start(n,unlocked)
   local board=load_level(n)
@@ -134,9 +136,9 @@ local function start(n,unlocked)
   MESSAGE=nil
   save()
 end
-local function restore()
+local function restore(filename,expected)
   if not CONTEXT or not CONTEXT.storage then return false end
-  local ok,data=pcall(function() return CONTEXT.storage:read('link-grid.txt') end)
+  local ok,data=pcall(function() return CONTEXT.storage:read(filename or 'link-grid.txt') end)
   if not ok or type(data)~='string' then return false end
   local fields={}
   for k,v in data:gmatch('([%w_]+)=([^\n]*)') do fields[k]=v end
@@ -147,6 +149,7 @@ local function restore()
      not unlocked or unlocked~=math.floor(unlocked) or
      unlocked<level or unlocked>TOTAL then return false end
   local board=load_level(level)
+  if expected and level~=expected then return false end
   local chars=fields.tiles
   if not chars or #chars~=board.size^2 or
      chars:find('[^0123456789ABCDEF]') then return false end
@@ -160,6 +163,14 @@ local function restore()
   STATE={level=level,unlocked=unlocked,board=board,tiles=values}
   MESSAGE=nil
   return true
+end
+local function visit(n)
+  local unlocked=STATE.unlocked
+  save()
+  if restore('link-grid-'..n..'.txt',n) then
+    STATE.unlocked=math.max(unlocked,STATE.unlocked)
+    save()
+  else start(n,unlocked) end
 end
 local function rotate_tile(x,y)
   if not STATE then return false end
@@ -180,12 +191,12 @@ end
 local function next_level()
   if not STATE or STATE.level>=TOTAL then return false end
   if STATE.level>=STATE.unlocked and not solved(STATE.board,STATE.tiles) then return false end
-  start(STATE.level+1,STATE.unlocked)
+  visit(STATE.level+1)
   return true
 end
 local function prev_level()
   if not STATE or STATE.level<=1 then return false end
-  start(STATE.level-1,STATE.unlocked)
+  visit(STATE.level-1)
   return true
 end
 local function restart()
@@ -197,16 +208,11 @@ local function font(which)
   return CONTEXT and CONTEXT.fonts and CONTEXT.fonts[which or 'medium']
 end
 local function put(g,x,y,s,which,align)
-  local f=font(which)
-  local opts={}
-  if f then opts.font=f end
-  if align then opts.align=align end
-  g:text(x,y,s,opts)
+  UI.text(g,CONTEXT,x,y,s,which,align)
 end
 local function center(g,x,y,s,which) put(g,x,y,s,which,'center') end
 local function button(g,x,y,w,h,s)
-  g:rect(x,y,w,h,{line_width=2})
-  center(g,x+w/2,y+h/2-10,s,'medium')
+  UI.button(g,CONTEXT,x,y,w,h,s)
 end
 local function board_origin(w)
   return math.floor((480-w*CELL)/2),w==4 and 182 or 161
@@ -220,6 +226,7 @@ local function draw(g)
   local board,tiles=STATE.board,STATE.tiles
   local w=board.size
   local bx,by=board_origin(w)
+  UI.region(bx,by,w*CELL,w*CELL)
   for y=1,w do
     for x=1,w do
       local i=index(x,y,w)
@@ -287,18 +294,14 @@ function on_draw(c,g)
   if c then CONTEXT=c end
   if not g then return end
   if ERROR then
-    g:clear(0)
-    g:text(26,35,'LINK GRID ERROR')
-    g:text(26,75,ERROR:sub(1,48))
+    UI.error(g,CONTEXT,'LINK GRID',ERROR)
     return
   end
   local ok,err=pcall(function() draw(g) end)
   if not ok then
     ERROR=tostring(err)
     pcall(function()
-      g:clear(0)
-      g:text(26,35,'LINK GRID ERROR')
-      g:text(26,75,ERROR:sub(1,48))
+      UI.error(g,CONTEXT,'LINK GRID',ERROR)
     end)
   end
 end

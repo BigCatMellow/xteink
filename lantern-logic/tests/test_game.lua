@@ -1,4 +1,6 @@
 -- Lantern Logic v0.1 on-host test suite. Fixtures are independent solver solutions.
+package.path='app/?.lua;../tests/?.lua;'..package.path
+local measured=require('game_canvas').check
 _G.__TEST={}
 dofile('app/index.lua')
 local A=__TEST.api
@@ -88,6 +90,7 @@ for level=1,16 do
   assert(clues>=2)
   assert(A.complete(state.b,state.marks),'puzzle valid')
   eq(state.unlocked,math.min(16,level+1))
+  measured(ctx,on_draw,'lantern-logic solved '..level)
   on_leave();on_load(ctx)
   assert(A.complete(A.state().b,A.state().marks),'save survives reload')
   if level<16 then assert(A.next()) else assert(not A.next()) end
@@ -189,4 +192,26 @@ assert(type(on_tick)=='nil','no background redraw loop')
 store['lantern-logic.txt']='version=1\nlevel=1000\nunlocked=5000\n'
 on_load(ctx)
 eq(A.state().level,1)
+-- Regression: visiting other levels must not discard unfinished work.
+A.start(2,16)
+local p=SOLUTIONS[2][1]
+assert(A.choose((p-1)%5+1,math.floor((p-1)/5)+1))
+assert(A.next());on_leave();on_load(ctx);assert(A.prev())
+eq(A.state().marks[p],1,'visits preserve bulbs')
+assert(A.undo(),'visits preserve undo history')
+eq(A.state().marks[p],0)
+-- A conflict must still fit the display and use visible board markers.
+A.start(1,16)
+local b=A.state().b
+for i=1,#b.tiles do
+  if b.tiles[i]=='.' then A.choose((i-1)%b.n+1,math.floor((i-1)/b.n)+1) end
+end
+measured(ctx,on_draw,'lantern-logic conflicting bulbs')
+
+-- All boards plus help are checked with distinct and enlarged font metrics.
+local layout=require('game_canvas').check
+for n=1,#A.levels do
+  A.start(n,16)
+  layout(ctx,on_draw,'lantern-logic level '..n)
+end
 print('Lantern Logic: 16 unique boards, bulbs, clues, undo, save, rendering PASS')

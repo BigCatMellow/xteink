@@ -1,6 +1,7 @@
 -- Ray Vault: original static atom-deduction puzzles for XTEINK X4 Pro.
 -- No animation, frame loop, timers, fading, sound, or network.
 local N,CELL,BX,BY=6,54,78,185
+local UI=require('ui')
 local LEVELS={
   {16,22,29},
   {4,6,12},
@@ -93,6 +94,7 @@ local function save()
     'stage='..S.stage
   },'\n')
   pcall(function() C.storage:write('ray-vault.txt',data) end)
+  pcall(function() C.storage:write('ray-vault-'..S.level..'.txt',data) end)
 end
 local function start(n,u)
   if n<1 or n>#LEVELS then return false end
@@ -102,9 +104,9 @@ local function start(n,u)
   HELP=false;save()
   return true
 end
-local function restore()
+local function restore(filename,expected)
   if not C or not C.storage then return false end
-  local ok,data=pcall(function() return C.storage:read('ray-vault.txt') end)
+  local ok,data=pcall(function() return C.storage:read(filename or 'ray-vault.txt') end)
   if not ok or type(data)~='string' then return false end
   local f={}
   for k,v in data:gmatch('([%w_]+)=([^\n]*)') do f[k]=v end
@@ -116,6 +118,7 @@ local function restore()
      not shots or shots~=math.floor(shots) or shots<0 or shots>24 or
      not checks or checks~=math.floor(checks) or checks<0 or checks>9999 or
      (f.stage~='play' and f.stage~='won') then return false end
+  if expected and n~=expected then return false end
   if not f.marks or #f.marks~=N*N or f.marks:find('[^012]') then return false end
   local m={}
   for i=1,N*N do m[i]=tonumber(f.marks:sub(i,i)) end
@@ -128,8 +131,19 @@ local function restore()
   end
   S={level=n,unlocked=u,marks=m,probes=p,shots=shots,
      checks=checks,stage=f.stage}
-  if (S.stage=='won')~=correct() then return false end
+  -- A correct arrangement is still an ordinary in-progress save until CHECK
+  -- is pressed. Only a claimed win requires a correct arrangement.
+  if S.stage=='won' and not correct() then return false end
   MSG=nil;HELP=false
+  return true
+end
+local function visit(n)
+  local unlocked=S.unlocked
+  save()
+  if restore('ray-vault-'..n..'.txt',n) then
+    S.unlocked=math.max(unlocked,S.unlocked)
+    save()
+  else start(n,unlocked) end
   return true
 end
 local function fire(port)
@@ -178,23 +192,18 @@ end
 local function next_level()
   if not S or S.level>=#LEVELS or
      (S.level>=S.unlocked and S.stage~='won') then return false end
-  return start(S.level+1,S.unlocked)
+  return visit(S.level+1)
 end
 local function prev()
   if not S or S.level==1 then return false end
-  return start(S.level-1,S.unlocked)
+  return visit(S.level-1)
 end
 local function text(g,x,y,s,style,align)
-  local f=C and C.fonts and C.fonts[style or 'medium']
-  local opt={}
-  if f then opt.font=f end
-  if align then opt.align=align end
-  g:text(x,y,s,opt)
+  UI.text(g,C,x,y,s,style,align)
 end
 local function centered(g,x,y,s,style) text(g,x,y,s,style,'center') end
 local function button(g,x,y,w,h,label)
-  g:rect(x,y,w,h,{line_width=2})
-  centered(g,x+w/2,y+h/2-9,label,'medium')
+  UI.button(g,C,x,y,w,h,label)
 end
 local function port_pos(port)
   if port<=N then return BX+(port-0.5)*CELL,BY-23 end
@@ -204,13 +213,20 @@ local function port_pos(port)
 end
 local function draw_help(g)
   centered(g,240,147,'HOW TO SOLVE','large')
-  text(g,20,217,'Tap rim circles to send rays.','medium')
-  text(g,20,260,'H = directly hit a hidden atom.','medium')
-  text(g,20,303,'R = reflected to the same port.','medium')
-  text(g,20,346,'Same number = entry and exit.','medium')
-  text(g,20,401,'Side atoms bend the unseen ray.','medium')
-  text(g,20,449,'Tap cells: atom / X / clear.','medium')
-  text(g,20,503,'Then CHECK your marked atoms.','medium')
+  for _,y in ipairs({202,338,474}) do g:rect(24,y,110,112,{line_width=1}) end
+  text(g,38,210,'HIT','small')
+  g:circle(42,266,6);g:line(48,266,105,266,{line_width=2});g:circle(110,266,8,{line_width=3})
+  UI.paragraph(g,C,150,210,300,104,'H: a head-on atom absorbs the ray. A direct hit takes priority.','small')
+  text(g,38,346,'RETURN','small')
+  g:circle(42,402,6);g:line(48,402,103,402,{line_width=2})
+  g:line(55,402,63,394);g:line(55,402,63,410)
+  g:circle(110,386,7);g:circle(110,418,7)
+  UI.paragraph(g,C,150,346,300,104,'R: ray returns to entry. Two side atoms, or an atom beside the entrance, reflect it.','small')
+  text(g,38,482,'BEND','small')
+  g:circle(42,530,6);g:line(48,530,84,530,{line_width=2})
+  g:line(84,530,84,568,{line_width=2});g:circle(84,574,6);g:circle(100,514,7)
+  UI.paragraph(g,C,150,482,300,104,'One side atom bends a ray 90 degrees away. Matching numbers pair its two ports.','small')
+  UI.paragraph(g,C,24,614,432,48,'Tap cells: atom / X / clear. Mark the required atoms, then CHECK.','small','center')
   button(g,65,683,350,70,'BACK')
 end
 local function draw(g)
@@ -220,6 +236,7 @@ local function draw(g)
   button(g,384,13,72,43,'?')
   g:line(24,109,456,109)
   if HELP then draw_help(g);return end
+  UI.region(BX-43,BY-43,N*CELL+86,N*CELL+86)
   for row=0,N-1 do
     for col=0,N-1 do
       local i=idx(col,row)
@@ -241,7 +258,7 @@ local function draw(g)
     centered(g,x,y-9,label=='-' and '.' or label,'small')
   end
   centered(g,240,572,'GUESSES '..guess_count()..'/'..#LEVELS[S.level]..'   PROBES '..S.shots,'medium')
-  centered(g,240,614,MSG or (S.stage=='won' and 'VAULT OPEN' or 'Tap the rim to probe'),'small')
+  UI.paragraph(g,C,24,614,432,48,MSG or (S.stage=='won' and 'VAULT OPEN' or 'Tap the rim to probe'),'small','center')
   button(g,18,684,107,71,S.level>1 and 'PREV' or 'LEVEL 1')
   button(g,137,684,104,71,'CLEAR')
   button(g,253,684,105,71,'CHECK')
@@ -281,7 +298,7 @@ function on_draw(c,g)
   if c then C=c end
   if not g then return end
   if ERR then
-    g:clear(0);g:text(20,40,'RAY VAULT ERROR');g:text(20,80,ERR:sub(1,44))
+    UI.error(g,C,'RAY VAULT',ERR)
     return
   end
   local ok,e=pcall(function() draw(g) end)

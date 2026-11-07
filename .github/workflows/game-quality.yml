@@ -1,0 +1,29 @@
+name: Game quality gate
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install host runtime and packaging dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lua5.4
+          python -m pip install cryptography
+      - name: Fetch pinned community packer
+        run: |
+          git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
+          git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
+      - name: Verify layout, saves, navigation, puzzles and installable packages
+        run: python scripts/check_games.py --packer /tmp/xtapp-tools/xtpack.py --linter /tmp/xtapp-tools/tools/lualint55.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-game-packages
+          path: dist/*.xtapp
+          if-no-files-found: error

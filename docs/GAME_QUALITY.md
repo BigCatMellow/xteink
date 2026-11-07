@@ -1,0 +1,66 @@
+# Game quality and release checks
+
+## Layout
+
+Text must fit a named area on the 480×800 screen. Use real firmware
+`font:measure()` and `font.line_height`; do not center by character count or
+assume small/medium/large have identical metrics. `UI.text` bounds single-line
+labels, `UI.button` adds padding, and `UI.paragraph` wraps instructions. Keep
+essential rules readable; shorten the wording or allocate more space instead
+of silently truncating them. Explicitly update touch geometry when moving a
+control. Mark board extents with `UI.region` so text cannot straddle them.
+
+The canonical helper is `shared/game_ui.lua`. App-local `ui.lua` files are
+generated copies because XTApp packages cannot import files outside their own
+app. Run `python3 scripts/sync_game_ui.py`; CI rejects drift or raw text calls.
+
+Use crisp lines, understandable symbols, consistent spacing and readable type.
+E-ink does not excuse weak presentation. Color or grayscale must not be the
+only explanation of a state; avoid gratuitous refreshes and animations.
+
+## Required regressions
+
+- Exercise all authored boards and solved screens using `tests/game_canvas.lua`.
+  The two font profiles have distinct 20/24/30px line heights, variable glyph
+  widths and an additional 25% width margin. These are conservative models,
+  not extracted firmware font metrics.
+- Check help, hints, selection, conflict, stuck and maximum-counter states where
+  applicable. Tests must check actual text rectangles, not merely drawing count.
+- Reject text/text collisions, text crossing controls or board boundaries,
+  off-screen text and overflowing instruction paragraphs. The guard has negative
+  self-tests including the old Summit caption/Undo collision.
+- Reopen partially completed games, completed games, and correct answers awaiting
+  submission. Preserve the current level and global unlocks. Ray Vault's old
+  correct-before-CHECK reset is a mandatory regression.
+- Visit another unlocked level, close/reopen, and return. Preserve the board and
+  undo history. Reset is a separate action. Keep old save formats readable.
+- Replay independently specified solutions and validate authored puzzle
+  constraints. Keep input release/debounce and static redraw tests.
+
+For features outside a particular game's controls, document why the state is
+not applicable; do not invent a blanket exemption.
+
+## Run locally
+
+```bash
+python3 scripts/sync_game_ui.py --check
+python3 scripts/check_games.py
+python3 scripts/check_games.py --packer /path/to/xtpack.py --linter /path/to/lualint55.py
+```
+
+Python 3, Lua 5.4 and the packer's crypto prerequisites are used in CI. Existing
+games are also compatible with the desktop's Lua 5.1 host tests. Add new games
+to the game list in `scripts/sync_game_ui.py`; the runner discovers manifests
+and fails if a game is missing from that list. The global workflow runs on pushes
+and pull requests, including changes to shared helpers and tests.
+
+## Physical release check
+
+Install over the previous app without removing its files. Check real font
+placement, clear line intersections, touch targets, sleep/resume and existing
+save data. Verify all changed screens and record the firmware version and any
+failures. Keep a backup before updating the SD card. CI does not establish
+physical-device compatibility. Pocket Golf remains excluded while shelved.
+
+The workflow adds a check to pull requests. Requiring that check before merge
+also depends on the repository's GitHub branch-protection settings.

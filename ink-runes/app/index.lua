@@ -1,0 +1,379 @@
+-- Ink Runes: original rule-discovery word puzzle for XTOS Licorice.
+-- XTEINK X4 Pro, 480x800 monochrome. No animation, timer or network.
+local LEVELS={
+  {name="GLYPH 01",n=4,rows={"....","..M.",".RI.","...."}},
+  {name="GLYPH 02",n=4,rows={"...M","...I","...R","...."}},
+  {name="GLYPH 03",n=4,rows={"..M.",".RIR",".IM.","...."}},
+  {name="GLYPH 04",n=4,rows={"....",".R..","RIM.","IM.."}},
+  {name="GLYPH 05",n=4,rows={"....","..AV","IRSA","M..."}},
+  {name="GLYPH 06",n=4,rows={"....",".MI.","ASR.","VA.."}},
+  {name="GLYPH 07",n=5,rows={".MSD.",".VA..","M....","IR...","MIR.."}},
+  {name="GLYPH 08",n=5,rows={"...M.","D..IR","SV.MI","AV..R","....."}},
+  {name="GLYPH 09",n=5,rows={".....","D.MIR","D..M.","OD.IR","K...."}},
+  {name="GLYPH 10",n=5,rows={"R.D..","IRIM.","M.M..","..K..","..OD."}},
+  {name="GLYPH 11",n=5,rows={"..MIR","...DD","AV.KO","SR.O.",".IMV."}},
+  {name="GLYPH 12",n=5,rows={"MI..M",".R.RI","...D.","ODKSA","K..AV"}},
+  {name="GLYPH 13",n=5,rows={"M....","IR...",".RV..","OKASR","DRRIM"}},
+  {name="GLYPH 14",n=6,rows={".R...R",".IM.MI","..R.MI",".MSA.R","..SVOK","....D."}},
+  {name="GLYPH 15",n=6,rows={"...A..","..ASAV","..IRA.","R.M...","I...KO","M.RIMD"}},
+  {name="GLYPH 16",n=6,rows={"..DM..","..OK..","SS...M","A..ORI","VR.MI.","MI..R."}},
+  {name="GLYPH 17",n=6,rows={".M...R","DOR.MI",".KIM..",".KMIV.",".V.RA.",".RIMSA"}},
+  {name="GLYPH 18",n=6,rows={"IM..IM","R.M.R.",".IRMIR",".MS...",".OK.VV",".D.KSA"}},
+  {name="GLYPH 19",n=6,rows={"ASV.IR","VRIMM.",".IM..R",".SI.MI","OKR...","DR...."}},
+  {name="GLYPH 20",n=6,rows={"..M.IR","IMISM.","R.RV..","R..DD.","S..KOM","AV..RI"}},
+}
+local POWERS={MIR='TRACE',VAS='RIPPLE',DOK='COLUMN'}
+local ORDER={'MIR','VAS','DOK'}
+local C,S,ERROR,MSG=nil,nil,nil,nil
+local help=false
+local key_ms=-1000
+local function idx(x,y,n) return (y-1)*n+x end
+local function inside(x,y,n) return x>=1 and x<=n and y>=1 and y<=n end
+local function adjacent(i,j,n)
+  local x,y=(i-1)%n+1,math.floor((i-1)/n)+1
+  local a,b=(j-1)%n+1,math.floor((j-1)/n)+1
+  return math.abs(x-a)+math.abs(y-b)==1
+end
+local function board(n)
+  local p=LEVELS[n]
+  if not p then error('Invalid puzzle') end
+  local letters={}
+  for _,row in ipairs(p.rows) do
+    if #row~=p.n then error('Bad row') end
+    for i=1,p.n do
+      local ch=row:sub(i,i)
+      if ch:find('[^%.MIRVASDOK]') then error('Unknown letter') end
+      letters[#letters+1]=ch
+    end
+  end
+  if #letters~=p.n*p.n then error('Bad grid size') end
+  return {n=p.n,name=p.name,letters=letters}
+end
+local function empty(b)
+  local t={}
+  for i=1,#b.letters do t[i]=false end
+  return t
+end
+local function copy(t)
+  local c={}
+  for i,v in ipairs(t) do c[i]=v end
+  return c
+end
+local function encoding(t)
+  local a={}
+  for i,v in ipairs(t) do a[i]=v and '1' or '0' end
+  return table.concat(a)
+end
+local function decoding(v,b)
+  if type(v)~='string' or #v~=#b.letters or v:find('[^01]') then return nil end
+  local t={}
+  for i=1,#v do
+    t[i]=v:sub(i,i)=='1'
+    if t[i] and b.letters[i]=='.' then return nil end
+  end
+  return t
+end
+local function complete(b,ink)
+  for i,ch in ipairs(b.letters) do
+    if ch~='.' and not ink[i] then return false end
+  end
+  return true
+end
+local function rune(b,ink,path)
+  if #path~=3 then return nil end
+  local seen,chars={},{}
+  for i,p in ipairs(path) do
+    if type(p)~='number' or p<1 or p>#b.letters or seen[p] or
+       b.letters[p]=='.' or ink[p] then return nil end
+    if i>1 and not adjacent(path[i-1],p,b.n) then return nil end
+    seen[p]=true
+    chars[#chars+1]=b.letters[p]
+  end
+  local word=table.concat(chars)
+  return POWERS[word] and word or nil
+end
+local function apply(b,ink,word,path)
+  local changed=copy(ink)
+  for _,p in ipairs(path) do changed[p]=true end
+  local n=b.n
+  local last=path[3]
+  local x,y=(last-1)%n+1,math.floor((last-1)/n)+1
+  if word=='VAS' then
+    local dirs={{0,-1},{1,0},{0,1},{-1,0}}
+    for _,d in ipairs(dirs) do
+      local a,q=x+d[1],y+d[2]
+      if inside(a,q,n) then changed[idx(a,q,n)]=true end
+    end
+  elseif word=='DOK' then
+    for yy=1,n do changed[idx(x,yy,n)]=true end
+  end
+  for i,ch in ipairs(b.letters) do
+    if ch=='.' then changed[i]=false end
+  end
+  return changed
+end
+local function progress(b,ink)
+  local done,total=0,0
+  for i,ch in ipairs(b.letters) do
+    if ch~='.' then
+      total=total+1
+      if ink[i] then done=done+1 end
+    end
+  end
+  return done,total
+end
+local function save()
+  if not C or not C.storage or not S then return end
+  local hist={}
+  for _,h in ipairs(S.history) do hist[#hist+1]=encoding(h) end
+  local data=table.concat({
+    'version=1','level='..S.level,'unlocked='..S.unlocked,
+    'seen='..S.seen,'ink='..encoding(S.ink),
+    'history='..table.concat(hist,';')
+  },'\n')
+  pcall(function() C.storage:write('ink-runes.txt',data) end)
+end
+local function start(n,unlocked,seen)
+  local b=board(n)
+  S={level=n,unlocked=math.max(n,unlocked or n),seen=seen or '',
+     b=b,ink=empty(b),selected={},history={}}
+  help=false
+  MSG='Trace three touching letters'
+  save()
+end
+local function restore()
+  if not C or not C.storage then return false end
+  local ok,s=pcall(function() return C.storage:read('ink-runes.txt') end)
+  if not ok or type(s)~='string' then return false end
+  local f={}
+  for key,value in s:gmatch('([%w_]+)=([^\n]*)') do f[key]=value end
+  if f.version~='1' then return false end
+  local n,u=tonumber(f.level),tonumber(f.unlocked)
+  if not n or n~=math.floor(n) or n<1 or n>#LEVELS or
+     not u or u~=math.floor(u) or u<n or u>#LEVELS or
+     type(f.seen)~='string' or f.seen:find('[^MVD]') then return false end
+  local b=board(n)
+  local ink=decoding(f.ink,b)
+  if not ink then return false end
+  local hist={}
+  for state in (f.history or ''):gmatch('[^;]+') do
+    local old=decoding(state,b)
+    if not old or #hist>10 then return false end
+    hist[#hist+1]=old
+  end
+  S={level=n,unlocked=u,seen=f.seen,b=b,ink=ink,selected={},history=hist}
+  help=false
+  MSG=nil
+  return true
+end
+local function choose(p)
+  if not S or p<1 or p>#S.b.letters or S.b.letters[p]=='.' or S.ink[p] or
+     complete(S.b,S.ink) then return false end
+  local selection=S.selected
+  if #selection==0 then
+    S.selected={p};MSG='Choose the next adjacent letter';return true
+  end
+  if selection[#selection]==p then
+    S.selected={};MSG='Selection cancelled';return true
+  end
+  if not adjacent(selection[#selection],p,S.b.n) then
+    S.selected={p};MSG='New trace started';return true
+  end
+  for _,q in ipairs(selection) do
+    if q==p then S.selected={};MSG='No repeated letters';return true end
+  end
+  selection[#selection+1]=p
+  if #selection<3 then MSG='One more letter';return true end
+  local word=rune(S.b,S.ink,selection)
+  S.selected={}
+  if not word then MSG='Unknown rune';return true end
+  S.history[#S.history+1]=copy(S.ink)
+  S.ink=apply(S.b,S.ink,word,selection)
+  local initial=word:sub(1,1)
+  if not S.seen:find(initial,1,true) then S.seen=S.seen..initial end
+  MSG=word..'  '..POWERS[word]
+  if complete(S.b,S.ink) then
+    S.unlocked=math.min(#LEVELS,math.max(S.unlocked,S.level+1))
+    MSG='ALL GLYPHS COVERED'
+  end
+  save()
+  return true
+end
+local function undo()
+  if not S then return false end
+  if #S.selected>0 then
+    S.selected={};MSG='Trace cancelled';return true
+  end
+  if #S.history==0 then return false end
+  S.ink=table.remove(S.history)
+  MSG='Last rune restored'
+  save()
+  return true
+end
+local function next_level()
+  if not S or S.level>=#LEVELS then return false end
+  if S.level>=S.unlocked and not complete(S.b,S.ink) then return false end
+  start(S.level+1,S.unlocked,S.seen)
+  return true
+end
+local function prev_level()
+  if not S or S.level<=1 then return false end
+  start(S.level-1,S.unlocked,S.seen)
+  return true
+end
+local function reset()
+  if not S then return false end
+  start(S.level,S.unlocked,S.seen)
+  return true
+end
+local function text(g,x,y,s,which,align)
+  local font=C and C.fonts and C.fonts[which or 'medium']
+  local opts={}
+  if font then opts.font=font end
+  if align then opts.align=align end
+  g:text(x,y,s,opts)
+end
+local function centered(g,x,y,s,which)
+  text(g,x,y,s,which,'center')
+end
+local function button(g,x,y,w,h,label)
+  g:rect(x,y,w,h,{line_width=2})
+  centered(g,x+w/2,y+h/2-10,label,'medium')
+end
+local function geometry(n)
+  local cell=math.floor(390/n)
+  return math.floor((480-n*cell)/2),166,cell
+end
+local function draw_help(g)
+  centered(g,240,149,'GLYPH NOTES','large')
+  text(g,26,220,'Touch 3 adjacent letters.','medium')
+  text(g,26,261,'A known rune covers tiles.','medium')
+  text(g,26,304,'Discover what each rune does:','medium')
+  local y=361
+  for _,word in ipairs(ORDER) do
+    if S.seen:find(word:sub(1,1),1,true) then
+      text(g,33,y,word..'  '..POWERS[word],'medium')
+      y=y+52
+    end
+  end
+  if y==361 then text(g,33,y,'No runes learned yet','medium') end
+  text(g,26,611,'Goal: cover every letter.','medium')
+  button(g,43,683,394,69,'BACK TO PUZZLE')
+end
+local function draw(g)
+  g:clear(0)
+  text(g,26,15,'INK RUNES','large')
+  text(g,26,59,'PUZZLE '..S.level..' / '..#LEVELS,'medium')
+  button(g,379,12,70,45,'?')
+  g:line(26,107,454,107)
+  if help then draw_help(g);return end
+  local b,ink=S.b,S.ink
+  local x0,y0,cell=geometry(b.n)
+  for y=1,b.n do
+    for x=1,b.n do
+      local i=idx(x,y,b.n)
+      local ch=b.letters[i]
+      if ch~='.' then
+        local xx,yy=x0+(x-1)*cell,y0+(y-1)*cell
+        if ink[i] then
+          g:rect(xx+2,yy+2,cell-4,cell-4,{fill=true})
+        else
+          g:rect(xx+2,yy+2,cell-4,cell-4,{line_width=2})
+          centered(g,xx+cell/2,yy+cell/2-17,ch,'large')
+          for _,q in ipairs(S.selected) do
+            if q==i then g:rect(xx+8,yy+8,cell-16,cell-16,{line_width=2}) end
+          end
+        end
+      end
+    end
+  end
+  local done,total=progress(b,ink)
+  centered(g,240,583,done..' / '..total..' COVERED','medium')
+  centered(g,240,622,MSG or 'Trace a known rune','small')
+  button(g,24,675,102,73,S.level>1 and 'PREV' or 'START')
+  button(g,136,675,100,73,'UNDO')
+  button(g,246,675,102,73,'RESET')
+  if (complete(b,ink) or S.level<S.unlocked) and S.level<#LEVELS then
+    button(g,358,675,98,73,'NEXT')
+  elseif complete(b,ink) then
+    centered(g,406,707,'DONE','medium')
+  end
+end
+local function hit(x,y,a,b,w,h)
+  return x>=a and x<a+w and y>=b and y<b+h
+end
+local function tap(x,y)
+  if hit(x,y,379,12,70,45) then help=not help;return true end
+  if help then
+    if hit(x,y,43,683,394,69) then help=false;return true end
+    return false
+  end
+  if hit(x,y,24,675,102,73) then return prev_level() end
+  if hit(x,y,136,675,100,73) then return undo() end
+  if hit(x,y,246,675,102,73) then return reset() end
+  if hit(x,y,358,675,98,73) then return next_level() end
+  local x0,y0,cell=geometry(S.b.n)
+  if hit(x,y,x0,y0,S.b.n*cell,S.b.n*cell) then
+    local col=math.floor((x-x0)/cell)+1
+    local row=math.floor((y-y0)/cell)+1
+    return choose(idx(col,row,S.b.n))
+  end
+  return false
+end
+local function refresh()
+  if C then pcall(function() C:invalidate() end) end
+end
+function on_load(c)
+  C=c or ctx;ERROR=nil
+  local ok,err=pcall(function()
+    if not restore() then start(1,1,'') end
+  end)
+  if not ok then ERROR=tostring(err) end
+end
+function on_draw(c,g)
+  if c then C=c end
+  if not g then return end
+  if ERROR then
+    g:clear(0)
+    g:text(20,36,'INK RUNES ERROR')
+    g:text(20,72,ERROR:sub(1,48))
+    return
+  end
+  local ok,err=pcall(function() draw(g) end)
+  if not ok then ERROR=tostring(err) end
+end
+function on_input(c,event)
+  if c then C=c end
+  if ERROR or not S or type(event)~='table' then return false end
+  local changed=false
+  local ok,err=pcall(function()
+    if event.type=='pointer' or event.type=='touch' then
+      if event.type=='pointer' and event.phase~='up' then return end
+      if event.gesture and event.gesture~='tap' and event.gesture~='double_tap' then return end
+      changed=tap(tonumber(event.x) or -1,tonumber(event.y) or -1)
+    elseif event.type=='key' and (not event.phase or event.phase=='down') and
+       (event.key=='up' or event.key=='down') then
+      local now=tonumber(event.time_ms)
+      if not now and C and C.clock then
+        local yes,v=pcall(function() return C.clock:millis() end)
+        if yes then now=tonumber(v) end
+      end
+      if now and now>=key_ms and now-key_ms<230 then return end
+      if now then key_ms=now end
+      if event.key=='up' then changed=prev_level() else changed=next_level() end
+    end
+  end)
+  if not ok then ERROR=tostring(err);changed=true end
+  if changed then refresh() end
+  return changed
+end
+function on_leave() if S then save() end end
+if rawget(_G,'__TEST') then
+  __TEST.api={
+    levels=LEVELS,board=board,rune=rune,apply=apply,complete=complete,
+    choose=choose,undo=undo,next=next_level,prev=prev_level,
+    restart=reset,start=start,restore=restore,
+    state=function() return S end,
+    geometry=geometry,tap=tap,encoding=encoding,decoding=decoding
+  }
+end

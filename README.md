@@ -4,8 +4,9 @@ Projects and experiments for the XTEINK X4 Pro, primarily running XTOS Licorice.
 
 ## Games
 
-- [Paper Golf](paper-golf/README.md) — a monochrome, stroke-limited shot-planning golf puzzle.
-- [Summit Putt](summit-putt/README.md) — a separate card-based golf routing puzzle with ten handcrafted levels, one-use cards, ramps, and undo.
+- [Paper Golf](paper-golf/README.md) — monochrome stroke-limited golf-puzzle game.
+- [Summit Putt](summit-putt/README.md) — card-based golf routing puzzles with finite cards and ramps.
+- [Line Lift](line-lift/README.md) — **zero-animation**, black-and-white crossing-logic puzzles inspired by Hook; remove the upper rods first.
 
 ## Utilities
 
@@ -13,8 +14,9 @@ Projects and experiments for the XTEINK X4 Pro, primarily running XTOS Licorice.
 
 ## Builds
 
-Each project has its own independently installable `.xtapp` package:
+Each project produces a separate installable `.xtapp` package:
 
 - [Paper Golf](.github/workflows/build.yml)
 - [Summit Putt](.github/workflows/summit-putt.yml)
+- [Line Lift](.github/workflows/line-lift.yml)
 - [Wallpaper Randomizer](.github/workflows/wallpaper-randomizer.yml)

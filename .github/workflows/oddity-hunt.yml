@@ -1,0 +1,45 @@
+name: Build Oddity Hunt
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'oddity-hunt/**'
+      - '.github/workflows/oddity-hunt.yml'
+      - 'shared/game_ui.lua'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua and packaging dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lua5.4
+          python -m pip install cryptography
+      - name: Verify twelve object scenes
+        run: python oddity-hunt/tests/validate_levels.py
+      - name: Test tap rules, saving and scaled-font layout
+        run: cd oddity-hunt && lua tests/test_game.lua
+      - name: Get pinned community Licorice packer
+        run: |
+          git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
+          git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
+      - name: Lua 5.5 compatibility
+        run: |
+          python /tmp/xtapp-tools/tools/lualint55.py oddity-hunt/app/index.lua
+          python /tmp/xtapp-tools/tools/lualint55.py oddity-hunt/app/art.lua
+          python /tmp/xtapp-tools/tools/lualint55.py oddity-hunt/app/scenes.lua
+          python /tmp/xtapp-tools/tools/lualint55.py oddity-hunt/app/ui.lua
+      - name: Build XTApp
+        run: |
+          mkdir -p dist
+          python /tmp/xtapp-tools/xtpack.py oddity-hunt/app -o dist/oddity-hunt.xtapp
+          python -c "from pathlib import Path; p=Path('dist/oddity-hunt.xtapp'); assert p.read_bytes()[:4]==b'XTAP' and p.stat().st_size>256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oddity-hunt-xtapp
+          path: dist/oddity-hunt.xtapp
+          if-no-files-found: error

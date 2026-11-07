@@ -1,5 +1,7 @@
 # Line Lift — static crossing puzzles for XTEINK X4 Pro
 
+**Status: v0.2.** Includes an optional on-board hint that rings currently safe pulls; the hint never makes a move for the player.
+
 **Original minimalist deduction game for XTOS Licorice**, designed for the reader's **480 × 800 black-and-white e-ink screen**. Inspired by the *type of reasoning* in Maciej Targoni's [Hook](https://www.rainbowtrain.eu/hook), but this is **not a port**. All 12 layouts, line groupings, renderer, app code and name are independently authored.
 
 ## No animation — by design

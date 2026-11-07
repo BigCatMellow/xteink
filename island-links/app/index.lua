@@ -26,17 +26,17 @@ local function nodes(n)
 end
 local function links(points)
   local result={}
-  for i,a in ipairs(points) do
+  for i,first in ipairs(points) do
     for j=i+1,#points do
       local b=points[j]
-      if a.x==b.x or a.y==b.y then
+      if first.x==b.x or first.y==b.y then
         local clear=true
         for k,q in ipairs(points) do
           if k~=i and k~=j then
-            if a.x==b.x and q.x==a.x and
-              q.y>math.min(a.y,b.y) and q.y<math.max(a.y,b.y) then clear=false end
-            if a.y==b.y and q.y==a.y and
-              q.x>math.min(a.x,b.x) and q.x<math.max(a.x,b.x) then clear=false end
+            if first.x==b.x and q.x==first.x and
+              q.y>math.min(first.y,b.y) and q.y<math.max(first.y,b.y) then clear=false end
+            if first.y==b.y and q.y==first.y and
+              q.x>math.min(first.x,b.x) and q.x<math.max(first.x,b.x) then clear=false end
           end
         end
         if clear then result[#result+1]={a=i,b=j} end

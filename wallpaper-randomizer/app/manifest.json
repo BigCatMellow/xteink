@@ -1,9 +1,9 @@
 {
   "app_id": "wallrandom",
   "display_name": "Wallpaper Randomizer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "BigCatMellow",
-  "description": "Rotate JPEG lock-screen images on sleep without immediate repeats.",
+  "description": "Rotate lossless PNG lock-screen images on sleep without immediate repeats.",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": [],

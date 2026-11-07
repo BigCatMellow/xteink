@@ -1,13 +1,13 @@
 # Wallpaper Randomizer — XTEINK X4 Pro
 
-A small, offline **XTOS Licorice Ink App** that cycles through your own 480 × 800 **JPEG** wallpapers whenever its custom lock screen starts. It remembers the last displayed image, and never picks that same image on the next activation if there are at least two.
+A small, offline **XTOS Licorice Ink App** that cycles through lossless 480 × 800 **PNG** wallpapers whenever its custom lock screen starts. It remembers the last displayed image, and never picks that same image on the next activation if there are at least two.
 
 **Status:** v0.2 prototype. This is an app-based *lock screen*, not a patch to the stock **Off wallpaper → Custom** option. It selects the next wallpaper when the reader enters sleep, then remains static while asleep. Firmware lifecycle behavior can still differ by version.
 
 ## How it works
 
 - The user copies pictures into the app's private folder: `XTApps/wallrandom/files/` on the microSD card.
-- `lockscreen.lua` lists JPEG files, sorts them, and randomly picks from every file **except the last displayed**. It saves the filename and a counter in `rotation.txt`, so reboots don't cause consecutive repeats.
+- `lockscreen.lua` lists PNG files, sorts them, and randomly picks from every file **except the last displayed**. It saves the filename and a counter in `rotation.txt`, so reboots don't cause consecutive repeats.
 - The image is decoded once per lock-screen session, not every screen redraw. The idle refresh interval is one year, so it does not perform hourly redraws or consume power while asleep.
 - **One picture:** displays that picture every time. **No pictures:** displays an instruction instead of crashing.
 - No network access, cloud sync, or changes to the device firmware are required.
@@ -23,6 +23,16 @@ python wallpaper-randomizer/tools/native_xth_wallpaper.py /media/mellow/4A21-000
 ```
 
 It chooses a random `.xth` frame without immediately repeating the previous choice. Use `--frame g11.xth --dry-run` to verify a specific frame first. This is a desktop-side switcher: stock firmware does not expose a supported way to advance a native wallpaper automatically on every sleep.
+
+### Automatic sleep rotation without JPEG
+
+The custom lock-screen app is invoked at every sleep, so it can rotate without an hourly wake. It cannot read `Pushed Images/` directly: Licorice restricts every app to its own `XTApps/<app>/files/` folder. While the reader is mounted, mirror the native XTH files into that sandbox as lossless four-grey-level PNGs:
+
+```bash
+python wallpaper-randomizer/tools/sync_xth_png.py /media/mellow/READER_LABEL
+```
+
+This does not alter the XTH originals. It is a lossless copy for the app only; the reader still picks a new frame on every sleep and does not redraw hourly. Full-screen PNG decoding should be confirmed on the device before removing the prior JPEG files.
 
 ## Install on Licorice
 

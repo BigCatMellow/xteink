@@ -5,7 +5,7 @@ local C, names, status, preview, photo=nil,{},nil,false,nil
 
 local function accepted(s)
   return type(s)=='string' and #s<=96 and
-    not s:find('[/%c\\]') and s:lower():match('%.jpe?g$')~=nil
+    not s:find('[/%c\\]') and s:lower():match('%.png$')~=nil
 end
 
 local function scan()
@@ -49,7 +49,7 @@ local function release()
 end
 
 local function show_preview()
-  if #names==0 then status='Copy JPGs to the app files folder';return end
+  if #names==0 then status='Run the XTH sync tool, then rescan';return end
   local last=read('rotation.txt') or ''
   local choice=last:match('last=([^\n]+)')
   local available=false
@@ -75,7 +75,7 @@ end
 function on_load(c)
   C=c or ctx
   scan()
-  status=#names..' JPEG image(s) found'
+  status=#names..' lossless PNG image(s) found'
 end
 
 function on_draw(c,g)
@@ -89,10 +89,10 @@ function on_draw(c,g)
   g:text(30,50,'WALLPAPER',{font=large})
   g:text(30,87,'RANDOMIZER',{font=large})
   g:line(30,134,450,134)
-  g:text(30,173,tostring(#names)..' JPG images ready',{font=medium})
+  g:text(30,173,tostring(#names)..' lossless PNGs ready',{font=medium})
   g:text(30,230,'Each lock selects a new image.',{font=medium})
   g:text(30,263,'No immediate repeats.',{font=medium})
-  g:text(30,310,'Copy JPGs (480 x 800) to:',{font=small})
+  g:text(30,310,'Use XTH sync; it writes PNGs to:',{font=small})
   g:text(30,338,'XTApps/wallrandom/files/',{font=small})
   g:rect(30,420,420,66)
   g:text(65,441,'ENABLE LOCK SCREEN',{font=medium})
@@ -118,7 +118,7 @@ function on_input(c,ev)
   if x>=30 and x<450 and y>=420 and y<486 then
     set_lock()
   elseif x>=30 and x<230 and y>=508 and y<572 then
-    scan();status=#names..' JPEG image(s) found'
+    scan();status=#names..' lossless PNG image(s) found'
   elseif x>=247 and x<450 and y>=508 and y<572 then
     show_preview()
   else return false end

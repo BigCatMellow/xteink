@@ -1,8 +1,8 @@
 _G.__TEST = {}
 local pictures = {
-  ['alpha.jpg']='JPEG-ALPHA',
-  ['bravo.jpeg']='JPEG-BRAVO',
-  ['charlie.JPG']='JPEG-CHARLIE',
+  ['alpha.png']='PNG-ALPHA',
+  ['bravo.png']='PNG-BRAVO',
+  ['charlie.PNG']='PNG-CHARLIE',
 }
 local storage={}
 local now=1000000
@@ -20,13 +20,13 @@ local ctx={
     read=function(_,name) return pictures[name] end
   },
   storage={
-    list=function() return {'rotation.txt','nope.png'} end,
+    list=function() return {'rotation.txt','nope.txt'} end,
     read=function(_,name) return storage[name] end,
     write=function(_,name,value) storage[name]=value end
   },
   image={
     decode=function(_,bytes)
-      assert(type(bytes)=='string' and bytes:match('^JPEG'))
+      assert(type(bytes)=='string' and bytes:match('^PNG'))
       return {bytes=bytes,release=function() end}
     end
   },
@@ -51,7 +51,7 @@ local g={
 }
 dofile('app/lockscreen.lua')
 local lock=__TEST.lock
-assert(#lock.filenames(ctx)==3,'three valid jpgs')
+assert(#lock.filenames(ctx)==3,'three valid pngs')
 assert(lock.choose(0)==nil)
 assert(lock.choose(1,nil,9,9)==1)
 assert(lock.choose(2,1,1,0)==2)
@@ -78,7 +78,7 @@ for i=1,100 do
 end
 
 -- Two-image decks must alternate.
-pictures={['alpha.jpg']='JPEG-ALPHA',['bravo.jpeg']='JPEG-BRAVO'}
+pictures={['alpha.png']='PNG-ALPHA',['bravo.png']='PNG-BRAVO'}
 previous=nil
 for i=1,20 do
   on_load(ctx)
@@ -88,17 +88,17 @@ for i=1,20 do
 end
 
 -- With one image repeated display is unavoidable; with zero, show an instruction.
-pictures={['one.jpg']='JPEG-ONE'}
-on_load(ctx);assert(lock.current()=='one.jpg')
-on_load(ctx);assert(lock.current()=='one.jpg')
+pictures={['one.png']='PNG-ONE'}
+on_load(ctx);assert(lock.current()=='one.png')
+on_load(ctx);assert(lock.current()=='one.png')
 pictures={}
 on_load(ctx)
 assert(lock.current()==nil)
-assert(lock.error():find('No JPG',1,true),'helpful empty-folder message')
+assert(lock.error():find('No PNG',1,true),'helpful empty-folder message')
 on_draw(ctx,g)
 
 -- Main app scans, explicitly enables via a tap (never automatically), and previews JPGs.
-pictures={['one.jpg']='JPEG-ONE',['two.jpg']='JPEG-TWO'}
+pictures={['one.png']='PNG-ONE',['two.png']='PNG-TWO'}
 _G.__TEST={}
 dofile('app/index.lua')
 on_load(ctx)

@@ -1,5 +1,5 @@
 -- XTEINK X4 Pro / Licorice custom lock screen.
--- Picks one of the user's JPEGs each time the lock-screen session loads.
+-- Picks one of the user's lossless PNGs each time the lock-screen session loads.
 -- The wallpaper does not change on every on_draw or on_tick. It advances when
 -- the device enters sleep and stays fixed while asleep.
 -- This is NOT the unverified ctx.lockscreen:set_wallpaper() path.
@@ -10,7 +10,7 @@ local current_ctx
 
 local function usable_name(s)
   return type(s)=='string' and #s<=96 and
-    not s:find('[/%c\\]') and s:lower():match('%.jpe?g$')~=nil
+    not s:find('[/%c\\]') and s:lower():match('%.png$')~=nil
 end
 
 local function filenames(c)
@@ -73,7 +73,7 @@ end
 
 local function select(c)
   local names=filenames(c)
-  if #names==0 then return nil, 'No JPG images. See README.' end
+  if #names==0 then return nil, 'No PNG images. Run the sync tool.' end
   local old=read(c,'rotation.txt') or ''
   local seq=tonumber(old:match('sequence=(%d+)')) or 0
   local last=old:match('last=([^\n]+)')
@@ -121,12 +121,12 @@ function on_draw(c,g)
   local cc=c or current_ctx
   g:clear(0)
   if picture then
-    -- JPEGs should be pre-cropped 480x800; no on-device scaling needed.
+    -- PNGs are pre-sized to 480x800; no on-device scaling needed.
     g:image(picture,0,0)
     return
   end
   local font=cc and cc.fonts and cc.fonts.medium or nil
-  local message=status or 'Wallpaper Randomizer: add JPGs'
+  local message=status or 'Wallpaper Randomizer: add PNGs'
   if font then g:text(22,355,message:sub(1,42),{font=font})
   else g:text(22,355,message:sub(1,42)) end
 end

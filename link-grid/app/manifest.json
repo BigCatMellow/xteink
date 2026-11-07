@@ -1,0 +1,10 @@
+{
+  "app_id": "linkgrid",
+  "display_name": "Link Grid",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Twenty original no-animation line-connection puzzles for XTEINK X4 Pro.",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

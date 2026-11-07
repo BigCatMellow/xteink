@@ -34,3 +34,7 @@ checks measured layouts, save/resume, navigation, puzzle solutions and packages
 on pushes and pull requests. Run it locally with `python3 scripts/check_games.py`.
 
 Each project has its own installable XTApp build workflow: [Paper Golf](.github/workflows/build.yml), [Summit Putt](.github/workflows/summit-putt.yml), [Line Lift](.github/workflows/line-lift.yml), [Link Grid](.github/workflows/link-grid.yml), [Ink Runes](.github/workflows/ink-runes.yml), [Lantern Logic](.github/workflows/lantern-logic.yml), [Ray Vault](.github/workflows/ray-vault.yml), [Island Links](.github/workflows/island-links.yml), [Oddity Hunt](.github/workflows/oddity-hunt.yml), [Word Hunt](.github/workflows/word-hunt.yml), [Nonogram](.github/workflows/nonogram.yml), [Word Bridge](.github/workflows/word-bridge.yml), [Rectangle Rooms](.github/workflows/rectangle-rooms.yml), and [Wallpaper Randomizer](.github/workflows/wallpaper-randomizer.yml).
+
+## Scouting
+
+- [Steam puzzle adaptation candidates](research/steam-puzzle-scouting.md) — ranked references for original zero-animation word, deduction, sorting and placement games on X4 Pro (2026-11-07).

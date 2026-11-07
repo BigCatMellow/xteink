@@ -1,56 +1,20 @@
-# XTH wallpaper physical-device checks
+# Wallpaper Randomizer v0.5.0 device checks
 
-**v0.4.6 is a manual JPEG/PNG comparison only.** v0.4.1 failed on the reader (preview crashed,
-stock sleep screen shown). Its log stopped at `status=loaded` and reported
-`interval=3600`. Preserve that evidence before updating.
+The quality-100 JPEG quick preview is confirmed on X4 Pro Licorice **26110201**: `total_ms=583`, `decode_ms=237`, `cache_ms=346`, `stage=draw-ok`. The user accepted the appearance. The elapsed time excludes physical screen refresh. The prior lossless strip preview measured 2347 ms.
 
-v0.4.2's small PNG and single XTH strip were confirmed visible on the reader.
-v0.4.3's complete image was confirmed visible, taking 30–60 seconds. v0.4.4
-measured 10.167 seconds, including 8.025 seconds encoding. On 2026-11-07,
-v0.4.5 completed a cached preview in 2.347 seconds with 25 cache hits, zero
-encoded strips, 244 ms cache I/O and 1676 ms native decoding. Its diagnostics
-reached `layer-display-returned`; the user reported an acceptable delay.
-This confirms prepared-strip decoding and display on X4 Pro Licorice
-26110201, not automatic sleep rotation, cold preparation or restart persistence.
+**The v0.5.0 sleep integration is host-tested and awaits the first physical sleep/wake check.** Do not describe it as device-verified merely because CI passes. Preserve images, history and existing logs before updating.
 
-Install v0.4.6 over the existing app and tap FULL PREVIEW. A prepared image should report 25 cached strips;
-close/reopen the app and repeat to test persistence. Compare elapsed build
-times and read `preview-timing.txt` after reconnecting. Expect `cache_hits=25`,
-`encoded_strips=0` and `encode_ms=0` for both prepared runs. Verify a complete,
-unscaled image with accurate gray levels, no seams, and no overlaid text. Check
-that it displays without 50 intermediate screen refreshes. Close during a build
-and switch diagnostic tests to check cancellation. Reconnect and read
-`preview-diagnostics.txt` if anything fails. The tests below are
-the future acceptance criteria, not claims that the current build passes them.
+1. Install from **All Files → Apps** over the existing app. Do not uninstall.
+2. Set **Settings → Display → Off wallpaper → Default**. Open Wallpaper Randomizer and confirm **15 images prepared** on the current card.
+3. Tap **Preview Next**, check crisp lettering and gray levels, tap to return, and repeat with another image. Include the largest JPEG (currently g3) when checking the full collection. Confirm no crash, scaling or overlaid text.
+4. Tap **Enable**, approve the firmware's **Set as lock screen** dialog, and confirm **Sleep rotation: ON**. Cancelling the dialog must leave it off.
+5. Close the app. Use a brief power-button press to sleep. Check a complete wallpaper. Wake and sleep at least three times; adjacent sleeps should show different usable images.
+6. Reopen the app: it must remain enabled. Close it and repeat sleep. Check after a reboot too; distinguish ordinary sleep from full shutdown.
+7. While asleep, leave it past an hour. The firmware may wake/redraw, but the selected frame and `rotation.txt` sequence must remain unchanged. Inspect `diagnostics.txt` for `reason=timer`, the same frame and `interval=3600`. This is not a no-wake/no-battery-use claim.
+8. Tap **Disable**, close the app and sleep. The firmware's default wallpaper should return. Reopen/reinstall over the app and check images/history survive.
 
-Prepare maximum-quality JPEGs with `tools/prepare_jpeg.py SD_ROOT`, then tap
-QUICK PREVIEW. Expect `cache_kind=jpeg100`, `cache_hits=1` and `strips=1`.
-Compare its entire image with FULL PREVIEW, particularly small text, diagonals,
-fine texture and both middle grays. Record the displayed build time and visible
-refresh delay separately; no sub-second result is established yet. Reopen and
-repeat, including the largest prepared image (currently g3). JPEG decode must
-retain one image and allocate no compositor layer. Desktop errors at most
-1/255 and unchanged modeled 4-bit shades do not prove physical equivalence.
-Missing or changed preparation must show a readable error, and FULL PREVIEW
-must still work. Do not remove user originals to conduct these checks.
+The normal first sleep should log `status=rendered` and the correct frame/interval. A default wallpaper, blank frame, crash or `load-error`/`draw-error` requires inspecting `diagnostics.txt`; host drawing success alone is insufficient evidence of physical output.
 
-Before enabling automatic mode, also test a new image with no prepared cache:
-the first successful preview should encode 25 strips and commit its cache;
-after closing/reopening, the next preview should encode none. On a backed-up
-test collection, replace an XTH with another valid image under the same name;
-ensure the old cache is rejected and the new image is shown. Never delete or
-replace the user's originals to conduct this check.
+On a backed-up test collection, verify one/no images, stale source markers, missing/corrupt JPEGs, failed history writes and removed saved timer images. New sleeps should skip bad alternatives; timer sessions must never choose a different frame. Errors should be readable, and originals must not be deleted to conduct checks.
 
-Host tests verify pixels and selection logic; these steps verify the reader itself.
-
-1. Record the X4 Pro Licorice firmware build. Update over the installed app without uninstalling it. Confirm v0.4 installed from All Files and appears in Ink App.
-2. Put at least three uncompressed 480×800 XTH files in `XTApps/wallrandom/files/`. Rescan and confirm the count; JPEG/PNG files should not count.
-3. Preview each image. Check sharp text/line art, orientation, lack of seams, and both middle grays against the stock XTH viewer. Record visible load delay. Failure or a crash blocks deployment.
-4. Set Off wallpaper to Default, enable the app and approve the system prompt. Lock/wake six times. Each new sleep should select a different image from the preceding one.
-5. Check `XTApps/wallrandom/files/diagnostics.txt` over USB. Confirm `status=rendered`; record `reason` and the actual `interval`. If the host reports 3600 or another clamp, the no-periodic-wake battery requirement remains unmet.
-6. Leave the reader asleep past any reported interval and observe display refreshes; inspect available logs/power measurements for timer wakes. Merely displaying the same image does not prove no wake occurred. Timer wakes must not advance `rotation.txt` or choose a different image.
-7. Repeat using your usual short/long power-button action. Distinguish ordinary sleep from full shutdown. Test after a reboot as well.
-8. Test one image and no images; test malformed/unsupported XTH headers. Expect readable fallback instead of a crash. Remove the bad frame afterwards.
-9. Reinstall over the current app and verify XTHs/history survive. Preserve old JPEG files until the XTH path is verified; originals should remain on the computer or in Pushed Images.
-
-Do not call this device-verified until image output, speed, memory usage, lifecycle and actual timer behavior have been checked.
+Host checks cover the corresponding selection, storage, controls and measured layout states. Real font rendering, native full-image decoding, sleep lifecycle, actual timer behavior and power use remain hardware checks.

@@ -1,15 +1,15 @@
 {
   "app_id": "wallrandom",
   "display_name": "Wallpaper Randomizer",
-  "version": "0.4.6",
+  "version": "0.5.0",
   "author": "BigCatMellow",
-  "description": "Compare maximum-quality JPEG with lossless XTH preview; sleep rotation paused.",
+  "description": "A random high-quality wallpaper each time you enter sleep, with preview and enable controls.",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": [],
   "lockscreen": {
     "enabled": true,
     "entry": "lockscreen.lua",
-    "interval_sec": 31536000
+    "interval_sec": 3600
   }
 }

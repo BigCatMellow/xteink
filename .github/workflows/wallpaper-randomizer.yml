@@ -5,6 +5,9 @@ on:
     paths:
       - 'wallpaper-randomizer/**'
       - '.github/workflows/wallpaper-randomizer.yml'
+      - 'shared/game_ui.lua'
+      - 'scripts/sync_game_ui.py'
+      - 'tests/game_canvas.lua'
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,7 +22,9 @@ jobs:
           sudo apt-get install -y lua5.4
           python -m pip install cryptography pillow
       - name: Test rotation logic
-        run: cd wallpaper-randomizer && lua tests/test_wallpaper.lua
+        run: |
+          python scripts/sync_game_ui.py --check
+          cd wallpaper-randomizer && lua tests/test_wallpaper.lua
       - name: Verify XTH renderer pixels and image lifecycle
         run: python wallpaper-randomizer/tests/test_xth.py
       - name: Verify persistent cache, invalidation and interrupted builds
@@ -37,6 +42,8 @@ jobs:
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/xth.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/probe.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/cache.lua
+          python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/wallpaper.lua
+          python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/ui.lua
       - name: Build XTApp
         run: |
           mkdir -p dist

@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GAMES = ('line-lift', 'summit-putt', 'link-grid', 'ink-runes',
          'lantern-logic', 'ray-vault', 'island-links', 'oddity-hunt', 'word-hunt', 'nonogram', 'word-bridge', 'rectangle-rooms')
+OTHER_APPS = ('wallpaper-randomizer',)
 
 
 def main():
@@ -14,7 +15,7 @@ def main():
     args = parser.parse_args()
     canonical = (ROOT / 'shared/game_ui.lua').read_bytes()
     bad = []
-    for game in GAMES:
+    for game in GAMES + OTHER_APPS:
         target = ROOT / game / 'app/ui.lua'
         if args.check:
             if not target.exists() or target.read_bytes() != canonical:

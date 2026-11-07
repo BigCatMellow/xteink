@@ -199,10 +199,10 @@ local function text(g,x,y,label,style,align,width)
 end
 local function draw_help(g)
   text(g,240,152,'HOW TO SEARCH','large','center',420)
-  UI.paragraph(g,C,28,219,424,100,
-    'Tap the first letter, then the final letter of a listed word. Lines may run in any of eight directions.', 'medium')
+  UI.paragraph(g,C,28,219,424,120,
+    'Tap the first and last letters. Words can run in any of eight directions.', 'medium')
   UI.paragraph(g,C,28,341,424,90,
-    'In FOX mode, every cell contains F, O or X. Exactly one straight FOX is hidden. Read forward or backward.', 'medium')
+    'FOX: find one straight FOX among F, O and X. Read either direction.', 'medium')
   UI.paragraph(g,C,28,449,424,169,
     'HINT rings a start cell. Two hints per puzzle. RESET only clears the current grid; both modes save independently.', 'medium')
   button(g,72,704,336,68,'BACK TO GAME')

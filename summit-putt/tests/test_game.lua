@@ -141,7 +141,7 @@ for level,path in ipairs(solution_paths) do
   local old_unlock=A.state().unlocked
   on_leave()
   on_load(ctx)
-  eq(A.state().stage,'won','saved solved state')
+  assert(A.state().stage=='won','saved solved state: level '..level..' state '..A.state().stage..' file '..tostring(store['summit.txt']))
   eq(A.state().unlocked,old_unlock,'saved unlock progress')
   if level<#solution_paths then assert(A.next()) end
 end

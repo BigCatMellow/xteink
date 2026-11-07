@@ -47,7 +47,7 @@ assert(not A.next(),'cannot skip first puzzle')
 -- Each tile cycles bulb -> cross -> clear, with undo and no animation.
 local s=A.state()
 local b=s.b
-local first=SOLUTIONS[1][1]+1
+local first=SOLUTIONS[1][1]
 local x=(first-1)%b.n+1
 local y=math.floor((first-1)/b.n)+1
 assert(A.choose(x,y))
@@ -73,7 +73,7 @@ for level=1,16 do
   eq(n,level<=5 and 5 or level<=11 and 6 or 7)
   local seen={}
   for _,p in ipairs(SOLUTIONS[level]) do
-    local i=p+1
+    local i=p
     assert(not seen[i],'duplicate bulb coordinate')
     seen[i]=true
     eq(state.b.tiles[i],'.','bulb must be on white tile')
@@ -151,7 +151,7 @@ assert(not A.complete(state.b,state.marks))
 A.start(2,16)
 state=A.state()
 local bx,by,cell=A.position(state.b.n)
-local i=SOLUTIONS[2][1]+1
+local i=SOLUTIONS[2][1]
 local x=(i-1)%state.b.n+1
 local y=math.floor((i-1)/state.b.n)+1
 local tx,ty=bx+(x-0.5)*cell,by+(y-0.5)*cell

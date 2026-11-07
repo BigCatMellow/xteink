@@ -46,7 +46,9 @@ def main():
         if args.packer:
             output = ROOT / 'dist' / f'{game}.xtapp'
             output.parent.mkdir(exist_ok=True)
-            run([sys.executable, '-I', args.packer.resolve(), folder / 'app', '-o', output])
+            # Use the same environment that passed the Pillow/icon checks.
+            # -I suppresses user-site dependencies on GitHub's Python image.
+            run([sys.executable, args.packer.resolve(), folder / 'app', '-o', output])
             assert output.read_bytes()[:4] == b'XTAP' and output.stat().st_size > 256
             verify_icon(output, folder / 'app/icon.png')
     print(f'PASS: all {len(GAMES)} active games passed the quality gate')

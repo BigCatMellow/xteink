@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y lua5.4
-          python -m pip install cryptography
+          python -m pip install cryptography pillow
       - name: Independent level solvability and traps
         run: python ink-runes/tests/check_levels.py
       - name: Lua game and renderer tests

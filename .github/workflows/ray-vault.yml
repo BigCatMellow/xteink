@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y lua5.4
-          python -m pip install cryptography
+          python -m pip install cryptography pillow
       - name: Independently verify atom arrangements
         run: python ray-vault/tests/validate_levels.py
       - name: Test ray rules and static UI

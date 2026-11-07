@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y lua5.4
-          python -m pip install cryptography
+          python -m pip install cryptography pillow
       - name: Validate twelve unique bridge puzzles
         run: python island-links/tests/validate_levels.py
       - name: Test island and bridge logic and static rendering

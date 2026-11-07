@@ -1,0 +1,5 @@
+stage=draw-ok
+detail=jpeg
+firmware=XT Licorice 26110201
+model=x4_pro
+maxinteger=2147483647

@@ -1,0 +1,7 @@
+total_ms=10167
+layer_ms=57
+encode_ms=8025
+decode_ms=1731
+copy_ms=125
+queue_ms=211
+strips=25

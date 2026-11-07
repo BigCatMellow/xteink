@@ -2,6 +2,10 @@
 
 Projects and experiments for the XTEINK X4 Pro, primarily running XTOS Licorice.
 
+**Picking this up later?** Start with the [project handoff](docs/HANDOFF.md), then
+the [wallpaper handoff](wallpaper-randomizer/docs/HANDOFF.md). The exact
+[v0.5.0 wallpaper installer](releases/wallpaper-randomizer-0.5.0.xtapp) is archived in the repo.
+
 ## Games
 
 - [Paper Golf](paper-golf/README.md) — monochrome golf puzzle.

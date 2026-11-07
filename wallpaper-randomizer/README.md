@@ -1,5 +1,8 @@
 # Wallpaper Randomizer — XTEINK X4 Pro
 
+Continuing previous work: see the [saved handoff](docs/HANDOFF.md) for the exact
+installer, device evidence, backups and next physical check.
+
 **v0.5.0: a random high-quality wallpaper each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
 
 The quality-100 grayscale JPEG renderer worked on X4 Pro Licorice **26110201**: v0.4.6 measured **583 ms** to read/validate/decode an image, including 237 ms native decoding, and the user reported the preview worked well. Physical screen refresh is additional. The new sleep integration and settings have host coverage; the first real sleep/wake check for v0.5.0 is still needed.

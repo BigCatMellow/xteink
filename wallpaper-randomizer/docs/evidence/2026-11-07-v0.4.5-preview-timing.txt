@@ -1,0 +1,10 @@
+total_ms=2347
+layer_ms=86
+cache_ms=244
+encode_ms=0
+decode_ms=1676
+copy_ms=129
+queue_ms=202
+cache_hits=25
+encoded_strips=0
+strips=25

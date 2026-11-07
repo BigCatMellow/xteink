@@ -1,0 +1,11 @@
+cache_kind=jpeg100
+total_ms=583
+layer_ms=0
+cache_ms=346
+encode_ms=0
+decode_ms=237
+copy_ms=0
+queue_ms=0
+cache_hits=1
+encoded_strips=0
+strips=1

@@ -1,5 +1,9 @@
 # XTEINK repository rules
 
+Read [docs/HANDOFF.md](docs/HANDOFF.md) for the saved project state and next
+device check before resuming earlier work. Wallpaper-specific evidence and
+backups are linked there. Do not treat a passing preview as a verified sleep screen.
+
 Read [docs/GAME_QUALITY.md](docs/GAME_QUALITY.md) before changing a game.
 
 - Fix the behavior and add a regression that fails without the fix. Passing

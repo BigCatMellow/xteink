@@ -2,7 +2,7 @@
 
 An experimental XTOS Licorice app for native **480 × 800 `.xth`** wallpapers. Full preview works on the reader. Automatic rotation remains paused while performance and the sleep timer are investigated.
 
-**Status: v0.4.5 persistent preview cache; cached device speed test pending. This is not a working automatic wallpaper release.** v0.4.1 crashed; v0.4.3 displayed the complete image in 30–60 seconds. The reader measured v0.4.4 at 10.167 seconds, including 8.025 seconds of encoding and 1.731 seconds of native decoding. v0.4.5 saves the encoded strips for reuse after closing/reopening the app. The reader is X4 Pro, Licorice 26110201, with 32-bit Lua integers. It also reported `interval=3600` despite a one-year request, so the no-hourly-wake requirement remains unresolved.
+**Status: v0.4.5 cached preview confirmed on the reader at 2.347 seconds. This is not a working automatic wallpaper release.** v0.4.1 crashed; v0.4.3 displayed the complete image in 30–60 seconds. The reader measured v0.4.4 at 10.167 seconds, including 8.025 seconds of encoding and 1.731 seconds of native decoding. v0.4.5 saves the encoded strips for reuse after closing/reopening the app. Its device log confirms 25 cache hits, zero encoded strips and zero encoding time; the user reported the preview delay was acceptable. Physical restart persistence and cold cache creation still need separate checks. The reader is X4 Pro, Licorice 26110201, with 32-bit Lua integers. It also reported `interval=3600` despite a one-year request, so the no-hourly-wake requirement remains unresolved.
 
 ## Install
 
@@ -34,7 +34,7 @@ The tool reads XTHs already in `XTApps/wallrandom/files/`, creates only derived 
 
 v0.4.1 processed all 50 strips in one callback and retained all 50 decoded image objects. v0.4.3 fixed that with one off-screen layer and one live strip. v0.4.4 keeps that resource limit and doubles the strip height, halving image callbacks. It replaces three card writes per strip with five recovery writes per frame, plus startup/completion/error logs. The encoder transposes eight source pixels per pair of XTH bytes using a bounded 256-entry cache, and combines Adler sums once per row rather than twice per pixel. Integer intermediates remain safe on 32-bit Lua.
 
-After completion the app retains only the layer; redraws do not re-decode the image. Closing or switching tests cancels queued work. The next hardware timing log must confirm the cached path and its remaining storage, decoding and callback costs.
+After completion the app retains only the layer; redraws do not re-decode the image. Closing or switching tests cancels queued work. The v0.4.5 device log on 2026-11-07 reports `total_ms=2347`, `layer_ms=86`, `cache_ms=244`, `encode_ms=0`, `decode_ms=1676`, `copy_ms=129`, `queue_ms=202`, `cache_hits=25`, `encoded_strips=0`, and `strips=25`. It reached `layer-display-returned`. Native decoding now dominates build time; the totals exclude physical e-ink refresh.
 
 Host tests reconstruct all strips with Pillow and compare every output pixel against an independent XTH decoder. They also assert at most one decoded strip is retained, at most one strip is processed per callback, and cancellation, decoder failure and scheduler failure release resources. Cache regressions cover desktop/reader interoperability, persistent reuse without encoding or cache writes, source replacement, damaged bundles, interrupted builds, quota failures and decoder failures. They do not emulate the reader's native decoder, allocator, layer format or execution budget. The automatic entry stays disarmed.
 
@@ -42,7 +42,7 @@ Host tests reconstruct all strips with Pillow and compare every output pixel aga
 
 The selection algorithm remains in source for investigation, but v0.4.5 does not enable automatic sleep rotation. The app must not be re-enabled until performance and the user's no-hourly-wake requirement are verified.
 
-The prior build requested a one-year interval; the device reported 3600 seconds. Further lifecycle investigation is needed before making battery claims. Stable wallpaper alone is not proof that the reader did not wake or refresh.
+The prior build requested a one-year interval; the device reported 3600 seconds. The upstream Notes app records measurements on the **same 26110201 firmware**: [`ctx.lock:set_interval` refuses 0 and values above 3600](https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/main/apps/notes/lockscreen.lua#L134), and hourly wakes remain even without a clock. This is independent device evidence, not an additional test of this reader. Increasing the requested interval or ignoring timer callbacks does not establish a timer-free sleep screen. Another supported rendering/lifecycle route is needed to meet the no-hourly-wake requirement. Stable wallpaper alone is not proof that the reader did not wake or refresh.
 
 Custom sleep screens are firmware-specific and require **Off wallpaper → Default**. This app does not change the stock Custom wallpaper cache. Full shutdown may behave differently from sleep; test the exact power-button action you use.
 

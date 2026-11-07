@@ -6,12 +6,17 @@ stock sleep screen shown). Its log stopped at `status=loaded` and reported
 
 v0.4.2's small PNG and single XTH strip were confirmed visible on the reader.
 v0.4.3's complete image was confirmed visible, taking 30–60 seconds. v0.4.4
-measured 10.167 seconds, including 8.025 seconds encoding. Install v0.4.5 over
-it and tap FULL PREVIEW. A prepared image should report 25 cached strips;
+measured 10.167 seconds, including 8.025 seconds encoding. On 2026-11-07,
+v0.4.5 completed a cached preview in 2.347 seconds with 25 cache hits, zero
+encoded strips, 244 ms cache I/O and 1676 ms native decoding. Its diagnostics
+reached `layer-display-returned`; the user reported an acceptable delay.
+This confirms prepared-strip decoding and display on X4 Pro Licorice
+26110201, not automatic sleep rotation, cold preparation or restart persistence.
+
+Install v0.4.5 over the existing app and tap FULL PREVIEW. A prepared image should report 25 cached strips;
 close/reopen the app and repeat to test persistence. Compare elapsed build
 times and read `preview-timing.txt` after reconnecting. Expect `cache_hits=25`,
-`encoded_strips=0` and `encode_ms=0` for both prepared runs. Do not assume
-desktop-compressed PNG decoding or card I/O is device-verified yet. Verify a complete,
+`encoded_strips=0` and `encode_ms=0` for both prepared runs. Verify a complete,
 unscaled image with accurate gray levels, no seams, and no overlaid text. Check
 that it displays without 50 intermediate screen refreshes. Close during a build
 and switch diagnostic tests to check cancellation. Reconnect and read

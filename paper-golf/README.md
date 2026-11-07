@@ -29,12 +29,12 @@ This is now a **deterministic shot-planning puzzle, not a luck-based dice game**
 1. Select a club: **PUTT = exactly 1** grid square, **CHIP = exactly 2**, **DRIVE = exactly 4**. Shots travel in one of eight straight directions.
 2. The game shows **ringed landing spaces** for that club. Tap any ring to take the shot.
 3. A **tree blocks the shot**. You can fly **over water**, but cannot land in it. Sand permits only putts; rough prevents drives. You have only **two drives per hole**, so choosing when to use them matters.
-4. The **final shot must be a putt**. Each hole's **GOAL** is its verified minimum number of strokes. The first six holes allow **one extra shot**; the last three require a perfect route.
+4. The **final shot must be a putt**. Each hole's **GOAL** is its verified minimum number of strokes, and its stroke limit is exactly that par: every shot must contribute to the route.
 5. **Run out of shots or get trapped, and the hole fails.** Tap **RETRY HOLE** to try again without losing the earlier scores. Finish all nine for a final scorecard.
 
 The real challenge is positioning the ball for the **next** shot and keeping a drive available for the hardest obstacle. A long shot can strand the ball in rough, require a recovery shot, or leave no good route to the cup. No randomness enters shots, power, or hazards.
 
-Tap **?** at the top of the course for the on-device terrain and club legend. The paper texture is deliberately sparse to keep redraws clean on e-ink.
+Tap **?** at the top of the course for the on-device terrain and club legend. Landing rings are off by default so the player has to read the grid and plan; **AIM** is an optional accessibility aid that reveals the currently legal destinations. The paper texture is deliberately sparse to keep redraws clean on e-ink.
 
 No animation, accounts, or online connection. Course seed, current ball, chosen club, stroke count, and scorecard are saved automatically.
 

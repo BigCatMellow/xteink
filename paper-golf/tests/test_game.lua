@@ -61,7 +61,7 @@ for _,seed in ipairs({12345,12346}) do
     eq(course.map[(course.ty-1)*9+course.tx],'tee')
     eq(course.map[(course.hy-1)*9+course.hx],'cup')
     eq(course.par,expected[hole],'designed difficulty')
-    eq(course.limit,course.par+(hole<=6 and 1 or 0),'stroke budget')
+    eq(course.limit,course.par,'exact-par stroke budget')
     eq(A.solve(course),course.par,'same target as actual solver')
     local solution=find_solution(course)
     assert(solution and #solution==course.par,'a real legal solution exists')
@@ -159,6 +159,7 @@ for hole=1,9 do
   eq(A.state().stage,'finished','hole completed')
   eq(A.state().scores[hole],c.par)
   eq(A.state().pars[hole],c.par)
+  eq(A.state().bests[hole],c.par,'perfect route becomes personal best')
   sumTarget=sumTarget+c.par
   on_leave()
   on_load(ctx)
@@ -203,6 +204,11 @@ for hole=1,9 do
   draw_ok(true)
 end
 A.tap(405,30);draw_ok(false);A.tap(90,440);draw_ok(true)
+
+-- Landing rings are an explicit accessibility aid, not the default answer key.
+assert(not A.aim(),'aim assist starts hidden')
+A.tap(290,30);assert(A.aim(),'aim assist toggles on')
+A.tap(290,30);assert(not A.aim(),'aim assist toggles off')
 
 -- A v0.3 save is migrated while preserving its completed scores as bests.
 storage['save.txt']='version=2\nhole=1\nstage=aim\n'

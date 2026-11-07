@@ -5,7 +5,7 @@ local COLS, ROWS = 9, 12
 local CELL, BX, BY = 46, 33, 94
 local MODULUS = 4294967296
 local CTX, S, COURSE, ERR
-local confirm_new, show_help, message = false, false, nil
+local confirm_new, show_help, aim_assist, message = false, false, false, nil
 local last_key_ms = -1000
 
 local function index(x, y) return (y - 1) * COLS + x end
@@ -239,7 +239,9 @@ local function make_course(seed,hole)
   local best=shortest_path(course)
   if not best then error('unsolvable puzzle '..hole) end
   course.par=best
-  course.limit=best+(hole<=6 and 1 or 0)
+  -- Every hole is an exact-par route. A legal but wasteful shot is still a
+  -- mistake: the player must read the course and plan the club sequence.
+  course.limit=best
   return course
 end
 
@@ -361,7 +363,7 @@ local function shoot(x,y)
   for _,m in ipairs(legal_moves()) do
     if m.x==x and m.y==y then valid=true;break end
   end
-  if not valid then message='Choose a ringed landing';return false end
+  if not valid then message='No legal '..CLUBS[S.club].name..' shot there';return false end
   if S.club==3 then S.drives=S.drives-1 end
   S.x,S.y=x,y
   S.strokes=S.strokes+1
@@ -497,8 +499,9 @@ local function draw_board(g)
     end
   end
 
-  -- Show only legal exact-distance landing spots for the selected club.
-  if S.stage == 'aim' then
+  -- AIM is deliberately opt-in: showing every legal destination gives away
+  -- the route and turns a planning puzzle into option-following.
+  if S.stage == 'aim' and aim_assist then
     for _, move in ipairs(legal_moves()) do
       local cx, cy = BX + (move.x - 0.5) * CELL, BY + (move.y - 0.5) * CELL
       g:circle(cx, cy, 15, { line_width = 2 })
@@ -550,6 +553,8 @@ local function draw(g)
   put(g,33,48,'HOLE '..S.hole..'/9  GOAL '..COURSE.par..'  SHOTS '..S.strokes..'/'..COURSE.limit,'medium')
   g:line(33,87,447,87)
   if not confirm_new and not show_help then
+    g:rect(260,12,60,38)
+    centered(g,290,23,aim_assist and 'AIM*' or 'AIM','small')
     g:rect(330,12,38,38)
     centered(g,349,23,'?','small')
     g:rect(378,12,69,38)
@@ -568,7 +573,7 @@ local function draw(g)
       centered(g,240,662,message or 'OUT OF SHOTS','medium')
       button(g,33,714,414,58,'RETRY HOLE')
     else
-      centered(g,240,657,message or 'Choose a landing ring','small')
+      centered(g,240,657,message or (aim_assist and 'Aim rings shown' or 'Plan the route; AIM shows landing rings'),'small')
       centered(g,240,684,'LONG DRIVES LEFT: '..S.drives,'medium')
       local xs={33,174,315}
       for i=1,#CLUBS do
@@ -594,6 +599,7 @@ local function tap(x,y)
     elseif inside(x,y,255,410,170,65) then start_round(step_rng(S.rng)) end
     return
   end
+  if inside(x,y,260,12,60,38) then aim_assist=not aim_assist;return end
   if inside(x,y,330,12,38,38) then show_help=true;return end
   if inside(x,y,378,12,69,38) then confirm_new=true;return end
   if S.stage=='finished' then
@@ -710,6 +716,7 @@ if rawget(_G,'__TEST') then
     totals=totals,
     rng=step_rng,
     restore=restore,
-    tap=tap
+    tap=tap,
+    aim=function() return aim_assist end
   }
 end

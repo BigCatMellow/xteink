@@ -254,11 +254,16 @@ local function center(g,x,y,s,which)
 end
 local function box(g,x,y,w,h,label)
   g:rect(x,y,w,h,{line_width=2})
+  g:rect(x+4,y+4,w-8,h-8,{line_width=1})
+  g:line(x+10,y+4,x+19,y+4)
+  g:line(x+w-19,y+h-4,x+w-10,y+h-4)
   center(g,x+w/2,y+h/2-9,label,'medium')
 end
 local function draw_tiles(g)
-  -- Keep the original flat-grid visual style: small cells, no animation.
-  -- Black strokes and hatch marks distinguish higher platforms from ground.
+  -- A tabletop topographic board: every mark is hard-edged vector geometry,
+  -- so the terrain stays as crisp as a printed puzzle card on e-ink.
+  g:rect(BX-9,BY-9,N*CELL+18,N*CELL+18,{line_width=2})
+  g:rect(BX-4,BY-4,N*CELL+8,N*CELL+8,{line_width=1})
   for y=1,N do
     for x=1,N do
       local ch=tile(BOARD,x,y)
@@ -266,8 +271,11 @@ local function draw_tiles(g)
       if ch~='#' then
         g:rect(px+1,py+1,CELL-2,CELL-2,{line_width=1})
         if high(ch) then
-          g:line(px+3,py+7,px+CELL-4,py+7)
-          g:line(px+7,py+3,px+7,py+CELL-4)
+          -- Raised tiles carry a bold north/west cap and a thin lower edge.
+          g:line(px+3,py+6,px+CELL-4,py+6,{line_width=2})
+          g:line(px+6,py+3,px+6,py+CELL-4,{line_width=2})
+          g:line(px+5,py+CELL-5,px+CELL-5,py+CELL-5)
+          g:line(px+CELL-5,py+5,px+CELL-5,py+CELL-5)
         end
         if ch=='~' then
           for j=0,2 do
@@ -305,8 +313,9 @@ local function draw_tiles(g)
   end
   local x=BX+(STATE.x-0.5)*CELL
   local y=BY+(STATE.y-0.5)*CELL
-  g:circle(x,y,13,{line_width=2})
-  g:circle(x,y,7)
+  g:circle(x,y,15,{line_width=2})
+  g:circle(x,y,10,{line_width=1})
+  g:circle(x,y,5,{fill=true})
 end
 
 local function draw_help(g)
@@ -324,13 +333,15 @@ end
 local function draw(g)
   g:clear(0)
   text(g,30,14,'SUMMIT PUTT','large')
+  text(g,31,46,'TOPOGRAPHIC CARD PUZZLES','small')
   if not show_help then box(g,402,12,48,42,'?') end
-  text(g,30,50,string.format('PUZZLE %d/%d  %s',STATE.level,MAX_LEVEL,BOARD.name),'small')
+  text(g,30,72,string.format('PUZZLE %02d/%02d  //  %s',STATE.level,MAX_LEVEL,BOARD.name),'small')
   if show_help then draw_help(g); return end
   box(g,30,82,195,42,'UNDO')
   box(g,255,82,195,42,'RESTART')
   draw_tiles(g)
   center(g,240,532,MSG or 'Select a card, then a direction','small')
+  text(g,30,544,'CLUB CARDS','small')
 
   if STATE.stage=='won' then
     center(g,240,601,STATE.level==MAX_LEVEL and 'ALL PUZZLES CLEARED' or 'PUZZLE COMPLETE','large')
@@ -345,11 +356,13 @@ local function draw(g)
   for i,v in ipairs(BOARD.hand) do
     local cx=30+(i-1)*87
     g:rect(cx,562,75,65,{line_width=2})
+    g:rect(cx+4,566,67,57,{line_width=1})
     if used(STATE.mask,i) then
       g:line(cx+8,570,cx+67,619)
       g:line(cx+8,619,cx+67,570)
     else
       center(g,cx+37,576,tostring(v),'large')
+      for p=1,v do g:circle(cx+18+(p-1)*18,613,2,{fill=true}) end
       if STATE.selected==i then g:rect(cx+3,565,69,59,{line_width=1}) end
     end
   end

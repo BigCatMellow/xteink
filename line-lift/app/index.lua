@@ -282,6 +282,9 @@ local function centered(g,x,y,label,which)
 end
 local function button(g,x,y,w,h,label)
   g:rect(x,y,w,h,{line_width=2})
+  g:rect(x+4,y+4,w-8,h-8,{line_width=1})
+  g:line(x+11,y+4,x+20,y+4)
+  g:line(x+w-20,y+h-4,x+w-11,y+h-4)
   centered(g,x+w/2,y+h/2-9,label,'medium')
 end
 
@@ -333,8 +336,13 @@ end
 
 local function draw_pin(g,rod)
   local x,y=pull_point(rod)
-  g:circle(x,y,18,{line_width=2})
-  if #LEVEL.groups[rod.group].rods>1 then g:circle(x,y,21,{line_width=1}) end
+  -- A machined pull knob: three crisp rings, alignment ticks, and a lettered
+  -- centre. The double outer ring marks a paired mechanism.
+  g:circle(x,y,19,{line_width=2})
+  g:circle(x,y,14,{line_width=1})
+  g:line(x-25,y-3,x-20,y-3,{line_width=2});g:line(x+20,y+3,x+25,y+3,{line_width=2})
+  g:line(x,y-25,x,y-20,{line_width=2});g:line(x,y+20,x,y+25,{line_width=2})
+  if #LEVEL.groups[rod.group].rods>1 then g:circle(x,y,24,{line_width=1}) end
   centered(g,x,y-8,LEVEL.groups[rod.group].name,'small')
 end
 
@@ -355,13 +363,18 @@ end
 local function draw(g)
   g:clear(0)
   face(g,30,14,'LINE LIFT','large')
+  face(g,31,46,'PRECISION MECHANISM PUZZLES','small')
   button(g,294,16,72,45,show_hint and 'HIDE' or 'HINT')
   button(g,382,16,68,45,tutorial and 'X' or '?')
   local cleared=0
   for i=1,#LEVEL.groups do if not active(i) then cleared=cleared+1 end end
-  face(g,30,61,'LEVEL '..STATE.level..'/'..MAX..'    '..cleared..'/'..#LEVEL.groups..' PULLS','medium')
-  g:line(30,110,450,110)
+  face(g,30,82,'MECHANISM '..string.format('%02d',STATE.level)..' / '..string.format('%02d',MAX),'medium')
+  face(g,294,82,cleared..' OF '..#LEVEL.groups..' RELEASED','small')
+  g:line(30,110,450,110,{line_width=2})
+  g:line(30,118,450,118,{line_width=1})
   if tutorial then draw_help(g); return end
+
+  g:rect(28,136,424,422,{line_width=1})
 
   for _,rod in ipairs(LEVEL.rods) do
     if active(rod.group) then draw_rod(g,rod) end
@@ -383,8 +396,9 @@ local function draw(g)
     centered(g,240,367,'ALL CLEAR','large')
     centered(g,240,414,STATE.level==MAX and 'ALL 12 LEVELS DONE' or 'NEXT PUZZLE READY','medium')
   end
+  g:line(30,573,450,573,{line_width=1})
   centered(g,240,590,MESSAGE or 'Tap a circle to retract its line','medium')
-  centered(g,240,630,'Continuous above gap  -  '..STATE.snags..' snags','small')
+  centered(g,240,630,'LAYER KEY  CONTINUOUS ABOVE GAP  //  '..STATE.snags..' SNAGS','small')
   button(g,30,693,128,66,STATE.level>1 and 'PREV' or 'LEVEL 1')
   button(g,175,693,128,66,'RESTART')
   if all_cleared() and STATE.level<MAX then

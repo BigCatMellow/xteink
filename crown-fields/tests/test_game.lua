@@ -33,7 +33,7 @@ local function solve(level)
  local b=A.board(level)
  local mask=S.marks[level]
  for y,x0 in ipairs(SOLUTIONS[level]) do
-  local i=cell(b.n,x0+1,y)
+  local i=cell(b.n,x0,y)
   assert(A.mark(i));assert(A.mark(i))
   eq(mask[i],2,'crown marked')
  end

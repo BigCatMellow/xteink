@@ -18,7 +18,7 @@ local function grid(level)
       white[i]=p.rows[y]:sub(x,x)=='.'
     end
   end
-  for i,sum in pairs(p.across) do
+  for i,goal in pairs(p.across) do
     assert(not white[i])
     local cells={}
     local x=(i-1)%n+1
@@ -29,9 +29,9 @@ local function grid(level)
       cells[#cells+1]=q
     end
     assert(#cells>=2,'across length')
-    runs[#runs+1]={type='A',sum=sum,cells=cells}
+    runs[#runs+1]={type='A',sum=goal,cells=cells}
   end
-  for i,sum in pairs(p.down) do
+  for i,goal in pairs(p.down) do
     assert(not white[i])
     local x=(i-1)%n+1
     local y=math.floor((i-1)/n)+1
@@ -42,7 +42,7 @@ local function grid(level)
       cells[#cells+1]=q
     end
     assert(#cells>=2,'down length')
-    runs[#runs+1]={type='D',sum=sum,cells=cells}
+    runs[#runs+1]={type='D',sum=goal,cells=cells}
   end
   return {n=n,p=p,white=white,runs=runs}
 end

@@ -237,6 +237,12 @@ available through the existing updated hub, without extra firmware registration.
 Changes during verification or unversioned source changes stop the release.
 Physical reader startup, touches and refresh behavior still need device checks.
 
+CI also caught a Lua 5.4/5.5 numeric-string difference in Sudoku pencil notes.
+The save writer now emits integer masks explicitly; the reader recovers exact
+integral decimal masks from older saves, including undo snapshots. Selection,
+Notes mode and unfinished boards survive. Sudoku 0.3.2 and Hub 0.3.3 include
+this correction, tested on Lua 5.1 and 5.4 with Lua 5.5 compatibility checks.
+
 ### Games Hub — one collection update
 
 User requested an easier way to install all game updates. Games Hub v0.1.0

@@ -29,6 +29,24 @@ tap_control('notes');assert(s.noteMode)
 for n=1,9 do assert(A.put(n)) end
 eq(s.notes[first],511);measured(ctx,on_draw,'sudoku all nine notes')
 s=reload();eq(s.notes[first],511);assert(s.noteMode);eq(s.selected,first)
+-- Lua 5.4/5.5 used to serialize arithmetic masks as 511.0. Recover those
+-- existing boards and every undo snapshot, then write canonical integer masks.
+do
+  local Store=require('puzzle_store')
+  on_leave()
+  local saved=Store.get(ctx.storage,'sudoku',1)
+  assert(not saved:match('notes=([^\n]+)'):find('%.'),'integer note encoding')
+  local function decimals(masks) return (masks:gsub('%d+',function(n) return n..'.0' end)) end
+  local legacy=saved:gsub('(notes=)([^\n]+)',function(k,v) return k..decimals(v) end)
+  legacy=legacy:gsub('(history=)([^\n]+)',function(k,v)
+    return k..v:gsub('(:)([%d,]+)',function(colon,masks) return colon..decimals(masks) end)
+  end)
+  local history=#s.history
+  Store.put(ctx.storage,'sudoku',1,legacy)
+  on_load(ctx);s=A.state()
+  eq(s.notes[first],511,'legacy decimal notes recovered');eq(#s.history,history)
+  assert(s.noteMode);eq(s.selected,first)
+end
 assert(tap_control('undo'));eq(s.notes[first],255,'note undo persisted')
 assert(A.put(9));tap_control('notes');assert(not s.noteMode)
 assert(A.put(A.puzzle().solution[first]));eq(s.notes[first],0)

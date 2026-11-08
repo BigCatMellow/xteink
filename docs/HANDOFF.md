@@ -32,17 +32,17 @@ Final current versions:
 | Nonogram | 0.6.0 |
 | Word Bridge | 0.3.0 |
 | Rectangle Rooms | 0.3.0 |
-| Sudoku | 0.3.1 |
+| Sudoku | 0.3.2 |
 | Crown Fields | 0.2.0 |
 | Ten Pairs | 0.2.0 |
 | Quiet Mines | 0.2.0 |
 | Sum Cross | 0.2.1 |
-| Games Hub | 0.3.2 |
+| Games Hub | 0.3.3 |
 
 The full gate passed all 17 standalone and bundled suites, independent solvers,
 Lua compatibility and native icons. Bitmap suites audit 3,904 frames total,
 peak 589 commands, all images released. Hub navigation/import/error checks audit
-165 frames and release all 26,307 decoded font images. Code container is 383,238
+165 frames and release all 26,307 decoded font images. Code container is 383,525
 bytes, 30/32 code files. Five menu rows per page and stable-ID resumes preserve
 older numeric resumes. Builder coverage asserts prevent missing new games.
 
@@ -61,7 +61,10 @@ the user to install all packages individually.
 
 Backups: `/home/mellow/Backups/xteink-family-update-20261108-112417/` (main
 rollout) and `/home/mellow/Backups/xteink-family-update-20261108-113525/`
-(Ray/Hub correction); the final target-label patch is also recorded in the latest SD receipt and its backup directory. Dated deployment receipts and the latest 17-game
+(Ray/Hub correction); target-label and pencil-note corrections are also recorded
+in dated SD receipts. The final backup is
+`/home/mellow/Backups/xteink-family-update-20261108-120133/`.
+Dated deployment receipts and the latest 17-game
 release catalogue are in releases/. Public packages have no personal save data.
 
 **Next physical check:** safely eject, open existing icons and the Hub, confirm
@@ -70,9 +73,14 @@ Hub, repeated switching, sleep/resume and real e-ink/font behavior. Filesystem
 replacement is verified; no physical launch/refresh success is claimed yet.
 The older wallpaper sleep test remains separate and outstanding.
 
-The full rollout is prepared as an integrated Git update after merging the
-upstream new games; use repository history for the publication commit. Earlier
-sections below record historical deliveries and their limitations.
+The full rollout is published on main after merging the upstream new games.
+CI exposed a Lua 5.4/5.5 pencil-note serialization difference: numeric masks
+could be written as `511.0` and rejected on reload. Sudoku 0.3.2 / Hub 0.3.3
+write canonical integers and recover old exact-integral decimal note/history
+records. Regressions preserve notes, selection, mode and undo across migration;
+the fix passes both Lua 5.1 and 5.4. The complete release also runs on Lua 5.4
+with the Lua 5.5 compatibility linter. Earlier sections below record historical
+deliveries and their limitations.
 
 ## Sudoku v0.3 / Games Hub v0.2 — latest change
 

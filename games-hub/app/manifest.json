@@ -1,7 +1,7 @@
 {
   "app_id": "gameshub",
   "display_name": "Games Hub",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "author": "BigCatMellow",
   "description": "Thirteen offline games, one installer, isolated progress and Poppins/Inter presentation",
   "entry": "index.lua",

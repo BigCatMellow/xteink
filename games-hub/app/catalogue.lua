@@ -12,7 +12,7 @@ return {
 {id="nonogram",name="Nonogram",version="0.6.0",description="Reveal a picture in ink",source="923240061e16a78e9984765de1d3374b08988d5d0bd244d35274de0cf49340d6"},
 {id="wordbridge",name="Word Bridge",version="0.3.0",description="Change a word, one letter",source="c92e8b63417798ef363c3dcaa31b30168e5c95ba1e4011c42c5b210bfc11aa9e"},
 {id="rectrooms",name="Rectangle Rooms",version="0.3.0",description="Divide the board into rooms",source="c440acfc9415a0feadacbae9d7bc502ab7dd1a9e15a5b393f4d873dd62fd84d9"},
-{id="sudoku",name="Sudoku",version="0.3.1",description="Nine numbers, endless puzzles",source="ac6dafda7fbda40419ac458a52037bcc34be58fa7afec7a90d331f126cbcfe6a"},
+{id="sudoku",name="Sudoku",version="0.3.2",description="Nine numbers, endless puzzles",source="825435e9f0f330dd34728dad8013d50e917c62a8935dd78a8bb8642e3519aee9"},
 {id="crownfields",name="Crown Fields",version="0.2.0",description="One crown in every region",source="923197ee2b593e238ca9bea1362b7198fd5e4ecd1e7c290b703d0ed082bacfc3"},
 {id="tenpairs",name="Ten Pairs",version="0.2.0",description="Pair numbers, clear the sheet",source="838c62e46e652a5e36337a076cc3f2e1c1f82bd4e71a1016eb71e745b4afa1f0"},
 {id="quietmines",name="Quiet Mines",version="0.2.0",description="Deduce every safe square",source="2d851d4781c67a0964872119f063b7577e85dd47a65090ac63d665e850fcaaf7"},

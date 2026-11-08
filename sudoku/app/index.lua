@@ -19,15 +19,21 @@ end
 local function copy(a) local b={};for i,v in ipairs(a) do b[i]=v end;return b end
 local function zeros() local a={};for i=1,81 do a[i]=0 end;return a end
 local function board_code(a) return table.concat(a) end
-local function notes_code(a) return table.concat(a,',') end
+local function notes_code(a)
+  local masks={}
+  for i,v in ipairs(a) do masks[i]=string.format('%.0f',v) end
+  return table.concat(masks,',')
+end
 local function parse_board(s)
   if type(s)~='string' or #s~=81 or s:find('[^0-9]') then return nil end
   local a={};for i=1,81 do a[i]=tonumber(s:sub(i,i)) end;return a
 end
 local function parse_notes(s)
-  if type(s)~='string' or not s:match('^%d+[,%d]*$') then return nil end
+  if type(s)~='string' or s=='' or s:sub(1,1)==',' or s:sub(-1)==',' or s:find(',,',1,true) then return nil end
   local a={}
   for item in s:gmatch('[^,]+') do
+    -- Accept the exact integral decimals written by older Lua 5.4/5.5 builds.
+    if not item:match('^%d+$') and not item:match('^%d+%.0+$') then return nil end
     local n=tonumber(item)
     if n<0 or n>511 or n~=math.floor(n) then return nil end
     a[#a+1]=n

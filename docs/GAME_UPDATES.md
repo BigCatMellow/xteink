@@ -56,7 +56,7 @@ python3 scripts/update_installed_games.py --card /media/mellow/4A21-0000 \
 ```
 
 For an already installed Games Hub, use its release metadata instead:
-`--catalogue releases/games-hub-0.3.2.json`. This updates the bundle in place;
+`--catalogue releases/games-hub-0.3.3.json`. This updates the bundle in place;
 individual game packages do not update engines embedded in an older hub.
 An uninitialized hub is skipped until its first-launch import is complete.
 The default family catalogue points to `game-family-latest.json`; update that

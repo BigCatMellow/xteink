@@ -20,7 +20,7 @@ Baseline Git commit: `db9c26b`. Reproduce with `python3 scripts/render_family_re
 | Nonogram | 0.5.0 → 0.6.0 | [Before / after](nonogram.png) |
 | Word Bridge | 0.2.0 → 0.3.0 | [Before / after](word-bridge.png) |
 | Rectangle Rooms | 0.2.0 → 0.3.0 | [Before / after](rectangle-rooms.png) |
-| Sudoku | 0.3.0 → 0.3.1 | [Before / after](sudoku.png) |
+| Sudoku | 0.3.0 → 0.3.2 | [Before / after](sudoku.png) |
 | Crown Fields | 0.1.0 → 0.2.0 | [Before / after](crown-fields.png) |
 | Ten Pairs | 0.1.0 → 0.2.0 | [Before / after](ten-pairs.png) |
 | Quiet Mines | 0.1.0 → 0.2.0 | [Before / after](quiet-mines.png) |

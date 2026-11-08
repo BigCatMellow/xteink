@@ -62,7 +62,12 @@ Local working tree before integration is backed up under
 
 ## Completion evidence
 
-Both forms of all 17 gameplay suites passed: 3,904 audited bitmap frames, peak 589 commands, no font image leaks. Hub navigation covers 165 further frames. Independent level/generator solvers, save/undo/error cases, Lua compatibility and packaged icons pass. Games Hub uses 30/32 code files and 383,238/524,288 container bytes.
+Both forms of all 17 gameplay suites passed: 3,904 audited bitmap frames, peak 589 commands, no font image leaks. Hub navigation covers 165 further frames. Independent level/generator solvers, save/undo/error cases, Lua compatibility and packaged icons pass. Games Hub uses 30/32 code files and 383,525/524,288 container bytes.
+
+The final complete gate ran under Lua 5.4, matching CI. A pencil-note save
+encoding fix also passes Lua 5.1 and recovers legacy decimal masks and undo.
+Sudoku 0.3.2 / Hub 0.3.3 were applied directly in the final SD correction;
+all existing app data remains unchanged from the pre-rollout inventory.
 
 Live deployment updated all 13 existing standalone games and the installed Hub. All 326 app-data files stayed byte-identical; all 346 installed files were verified. The four new games are available in Hub, with optional standalone recovery packages. All 18 recovery installers were verified. Reader startup/touch/refresh checks remain physical checks, not inferred successes.
 

@@ -408,8 +408,8 @@ local function select_cell(x,y)
 end
 local function geometry()
   local n=level().n
-  local cell=n==13 and 30 or 46
-  return math.floor((480-cell*n)/2),n==13 and 151 or 160,cell
+  local cell=n==13 and 34 or 52
+  return math.floor((480-cell*n)/2),n==13 and 126 or 128,cell
 end
 local function button(g,x,y,w,h,label)
   UI.button(g,C,x,y,w,h,label)
@@ -463,7 +463,7 @@ local function render(g)
       local cx=px+cell/2
       local cy=py+cell/2
       local ch=p.rows[y]:sub(x,x)
-      text(g,cx,py+(p.n==13 and 4 or 10),ch,p.n==13 and 'small' or 'medium','center',cell-5)
+      text(g,cx,py+math.floor((cell-UI.height(C,p.n==13 and 'small' or 'control'))/2),ch,p.n==13 and 'small' or 'control','center',cell-5)
       if marked[(y-1)*p.n+x] then
         g:circle(cx,cy,p.n==13 and 12 or 17,{line_width=1})
       end
@@ -483,7 +483,7 @@ local function render(g)
   if S.mode==1 then
     for i,word in ipairs(p.words) do
       local x=i%2==1 and 24 or 248
-      local y=i<=2 and 554 or 602
+      local y=i<=2 and 566 or 610
       g:rect(x,y,208,39,{line_width=1})
       g:rect(x+10,y+8,22,22,{line_width=2})
       if has(found,i) then
@@ -493,8 +493,7 @@ local function render(g)
       text(g,x+43,y+6,word,'medium',nil,155)
     end
   else
-    text(g,240,559,'FIND THE FOX','large','center',400)
-    text(g,240,604,complete() and 'FOX FOUND' or 'ONE FOX IS HIDDEN','medium','center',410)
+    text(g,240,588,'FIND THE FOX','large','center',400)
   end
   text(g,240,656,MSG or 'Tap two letters to select a word','small','center',432)
   local status='FOUND '..count()..'/'..#p.words..'    HINTS '..S.hints[m][n]..'/2'

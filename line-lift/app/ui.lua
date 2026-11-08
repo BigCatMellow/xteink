@@ -98,6 +98,36 @@ function UI.paragraph(g,c,x,y,w,h,s,name,align)
   end
 end
 function UI.region(x,y,w,h) observe('region',{x=x,y=y,w=w,h=h}) end
+-- Shared board geometry; drawing and hit testing must use the same result.
+function UI.grid_geometry(n,top,bottom,width)
+  width=width or 448
+  local cell=math.floor(math.min(width,bottom-top)/n)
+  return math.floor((480-n*cell)/2),top+math.floor((bottom-top-n*cell)/2),cell
+end
+-- Use actual pixel geometry for semantic axis strokes, independent of whether
+-- a firmware build honors line_width. Diagonal marks keep the native path.
+function UI.stroke(g,x,y,xx,yy,width)
+  width=width or 3
+  local half=math.floor(width/2)
+  if y==yy then g:rect(math.min(x,xx),y-half,math.abs(xx-x)+1,width,{fill=true,radius=0})
+  elseif x==xx then g:rect(x-half,math.min(y,yy),width,math.abs(yy-y)+1,{fill=true,radius=0})
+  else g:line(x,y,xx,yy,{line_width=width}) end
+end
+function UI.grid(g,x,y,columns,rows,cell,options)
+  options=options or {}
+  local minor,frame,major=options.minor or 1,options.frame or 4,options.major or 4
+  local row_height=options.row_height or cell
+  for i=0,columns do
+    local w=(i==0 or i==columns) and frame or (options.every and i%options.every==0) and major or minor
+    local dx=i==0 and 0 or i==columns and columns*cell-w or i*cell-math.floor(w/2)
+    g:rect(x+dx,y,w,rows*row_height,{fill=true,radius=0})
+  end
+  for i=0,rows do
+    local h=(i==0 or i==rows) and frame or (options.every and i%options.every==0) and major or minor
+    local dy=i==0 and 0 or i==rows and rows*row_height-h or i*row_height-math.floor(h/2)
+    g:rect(x,y+dy,columns*cell,h,{fill=true,radius=0})
+  end
+end
 function UI.error(g,c,title,message)
   g:clear(0)
   UI.text(g,c,24,32,title..' ERROR','medium')

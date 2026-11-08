@@ -157,7 +157,7 @@ eq(A.state().level,20)
 
 -- Simulate physical device pointer release. No redraw on touches outside targets.
 A.start(1,20)
-local ox,oy=A.origin(4)
+local ox,oy,spacing=A.origin(4)
 local count=redraws
 on_input(ctx,{type='pointer',phase='down',gesture='tap',x=ox+30,y=oy+30})
 eq(redraws,count,'no redraw before pointer up')
@@ -166,7 +166,7 @@ eq(redraws,count,'no redraw for empty area')
 on_input(ctx,{type='pointer',phase='up',gesture='swipe_left',x=ox+30,y=oy+30})
 eq(redraws,count,'swipes ignored')
 local x,y=coords(changing)
-on_input(ctx,{type='pointer',phase='up',gesture='tap',x=ox+(x-0.5)*78,y=oy+(y-0.5)*78})
+on_input(ctx,{type='pointer',phase='up',gesture='tap',x=ox+(x-0.5)*spacing,y=oy+(y-0.5)*spacing})
 eq(redraws,count+1,'one invalidate per valid tile tap')
 assert(A.state().tiles[changing]~=initial)
 
@@ -174,11 +174,13 @@ assert(A.state().tiles[changing]~=initial)
 local g={}
 local methods={}
 local commands=0
+local grid_bars={}
 for _,method in ipairs({'clear','line','rect','circle','text'}) do
   g[method]=function(_, ...)
     commands=commands+1
     methods[method]=(methods[method] or 0)+1
     local args={...}
+    if method=='rect' and args[5] and args[5].fill and args[5].radius==0 then grid_bars[#grid_bars+1]=args end
     if type(args[#args])=='table' then
       assert(args[#args].color==nil and args[#args].opacity==nil,'monochrome only')
     end
@@ -186,9 +188,16 @@ for _,method in ipairs({'clear','line','rect','circle','text'}) do
 end
 for level=1,20 do
   A.start(level,20)
-  commands=0;methods={}
+  commands=0;methods={};grid_bars={}
   on_draw(ctx,g)
-  assert(commands>=50 and commands<=250,'rendering commands bounded: '..commands)
+  assert(commands<=250,'rendering commands bounded: '..commands)
+  local bx,by,cell=A.origin(A.state().board.size)
+  local size=A.state().board.size*cell
+  local framed=false
+  for _,bar in ipairs(grid_bars) do
+    if bar[1]==bx and bar[2]==by and bar[3]==4 and bar[4]==size then framed=true end
+  end
+  assert(size>=440 and framed,'large board with explicit solid frame must be present')
   eq(methods.clear,1,'one frame clear')
 end
 assert(type(on_tick)=='nil','no timer/update callbacks; static states only')

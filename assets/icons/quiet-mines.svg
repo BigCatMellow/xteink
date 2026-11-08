@@ -1,6 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="10" y="10" width="76" height="76" rx="8" stroke-width="3"/>
-  <circle cx="48" cy="48" r="20" fill="black" stroke="none"/>
-  <circle cx="41" cy="41" r="5" fill="white" stroke="none"/>
-  <path d="M48 18V28 M48 68V78 M18 48H28 M68 48H78 M26 26L33 33 M63 63L70 70 M26 70L33 63 M63 33L70 26" stroke-width="5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" stroke="black" stroke-width="3.5">
+  <rect x="9" y="9" width="78" height="78" rx="12"/>
+  <path d="M 35 11 V 85 M 61 11 V 85 M 11 35 H 85 M 11 61 H 85" stroke-width="1.4"/>
+  <rect x="12" y="12" width="46" height="46" fill="white" stroke="none"/>
+  <path d="M 25 16 V 54 M 19 54 H 36" stroke-width="3.5"/>
+  <polygon points="27,17 53,27 27,37" fill="black" stroke-width="2"/>
+  <text x="73" y="75" font-size="20" font-weight="600" fill="black" stroke="none">2</text><text x="48" y="75" font-size="20" font-weight="600" fill="black" stroke="none">1</text>
 </svg>

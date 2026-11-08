@@ -1,5 +1,6 @@
 -- Crown Fields: original monochrome region-placement logic for XTOS Licorice.
 local UI=require('ui')
+local Theme=require('theme')
 local Levels=require('levels')
 local C,S,ERR,MSG=nil,nil,nil,nil
 local HELP=false
@@ -167,8 +168,7 @@ local function check()
 end
 local function geometry()
   local n=board(S.level).n
-  local cell=n==5 and 70 or n==6 and 59 or 50
-  return math.floor((480-cell*n)/2),187,cell
+  return UI.grid_geometry(n,120,568)
 end
 local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
 local function button(g,x,y,w,h,s) UI.button(g,C,x,y,w,h,s) end
@@ -185,41 +185,39 @@ end
 local function render(g)
   g:clear(0)
   text(g,22,17,'CROWN FIELDS','large',nil,340)
-  button(g,421,13,39,45,HELP and 'X' or '?')
+  button(g,416,12,48,48,HELP and 'X' or '?')
   if S.level<TOTAL and S.level<S.unlocked then button(g,313,13,96,45,'NEXT') end
   text(g,22,75,'PUZZLE '..S.level..' / '..TOTAL,'medium')
-  text(g,22,117,'REGIONS ARE LETTERED A TO G','small',nil,438)
-  g:line(22,151,458,151,{line_width=2})
   if HELP then draw_help(g);return end
   local b=board(S.level)
   local bx,by,cell=geometry()
   UI.region(bx,by,b.n*cell,b.n*cell)
+  UI.grid(g,bx,by,b.n,b.n,cell)
   for y=1,b.n do
     for x=1,b.n do
       local i=(y-1)*b.n+x
       local px,py=bx+(x-1)*cell,by+(y-1)*cell
       local code=b.regions[i]
-      g:rect(px,py,cell,cell,{line_width=1})
       text(g,px+7,py+5,code,'small',nil,22)
       local v=S.marks[S.level][i]
       local cx,cy=px+cell/2,py+cell/2+3
       if v==1 then
-        g:line(cx-12,cy-11,cx+12,cy+11,{line_width=3})
-        g:line(cx-12,cy+11,cx+12,cy-11,{line_width=3})
+        UI.stroke(g,cx-12,cy-11,cx+12,cy+11,4)
+        UI.stroke(g,cx-12,cy+11,cx+12,cy-11,4)
       elseif v==2 then
-        g:line(cx-17,cy-5,cx-12,cy+12,{line_width=3})
-        g:line(cx-12,cy+12,cx+12,cy+12,{line_width=3})
-        g:line(cx+12,cy+12,cx+17,cy-5,{line_width=3})
-        g:line(cx-17,cy-5,cx-6,cy+2,{line_width=3})
-        g:line(cx-6,cy+2,cx,cy-14,{line_width=3})
-        g:line(cx,cy-14,cx+6,cy+2,{line_width=3})
-        g:line(cx+6,cy+2,cx+17,cy-5,{line_width=3})
+        UI.stroke(g,cx-17,cy-5,cx-12,cy+12,4)
+        UI.stroke(g,cx-12,cy+12,cx+12,cy+12,4)
+        UI.stroke(g,cx+12,cy+12,cx+17,cy-5,4)
+        UI.stroke(g,cx-17,cy-5,cx-6,cy+2,4)
+        UI.stroke(g,cx-6,cy+2,cx,cy-14,4)
+        UI.stroke(g,cx,cy-14,cx+6,cy+2,4)
+        UI.stroke(g,cx+6,cy+2,cx+17,cy-5,4)
       end
       if x<b.n and code~=b.regions[i+1] then
-        g:line(px+cell,py,px+cell,py+cell,{line_width=4})
+        UI.stroke(g,px+cell,py,px+cell,py+cell,5)
       end
       if y<b.n and code~=b.regions[i+b.n] then
-        g:line(px,py+cell,px+cell,py+cell,{line_width=4})
+        UI.stroke(g,px,py+cell,px+cell,py+cell,5)
       end
     end
   end
@@ -237,7 +235,7 @@ local function hit(x,y,bx,by,w,h)
   return x>=bx and x<bx+w and y>=by and y<by+h
 end
 local function tap(x,y)
-  if hit(x,y,421,13,39,45) then HELP=not HELP;return true end
+  if hit(x,y,416,12,48,48) then HELP=not HELP;return true end
   if HELP then
     if hit(x,y,76,703,328,68) then HELP=false;return true end
     return false
@@ -255,14 +253,14 @@ local function tap(x,y)
   return false
 end
 local function invalidate() if C then pcall(function() C:invalidate() end) end end
-function on_load(ctx) C=ctx or context;ERR=nil
+function on_load(ctx) Theme.release();C=ctx or context;ERR=nil
   local ok,e=pcall(function() if not restore() then start() end end)
   if not ok then ERR=tostring(e) end
 end
 function on_draw(ctx,g) if ctx then C=ctx end
   if not g then return end
   if ERR then UI.error(g,C,'CROWN FIELDS',ERR);return end
-  local ok,e=pcall(function() render(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,render) end)
   if not ok then ERR=tostring(e);UI.error(g,C,'CROWN FIELDS',ERR) end
 end
 function on_input(ctx,e) if ctx then C=ctx end
@@ -289,7 +287,7 @@ function on_input(ctx,e) if ctx then C=ctx end
   if changed then invalidate() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release();if S then save() end end
 if rawget(_G,'__TEST') then
  __TEST.api={
    levels=Levels,board=board,valid=valid,state=function()return S end,

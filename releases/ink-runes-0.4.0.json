@@ -1,0 +1,13 @@
+{
+  "game": "ink-runes",
+  "app_id": "inkrunes",
+  "name": "Ink Runes",
+  "version": "0.4.0",
+  "file": "ink-runes-0.4.0.xtapp",
+  "bytes": 116448,
+  "sha256": "d68958566b66969b79c791a8f5e5c6e294aa4b3456a144df7ec0a9c09f2c9e8b",
+  "source_sha256": "4e3039214ebf6ebbe0749c7097e916809f63ea028f7f88b4908fff8fbac50abd",
+  "metadata_file": "ink-runes-0.4.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

@@ -1,7 +1,7 @@
 {
   "app_id": "sumcross",
   "display_name": "Sum Cross",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "author": "BigCatMellow",
   "description": "Original monochrome Kakuro number crossword puzzles",
   "entry": "index.lua",

@@ -1,6 +1,6 @@
 # Games Hub
 
-All 13 active games in one offline XTApp. Install one package to update the
+All 17 active games in one offline XTApp. Install one package to update the
 whole collection. It shares the family Poppins/Inter fonts, rounded controls,
 strong monochrome strokes and each game's existing rules and puzzle generator.
 
@@ -55,13 +55,15 @@ Edit each original game's source, then rebuild. `app/game_*.lua` and the shared
 copies are generated; `src/` owns the hub menu, header adapter, save namespace
 and importer. The builder combines each game's private modules into one module
 and keeps mutable game instances separate. The catalogue records source versions
-and fingerprints. CI rejects stale generated code, verifies all 13 engines
+and fingerprints. CI rejects stale generated code, verifies all 17 engines
 through the adapter, tests collection navigation/imports and packages the icon.
 
-v0.2.0 includes the revised Sudoku v0.3.0 layout. The standalone Sudoku package
-also has a new icon. The collection has 26/32 code files and roughly 328 KB including the XTCO table, below
+v0.3.2 includes all 17 revised games, including Crown Fields, Ten Pairs, Quiet
+Mines and Sum Cross. Five game rows per page keep the list compact with large
+touch targets. Resume now stores a stable game ID while reading older numeric
+saves. The collection has 30/32 code files and roughly 383 KB including the XTCO table, below
 the firmware's 512 KiB code ceiling. Fonts are opened for the current screen
-and released when changing games. This is a host-tested first release; physical
+and released when changing games. This is a host-tested release; physical
 startup, repeated switching, import, sleep/resume and memory behavior still
 need checking. [Actual bitmap host previews](../docs/design/games-hub/overview.png).
 

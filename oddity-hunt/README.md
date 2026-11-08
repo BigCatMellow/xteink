@@ -1,5 +1,11 @@
 # Oddity Hunt — original illustrated seek-and-find for XTEINK X4 Pro
 
+Updates are applied directly from the computer while the SD card is mounted;
+see the [family release procedure](../docs/GAME_UPDATES.md). All active games
+are also available inside Games Hub, so new games do not require separate
+installation when using the updated hub. Never uninstall to update.
+
+
 Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
 
 A **static black-and-white I Spy–style game** made for the 480 × 800 XTEINK X4 Pro running XTOS Licorice. The scenes and 20 miniature line-art object types are original; no I Spy photographs, branded books, or proprietary image assets are included.

@@ -12,11 +12,7 @@ HUB = ROOT / 'games-hub'
 SHARED = {'ui_core': 'game_ui', 'theme': 'game_theme', 'game_style': 'game_style',
           'typefaces': 'typefaces', 'font_data': 'font_data', 'font_license': 'font_license',
           'puzzle_store': 'puzzle_store'}
-DESCRIPTIONS = ('Untangle crossing rods', 'A little mountain golf', 'Connect every tile',
-                'Discover the hidden runes', 'Light up a logic puzzle', 'Guide the beam home',
-                'Bridge a quiet archipelago', 'Find five hidden objects', 'Find words, keep exploring',
-                'Reveal a picture in ink', 'Change a word, one letter', 'Divide the board into rooms',
-                'Nine numbers, endless puzzles')
+DESCRIPTIONS = {'line-lift': 'Untangle crossing rods', 'summit-putt': 'A little mountain golf', 'link-grid': 'Connect every tile', 'ink-runes': 'Discover the hidden runes', 'lantern-logic': 'Light up a logic puzzle', 'ray-vault': 'Guide the beam home', 'island-links': 'Bridge a quiet archipelago', 'oddity-hunt': 'Find five hidden objects', 'word-hunt': 'Find words, keep exploring', 'nonogram': 'Reveal a picture in ink', 'word-bridge': 'Change a word, one letter', 'rectangle-rooms': 'Divide the board into rooms', 'sudoku': 'Nine numbers, endless puzzles', 'crown-fields': 'One crown in every region', 'ten-pairs': 'Pair numbers, clear the sheet', 'quiet-mines': 'Deduce every safe square', 'sum-cross': 'Solve the crossing sums'}
 
 
 def outputs():
@@ -27,7 +23,9 @@ def outputs():
         result[source.name] = source.read_bytes()
     result['import_expected.lua'] = b'return false -- Public builds never contain personal saves.\n'
     catalogue = []
-    for game, description in zip(GAMES, DESCRIPTIONS):
+    assert set(DESCRIPTIONS) == set(GAMES), "Every registered game needs a hub entry"
+    for game in GAMES:
+        description = DESCRIPTIONS[game]
         folder = ROOT / game / 'app'
         manifest = json.loads((folder / 'manifest.json').read_text())
         appid = manifest['app_id']

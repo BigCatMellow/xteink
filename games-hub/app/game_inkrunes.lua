@@ -267,8 +267,7 @@ local function button(g,x,y,w,h,label)
   UI.button(g,C,x,y,w,h,label)
 end
 local function geometry(n)
-  local cell=math.floor(390/n)
-  return math.floor((480-n*cell)/2),166,cell
+  return UI.grid_geometry(n,120,568)
 end
 local function draw_help(g)
   centered(g,240,149,'GLYPH NOTES','large')
@@ -318,7 +317,7 @@ local function draw(g)
           g:rect(xx+2,yy+2,cell-4,cell-4,{fill=true})
         else
           g:rect(xx+2,yy+2,cell-4,cell-4,{line_width=2})
-          centered(g,xx+cell/2,yy+cell/2-17,ch,'large')
+          centered(g,xx+cell/2,yy+cell/2-16,ch,'strong')
           for _,q in ipairs(S.selected) do
             if q==i then g:rect(xx+8,yy+8,cell-16,cell-16,{line_width=2}) end
           end

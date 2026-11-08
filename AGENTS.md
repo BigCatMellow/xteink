@@ -51,3 +51,17 @@ contract, per-game exceptions, change reasons and required visual evidence.
 
 These rules and the quality workflow apply to future game contributions as well
 as current games. Do not weaken tests just to accommodate a failing layout.
+
+The user requested a complete family workflow, without repeated per-game design
+approval or manual package installation. Before a family pass, fetch origin and
+integrate new active games while preserving local work. Register every new game
+in GAMES, theme/font syncing, hub descriptions, render fixtures and the quality
+gate. Append to the existing game order so legacy numeric hub resumes stay
+valid; current resumes use stable app IDs. Keep code/file budgets enforced.
+
+Use `python3 scripts/release_games.py --card <mount>` for the complete verified
+build/archive/direct-update workflow. `--apply-only` deploys an already verified
+latest catalogue and rejects stale source. Do not overwrite an archived version
+with changed source; bump its version. Keep the rollout plan/design decisions
+and deployment receipt current, and publish the integrated tested repo changes.
+New standalone registrations are optional when the updated Hub contains them.

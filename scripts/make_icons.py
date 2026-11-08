@@ -126,7 +126,7 @@ def validate(image, name):
 
 
 def contact_sheet(images, destination):
-    sheet = Image.new('RGB', (800, 380), 'white')
+    sheet = Image.new('RGB', (800, ((len(images)+3)//4)*190), 'white')
     pen = ImageDraw.Draw(sheet)
     try:
         font = ImageFont.truetype('DejaVuSans.ttf', 14)

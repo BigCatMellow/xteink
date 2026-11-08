@@ -1,5 +1,11 @@
 # Line Lift — static crossing puzzles for XTEINK X4 Pro
 
+Updates are applied directly from the computer while the SD card is mounted;
+see the [family release procedure](../docs/GAME_UPDATES.md). All active games
+are also available inside Games Hub, so new games do not require separate
+installation when using the updated hub. Never uninstall to update.
+
+
 Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
 
 **Status: v0.4.** Includes an optional on-board hint that rings currently safe pulls; the hint never makes a move for the player. The interface uses a crisp mechanical-panel design made from native vector strokes for clean e-ink rendering.

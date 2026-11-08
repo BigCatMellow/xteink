@@ -1,0 +1,107 @@
+{
+  "card": "/media/mellow/4A21-0000",
+  "backup": "/home/mellow/Backups/xteink-family-update-20261108-112417",
+  "updates": [
+    {
+      "app_id": "linelift",
+      "from": "0.5.0",
+      "to": "0.6.0",
+      "sha256": "873a3d09906986cbef461181b034ef2cc164b8c27c772f6286c6b0d11dcc3068"
+    },
+    {
+      "app_id": "summitputt",
+      "from": "0.5.0",
+      "to": "0.6.0",
+      "sha256": "a4bb0613f71ec521aba5941a1e1683b0b8ce91369f6b7e562d60e3e4899fd9f2"
+    },
+    {
+      "app_id": "linkgrid",
+      "from": "0.3.0",
+      "to": "0.4.0",
+      "sha256": "4882f164ffe78cf9ba053207cb5dd1032389b3fca1086eacb83b5e2dbc23d1a6"
+    },
+    {
+      "app_id": "inkrunes",
+      "from": "0.3.0",
+      "to": "0.4.0",
+      "sha256": "d68958566b66969b79c791a8f5e5c6e294aa4b3456a144df7ec0a9c09f2c9e8b"
+    },
+    {
+      "app_id": "lanternlogic",
+      "from": "0.3.0",
+      "to": "0.4.0",
+      "sha256": "66ce9f7940fc9159d57befaca258aa0bf301af6fce4d47e2db3ec59431c08933"
+    },
+    {
+      "app_id": "rayvault",
+      "from": "0.3.0",
+      "to": "0.4.0",
+      "sha256": "f298b125fdf01d9a972634100491c261af8a785d2f21f86a5e38e25647e61fa8"
+    },
+    {
+      "app_id": "islandlinks",
+      "from": "0.3.0",
+      "to": "0.4.0",
+      "sha256": "03def6dd99ee6d56d87bc51657efa20c3487b9027d1509c8eea4b0e9bcfcfed5"
+    },
+    {
+      "app_id": "oddityhunt",
+      "from": "0.2.0",
+      "to": "0.3.0",
+      "sha256": "57a84b662f95db7deaac9843954d2300ea7ec9fe0d639c1f8ee2c8f30a3c2928"
+    },
+    {
+      "app_id": "wordhunt",
+      "from": "0.3.0",
+      "to": "0.4.0",
+      "sha256": "589161b0fef935c217c939051323c709d3ced1d1c09f50c319e174edf5db73ee"
+    },
+    {
+      "app_id": "nonogram",
+      "from": "0.5.0",
+      "to": "0.6.0",
+      "sha256": "f7e5fd6d9d9364a79c807c5bb16e1879ea8975d8f9c16ad971a26477d9fec874"
+    },
+    {
+      "app_id": "wordbridge",
+      "from": "0.2.0",
+      "to": "0.3.0",
+      "sha256": "25f78c98c74c92fac978882018b7e9e4db44f6b9f705a22db91451fe97eb85f4"
+    },
+    {
+      "app_id": "rectrooms",
+      "from": "0.2.0",
+      "to": "0.3.0",
+      "sha256": "72944e6fe4aa9709a06d3ebfed2d317377f55e188a3d2c6cd43068f43846d755"
+    },
+    {
+      "app_id": "sudoku",
+      "from": "0.3.0",
+      "to": "0.3.1",
+      "sha256": "b260004f0c8a77f2e01e00b3c9a907abf1acd75b124c0fa05b76d768e4fe3547"
+    },
+    {
+      "app_id": "gameshub",
+      "from": "0.2.0",
+      "to": "0.3.0",
+      "sha256": "eef833cf8363b676c42dd4a88c447a473e9fc03affa2aab749c366a21b339c44"
+    }
+  ],
+  "app_data_files_preserved": 326,
+  "installed_files_verified": 346,
+  "new_games_available_in_hub": [
+    "crownfields",
+    "tenpairs",
+    "quietmines",
+    "sumcross"
+  ],
+  "standalone_apps_requiring_initial_registration": [
+    "crownfields",
+    "tenpairs",
+    "quietmines",
+    "sumcross"
+  ],
+  "recovery_installers_verified": 18,
+  "flushed": true,
+  "device_launch_verified": false
+}

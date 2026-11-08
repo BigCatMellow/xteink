@@ -1,5 +1,17 @@
 # Crown Fields — region placement on XTEINK X4 Pro
 
+Updates are applied directly from the computer while the SD card is mounted;
+see the [family release procedure](../docs/GAME_UPDATES.md). All active games
+are also available inside Games Hub, so new games do not require separate
+installation when using the updated hub. Never uninstall to update.
+
+
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md):
+Poppins/Inter, larger play areas, clear semantic boundaries and rounded controls.
+The current release is also available inside Games Hub, with no separate
+installation needed when using the updated hub.
+
+
 An original offline logic puzzle using the classic one-per-row, one-per-column, one-per-region **Crowns/Queens** rules. All board layouts and icon artwork are independently generated, not copied from crowns.game.
 
 **12 puzzles:** four 5×5, four 6×6, four 7×7. Every level has exactly **one** solution checked by an independent exhaustive solver. Every lettered region is connected. No color is required: borders between regions are thick, and each cell carries a region letter.

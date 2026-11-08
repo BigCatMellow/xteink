@@ -1,7 +1,7 @@
 {
   "app_id": "linelift",
   "display_name": "Line Lift",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": "BigCatMellow",
   "description": "Monochrome static hook-and-crossing deduction puzzles for X4 Pro",
   "entry": "index.lua",

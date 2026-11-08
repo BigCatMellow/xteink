@@ -223,7 +223,7 @@ measured(ctx,on_draw,'summit-putt out of cards')
 -- The relocated Undo button's hitbox must match its drawn position.
 A.start(1,10)
 assert(A.choose(first.i));assert(A.advance(first.dir))
-on_input(ctx,{type='pointer',phase='up',gesture='tap',x=120,y=108})
+on_input(ctx,{type='pointer',phase='up',gesture='tap',x=120,y=668})
 eq(A.state().mask,0,'new Undo hitbox restores card')
 
 -- Key input cycles card selection, while invalid touch does not spend cards.

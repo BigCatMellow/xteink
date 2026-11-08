@@ -15,38 +15,38 @@ installation. Existing standalone games are updated directly on the mounted card
 ## Execution checklist
 
 - [x] Fetch upstream; inventory incoming games and save a complete local-work backup.
-- [ ] Merge upstream without losing earlier local presentation, generators or saves.
-- [ ] Audit first/dense/help/solved states for every game and record per-game decisions.
-- [ ] Improve space use, visual hierarchy, touch geometry and distinguishable icons.
-- [ ] Apply canonical fonts/theme to all four new games; integrate them into checks.
-- [ ] Rebuild Games Hub with all 17 engines and verify firmware code/file limits.
-- [ ] Pass gameplay/save/reload/undo/solution tests, enlarged/native and bitmap layouts.
-- [ ] Inspect actual bitmap previews and verify native packaged icons.
-- [ ] Archive versioned releases, latest catalogue, design notes and update evidence.
-- [ ] Back up the live card; directly update installed games and hub; verify saves.
-- [ ] Commit/publish the integrated work, retaining any newer upstream changes.
+- [x] Merge upstream without losing earlier local presentation, generators or saves.
+- [x] Audit first/dense/help/solved states for every game and record per-game decisions.
+- [x] Improve space use, visual hierarchy, touch geometry and distinguishable icons.
+- [x] Apply canonical fonts/theme to all four new games; integrate them into checks.
+- [x] Rebuild Games Hub with all 17 engines and verify firmware code/file limits.
+- [x] Pass gameplay/save/reload/undo/solution tests, enlarged/native and bitmap layouts.
+- [x] Inspect actual bitmap previews and verify native packaged icons.
+- [x] Archive versioned releases, latest catalogue, design notes and update evidence.
+- [x] Back up the live card; directly update installed games and hub; verify saves.
+- [x] Commit/publish the integrated work, retaining newer upstream changes (see Git history).
 
 ## Per-game review
 
 | Game | Review focus | Status |
 | --- | --- | --- |
-| Line Lift | Board prominence, crossing gaps, pair rings, controls | Pending |
-| Summit Putt | Terrain/card hierarchy, selected cards, usable controls | Pending |
-| Link Grid | Network/grid contrast, anchors and tile targets | Pending |
-| Ink Runes | Letter order, connections, selected cells and metadata | Pending |
-| Lantern Logic | Walls/clues/light/conflict distinction and grid weight | Pending |
-| Ray Vault | Grid/rim port clarity, probe labels and selection | Pending |
-| Island Links | Large nodes, bridge separation and centering | Pending |
-| Oddity Hunt | Shelf recognition, usable object targets and uncluttered HUD | Pending |
-| Word Hunt | Dense letter legibility, found/hint rings and controls | Pending |
-| Nonogram | Clue/board centering, semantic grid hierarchy and controls | Pending |
-| Word Bridge | Word-card spacing, route and selection hierarchy | Pending |
-| Rectangle Rooms | Clear room/cell boundaries and area clues | Pending |
-| Sudoku | Preserve v0.3 improvements and verify the shared rollout | Pending |
-| Crown Fields | Theme integration, regions/crowns/exclusions and dense boards | Pending |
-| Ten Pairs | Theme integration, number emphasis and selection affordances | Pending |
-| Quiet Mines | Theme integration, flag/clue states and safe targets | Pending |
-| Sum Cross | Theme integration, sum-clue hierarchy and digit pad | Pending |
+| Line Lift | Solid rods preserve crossing gaps; quieter header; distinct ring icon | Reviewed / implemented |
+| Summit Putt | 424px terrain composition; larger Undo/Restart targets below cards; bold distances | Reviewed / implemented |
+| Link Grid | 448px board; solid network strokes and fine cells; explicit anchors/rules | Reviewed / implemented |
+| Ink Runes | 448px logical board and stronger letter tiles; preserve void geometry/order | Reviewed / implemented |
+| Lantern Logic | 448px play band; fine grid distinct from clue walls and bulbs | Reviewed / implemented |
+| Ray Vault | 434px rim composition; stronger frame; preserve port geometry | Reviewed / implemented |
+| Island Links | 416px network composition; evenly spread nodes and separated double bridges | Reviewed / implemented |
+| Oddity Hunt | Retain already full shelf/object hitboxes; quieter metadata and clearer icon | Reviewed / implemented |
+| Word Hunt | Larger 8×8 and 13×13 grids; centered glyphs and readable target list | Reviewed / implemented |
+| Nonogram | Retain approved measured clue centering; solid grid strokes; readable picture icon | Reviewed / implemented |
+| Word Bridge | Larger word cards and compact goal/current band; preserve route meanings | Reviewed / implemented |
+| Rectangle Rooms | 448px play band; bold area clues; fine grid distinct from rooms | Reviewed / implemented |
+| Sudoku | Retain v0.3 density; reuse canonical solid grid; retain reviewed icon | Reviewed / implemented |
+| Crown Fields | Shared fonts; large board; letter regions and solid 5px boundaries | Reviewed / implemented |
+| Ten Pairs | Full-width responsive number sheet; row height adapts to 4–11 rows | Reviewed / implemented |
+| Quiet Mines | Large field; separate closed/open/flag states and visible active mode | Reviewed / implemented |
+| Sum Cross | Larger clue grid; solid inactive blocks; correct diagonal between across/down clues and keypad | Reviewed / implemented |
 
 ## Acceptance
 
@@ -59,3 +59,11 @@ checks and direct SD replacement are not recorded as physical reader success.
 
 Local working tree before integration is backed up under
 `/home/mellow/Backups/xteink-before-full-rollout-20261108-104801/`.
+
+## Completion evidence
+
+Both forms of all 17 gameplay suites passed: 3,904 audited bitmap frames, peak 589 commands, no font image leaks. Hub navigation covers 165 further frames. Independent level/generator solvers, save/undo/error cases, Lua compatibility and packaged icons pass. Games Hub uses 30/32 code files and 383,238/524,288 container bytes.
+
+Live deployment updated all 13 existing standalone games and the installed Hub. All 326 app-data files stayed byte-identical; all 346 installed files were verified. The four new games are available in Hub, with optional standalone recovery packages. All 18 recovery installers were verified. Reader startup/touch/refresh checks remain physical checks, not inferred successes.
+
+Backups: `/home/mellow/Backups/xteink-family-update-20261108-112417/` and final corrections `/home/mellow/Backups/xteink-family-update-20261108-113525/`. See dated SD receipts in releases/ and the [visual review](design/full-rollout-2026-11-08/README.md).

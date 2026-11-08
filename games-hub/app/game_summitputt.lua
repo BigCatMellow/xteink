@@ -18,7 +18,7 @@ local W,H=480,800
 local UI=require('ui')
 local Theme=require('theme')
 local N=7
-local CELL,BX,BY=54,51,141
+local CELL,BX,BY=58,37,116
 local MAX_LEVEL=10
 local C,STATE,BOARD,ERR,MSG=nil,nil,nil,nil,nil
 local show_help=false
@@ -273,7 +273,6 @@ local function draw_tiles(g)
   -- A tabletop topographic board: every mark is hard-edged vector geometry,
   -- so the terrain stays as crisp as a printed puzzle card on e-ink.
   g:rect(BX-9,BY-9,N*CELL+18,N*CELL+18,{line_width=2})
-  g:rect(BX-4,BY-4,N*CELL+8,N*CELL+8,{line_width=1})
   for y=1,N do
     for x=1,N do
       local ch=tile(BOARD,x,y)
@@ -345,10 +344,10 @@ local function draw(g)
   if not show_help then box(g,402,12,48,42,'?') end
   text(g,30,58,string.format('PUZZLE %02d/%02d  //  %s',STATE.level,MAX_LEVEL,BOARD.name),'small')
   if show_help then draw_help(g); return end
-  box(g,30,88,195,40,'UNDO')
-  box(g,255,88,195,40,'RESTART')
   draw_tiles(g)
   center(g,240,533,MSG or 'Select a card, then a direction','small')
+  box(g,30,644,195,48,'UNDO')
+  box(g,255,644,195,48,'RESTART')
 
   if STATE.stage=='won' then
     center(g,240,601,STATE.level==MAX_LEVEL and 'ALL PUZZLES CLEARED' or 'PUZZLE COMPLETE','large')
@@ -367,12 +366,11 @@ local function draw(g)
       g:line(cx+8,570,cx+67,619)
       g:line(cx+8,619,cx+67,570)
     else
-      center(g,cx+37,576,tostring(v),'large')
+      center(g,cx+37,576,tostring(v),'strong')
       for p=1,v do g:circle(cx+18+(p-1)*18,613,2,{fill=true}) end
       if STATE.selected==i then g:rect(cx+3,565,69,59,{line_width=1,radius=5}) end
     end
   end
-  center(g,240,647,'Tap a card, then choose a direction','small')
   for i,label in ipairs(LABELS) do
     box(g,30+(i-1)*112,701,87,68,label)
   end
@@ -386,8 +384,8 @@ local function touch(x,y)
     return
   end
   if within(x,y,402,12,48,42) then show_help=true;return end
-  if within(x,y,30,88,195,40) then undo();return end
-  if within(x,y,255,88,195,40) then start_level(STATE.level,STATE.unlocked);return end
+  if within(x,y,30,644,195,48) then undo();return end
+  if within(x,y,255,644,195,48) then start_level(STATE.level,STATE.unlocked);return end
   if STATE.stage=='won' then
     if within(x,y,30,704,420,65) then next_level() end
     return

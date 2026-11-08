@@ -1,0 +1,13 @@
+{
+  "game": "link-grid",
+  "app_id": "linkgrid",
+  "name": "Link Grid",
+  "version": "0.4.0",
+  "file": "link-grid-0.4.0.xtapp",
+  "bytes": 115552,
+  "sha256": "4882f164ffe78cf9ba053207cb5dd1032389b3fca1086eacb83b5e2dbc23d1a6",
+  "source_sha256": "af0dfb54c78f73bcefe7a810a37c2e1fb9bf18670384a565359bce58f0260e91",
+  "metadata_file": "link-grid-0.4.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

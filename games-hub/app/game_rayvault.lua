@@ -14,7 +14,7 @@ require=function(name)
 end
 -- Ray Vault: original static atom-deduction puzzles for XTEINK X4 Pro.
 -- No animation, frame loop, timers, fading, sound, or network.
-local N,CELL,BX,BY=6,54,78,185
+local N,CELL,BX,BY=6,58,66,162
 local UI=require('ui')
 local Theme=require('theme')
 local LEVELS={
@@ -252,17 +252,17 @@ local function draw(g)
   g:line(24,109,456,109)
   if HELP then draw_help(g);return end
   UI.region(BX-43,BY-43,N*CELL+86,N*CELL+86)
+  UI.grid(g,BX,BY,N,N,CELL)
   for row=0,N-1 do
     for col=0,N-1 do
       local i=idx(col,row)
       local x,y=BX+col*CELL,BY+row*CELL
-      g:rect(x,y,CELL,CELL,{line_width=2})
       if S.marks[i]==1 then
-        g:circle(x+27,y+27,13,{line_width=3})
-        g:circle(x+27,y+27,5,{fill=true})
+        g:circle(x+CELL/2,y+CELL/2,13,{line_width=3})
+        g:circle(x+CELL/2,y+CELL/2,5,{fill=true})
       elseif S.marks[i]==2 then
-        g:line(x+14,y+14,x+40,y+40,{line_width=2})
-        g:line(x+40,y+14,x+14,y+40,{line_width=2})
+        g:line(x+CELL/2-13,y+CELL/2-13,x+CELL/2+13,y+CELL/2+13,{line_width=2})
+        g:line(x+CELL/2+13,y+CELL/2-13,x+CELL/2-13,y+CELL/2+13,{line_width=2})
       end
     end
   end
@@ -349,6 +349,7 @@ local function on_leave() Theme.release(); if S then save() end end
 if rawget(_G,'__TEST') then
   __TEST.api={
     levels=LEVELS,atoms=atoms,trace=trace,pos=port_pos,
+    geometry=function() return BX,BY,CELL end,
     start=start,restore=restore,fire=fire,mark=mark,check=check,
     clear=clear,next=next_level,prev=prev,
     correct=correct,state=function() return S end,tap=tap

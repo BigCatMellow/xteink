@@ -1,6 +1,7 @@
 -- Ten Pairs: original static Numberama / Number Match style game.
 -- 8 columns, no automatic motion. Tap two digits to remove.
 local UI=require('ui')
+local Theme=require('theme')
 local DATA=require('boards')
 local C,S,ERR,MSG=nil,nil,nil,nil
 local HELP=false
@@ -187,7 +188,11 @@ local function restart()
   S.hintsUsed[S.level]=0;S.hintPair[S.level]=nil
   MSG='Fresh number sheet';save();return true
 end
-local function geometry() return 80,165,40 end
+local function geometry()
+  local rows=math.ceil(#S.boards[S.level]/8)
+  local height=math.min(90,math.floor(480/rows))
+  return 16,112+math.floor((572-(rows*height+96))/2),56,height
+end
 local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
 local function button(g,x,y,w,h,s) UI.button(g,C,x,y,w,h,s) end
 local function draw_help(g)
@@ -203,32 +208,30 @@ end
 local function render(g)
   g:clear(0)
   text(g,20,15,'TEN PAIRS','large',nil,295)
-  button(g,421,12,39,43,HELP and 'X' or '?')
+  button(g,416,12,48,48,HELP and 'X' or '?')
   if S.level<TOTAL and S.level<S.unlocked then button(g,311,12,98,43,'NEXT') end
   local t=S.boards[S.level]
   text(g,20,73,'SHEET '..S.level..' / '..TOTAL,'medium')
-  text(g,20,113,'MATCH SAME OR SUM TO 10','small')
-  g:line(20,150,460,150,{line_width=2})
   if HELP then draw_help(g);return end
-  local bx,by,cell=geometry()
+  local bx,by,cell,height=geometry()
   local rows=math.ceil(#t/8)
-  UI.region(bx,by,8*cell,rows*cell)
+  UI.region(bx,by,8*cell,rows*height)
+  UI.grid(g,bx,by,8,rows,cell,{row_height=height})
   for i,v in ipairs(t) do
     local x=(i-1)%8
     local y=math.floor((i-1)/8)
-    local px,py=bx+x*cell,by+y*cell
-    g:rect(px,py,cell,cell,{line_width=1})
+    local px,py=bx+x*cell,by+y*height
     if v>0 then
-      text(g,px+cell/2,py+9,tostring(v),'medium','center',cell-6)
-      if S.selected[S.level]==i then g:rect(px+4,py+4,cell-8,cell-8,{line_width=2}) end
+      text(g,px+cell/2,py+math.floor((height-UI.height(C,'strong'))/2),tostring(v),'strong','center',cell-12)
+      if S.selected[S.level]==i then g:rect(px+4,py+4,cell-8,height-8,{line_width=2,radius=5}) end
       local hintPair=S.hintPair[S.level]
       if hintPair and (hintPair[1]==i or hintPair[2]==i) then
-        g:circle(px+cell/2,py+cell/2,17,{line_width=2})
+        g:circle(px+cell/2,py+height/2,math.min(20,math.floor(height/2)-4),{line_width=2})
       end
     end
   end
-  text(g,240,624,'REMAINING '..remaining(t)..'  /  '..#t,'medium','center',420)
-  text(g,240,662,MSG or 'Select a matching pair','small','center',434)
+  text(g,240,by+rows*height+24,'REMAINING '..remaining(t)..'  /  '..#t,'medium','center',420)
+  text(g,240,by+rows*height+66,MSG or 'Select a matching pair','small','center',434)
   button(g,12,708,84,66,S.level>1 and 'PREV' or 'START')
   button(g,105,708,84,66,'UNDO')
   button(g,198,708,84,66,'ADD')
@@ -237,7 +240,7 @@ local function render(g)
 end
 local function hit(x,y,bx,by,w,h) return x>=bx and x<bx+w and y>=by and y<by+h end
 local function tap(x,y)
-  if hit(x,y,421,12,39,43) then HELP=not HELP;return true end
+  if hit(x,y,416,12,48,48) then HELP=not HELP;return true end
   if HELP then
     if hit(x,y,74,704,332,70) then HELP=false;return true end
     return false
@@ -248,21 +251,21 @@ local function tap(x,y)
   if hit(x,y,198,708,84,66) then return add() end
   if hit(x,y,291,708,84,66) then return hint() end
   if hit(x,y,384,708,84,66) then return restart() end
-  local bx,by,cell=geometry()
-  if hit(x,y,bx,by,320,math.ceil(#S.boards[S.level]/8)*cell) then
-    return pick(math.floor((y-by)/cell)*8+math.floor((x-bx)/cell)+1)
+  local bx,by,cell,height=geometry()
+  if hit(x,y,bx,by,8*cell,math.ceil(#S.boards[S.level]/8)*height) then
+    return pick(math.floor((y-by)/height)*8+math.floor((x-bx)/cell)+1)
   end
   return false
 end
 local function redraw() if C then pcall(function() C:invalidate() end) end end
-function on_load(ctx) C=ctx or context;ERR=nil
+function on_load(ctx) Theme.release();C=ctx or context;ERR=nil
   local ok,e=pcall(function() if not restore() then start() end end)
   if not ok then ERR=tostring(e) end
 end
 function on_draw(ctx,g) if ctx then C=ctx end
   if not g then return end
   if ERR then UI.error(g,C,'TEN PAIRS',ERR);return end
-  local ok,e=pcall(function() render(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,render) end)
   if not ok then ERR=tostring(e);UI.error(g,C,'TEN PAIRS',ERR) end
 end
 function on_input(ctx,e) if ctx then C=ctx end
@@ -289,7 +292,7 @@ function on_input(ctx,e) if ctx then C=ctx end
   if changed then redraw() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release();if S then save() end end
 if rawget(_G,'__TEST') then __TEST.api={
  levels=DATA,state=function()return S end,can=pair_ok,pick=pick,add=add,
  hint=hint,undo=undo,restart=restart,visit=visit,next=next_level,

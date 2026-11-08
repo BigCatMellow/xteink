@@ -1,6 +1,7 @@
 -- Quiet Mines: offline, deterministic, zero-animation Minesweeper for X4 Pro.
 -- Each authored board has a deduction-only solution when opened from S.
 local UI=require('ui')
+local Theme=require('theme')
 local LEVELS=require('levels')
 local TOTAL=#LEVELS
 local C,S,ERR,MSG=nil,nil,nil,nil
@@ -190,11 +191,10 @@ local function restart()
 end
 local function geometry()
   local n=board(S.level).n
-  local cell=n==6 and 58 or n==7 and 51 or 46
-  return math.floor((480-n*cell)/2),180,cell
+  return UI.grid_geometry(n,120,568)
 end
 local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
-local function button(g,x,y,w,h,s) UI.button(g,C,x,y,w,h,s) end
+local function button(g,x,y,w,h,s,marked) UI.button(g,C,x,y,w,h,s,marked) end
 local function draw_help(g)
   text(g,240,163,'QUIET MINES','large','center',425)
   UI.paragraph(g,C,28,230,424,110,
@@ -208,22 +208,20 @@ end
 local function render(g)
   g:clear(0)
   text(g,23,15,'QUIET MINES','large',nil,320)
-  button(g,421,12,39,46,HELP and 'X' or '?')
+  button(g,416,12,48,48,HELP and 'X' or '?')
   if S.level<TOTAL and S.level<S.unlocked then button(g,308,12,101,46,'NEXT') end
   local b=board(S.level)
   text(g,23,76,'FIELD '..S.level..'/'..TOTAL..'   MINES '..b.total,'medium',nil,438)
-  text(g,23,120,'MODE '..S.mode..'  /  MARKED '..marked(S.level),'small',nil,438)
-  g:line(22,156,458,156,{line_width=2})
   if HELP then draw_help(g);return end
   local bx,by,cell=geometry()
   UI.region(bx,by,cell*b.n,cell*b.n)
+  UI.grid(g,bx,by,b.n,b.n,cell)
   local tiles=S.marks[S.level]
   for y=1,b.n do
     for x=1,b.n do
       local i=(y-1)*b.n+x
       local px,py=bx+(x-1)*cell,by+(y-1)*cell
       local v=tiles[i]
-      g:rect(px,py,cell,cell,{line_width=1})
       if v==0 then
         g:rect(px+5,py+5,cell-10,cell-10,{line_width=1})
         if i==1 and revealed(S.level)==0 then
@@ -250,15 +248,15 @@ local function render(g)
   text(g,240,585,'SAFE OPEN '..revealed(S.level)..' / '..safe,'medium','center',430)
   text(g,240,626,MSG or (S.failed[S.level] and 'MINE FOUND' or solved(S.level,tiles) and 'CLEARED' or 'Deduce, mark, reveal'),
        'small','center',430)
-  text(g,240,664,'One tap = one static board update','small','center',428)
+  text(g,240,664,S.mode..' MODE / FLAGS '..marked(S.level),'small','center',428)
   button(g,19,707,103,67,S.level>1 and 'PREV' or 'START')
-  button(g,131,707,103,67,S.mode=='OPEN' and 'FLAG' or 'OPEN')
+  button(g,131,707,103,67,'FLAG',S.mode=='FLAG')
   button(g,243,707,103,67,'UNDO')
   button(g,355,707,105,67,'RESET')
 end
 local function hit(x,y,bx,by,w,h)return x>=bx and x<bx+w and y>=by and y<by+h end
 local function tap(x,y)
-  if hit(x,y,421,12,39,46) then HELP=not HELP;return true end
+  if hit(x,y,416,12,48,48) then HELP=not HELP;return true end
   if HELP then
     if hit(x,y,75,706,330,69) then HELP=false;return true end
     return false
@@ -276,14 +274,14 @@ local function tap(x,y)
   return false
 end
 local function redraw() if C then pcall(function() C:invalidate() end) end end
-function on_load(ctx) C=ctx or context;ERR=nil
+function on_load(ctx) Theme.release();C=ctx or context;ERR=nil
   local ok,e=pcall(function() if not restore() then start() end end)
   if not ok then ERR=tostring(e) end
 end
 function on_draw(ctx,g) if ctx then C=ctx end
   if not g then return end
   if ERR then UI.error(g,C,'QUIET MINES',ERR);return end
-  local ok,e=pcall(function() render(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,render) end)
   if not ok then ERR=tostring(e);UI.error(g,C,'QUIET MINES',ERR) end
 end
 function on_input(ctx,e) if ctx then C=ctx end
@@ -310,7 +308,7 @@ function on_input(ctx,e) if ctx then C=ctx end
   if changed then redraw() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release();if S then save() end end
 if rawget(_G,'__TEST') then __TEST.api={
  levels=LEVELS,board=board,neighbors=neighbors,nearby=nearby,
  state=function()return S end,apply=apply,mode=mode,undo=undo,

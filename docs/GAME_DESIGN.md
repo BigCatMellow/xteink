@@ -1,6 +1,6 @@
 # Game design contract and change record
 
-This is the design owner for the **13 active games** in
+This is the design owner for the **17 active games** in
 `scripts/sync_game_ui.py`. Use it with [game quality checks](GAME_QUALITY.md).
 The user's approved direction is crisp monochrome graphics, rounder controls,
 stronger lines, welcoming typography and a generous, clearly centered play area.
@@ -72,7 +72,9 @@ The code tokens own exact values. Current roles are:
 
 - Controls: 12px radius, 3px ordinary outline, 4px Check/Next/continuation outline.
 - Large square play-area frames: 10px radius, generally 4px emphasis.
-- Connected grid interiors: straight shared edges, generally 3px strokes.
+- Connected grid interiors: straight shared edges. `UI.grid` uses 1px cell
+  edges and a 4px frame; semantic regions/box boundaries stay visibly stronger.
+  Nonogram retains its approved 3px grid and 4px frame.
 - Filled marks: 3px corner radius. Nonogram's X marks use 4px strokes.
 - Inactive Nonogram controls: 2px outline. Selected controls may use an inset
   outline; an inner corner follows the outer radius minus the inset.
@@ -105,17 +107,21 @@ within half a pixel using the active measured fonts.
 | --- | --- |
 | Nonogram | Center measured clues and board together; 3px grid, 4px frame/marks; preserve correct-but-unsubmitted boards and the solved Next action |
 | Line Lift | Strong rounded frame and rods; keep interrupted-line gaps and paired rings, which convey puzzle rules. Remove decorative double control outlines and shorten metadata to `Puzzle` so its number stays visible |
-| Summit Putt | Round controls/cards; retain terrain caps, ramps and flag geometry. An inset card frame indicates selection, rather than decorating every card |
-| Link Grid | Straight 3px grid; heavier 5px network lines preserve the network/grid distinction; fixed anchors remain marked |
+| Summit Putt | 424px terrain composition, rounded cards, larger Undo/Restart targets below the hand; retain terrain caps, ramps and flag geometry |
+| Link Grid | Full-width 448px board; fine cell grid and solid 5px network lines preserve the network/grid distinction; fixed anchors remain marked |
 | Ink Runes | Preserve letter order, selected-cell connections and inked-cell meaning; existing board centering remains |
 | Lantern Logic | Strong grid and wall boundaries; preserve clue checks, conflict brackets and light dots without relying on gray shading |
 | Ray Vault | Strong grid, rim ports and atom/X markers; preserve port coordinates and paired-ray labels |
-| Island Links | Thicker island/bridge outlines; retain double-bridge separation and network geometry |
+| Island Links | Expand the network to a 416px composition; strong island numbers and solid bridge strokes retain double-bridge separation |
 | Oddity Hunt | Strong shelf frame and line art; retain object silhouettes and 48px touch neighborhoods, because recognition is the game |
 | Word Hunt | Rounded outer grid/list controls; retain letter spacing and readable found/hint rings on the dense 13×13 FOX grid |
 | Word Bridge | Rounded word cards and controls; preserve NOW/GOAL word case, dots, route state and word selection targets |
 | Rectangle Rooms | Straight connected grid with stronger room/selection outlines; rectangle extents and area clues remain exact |
 | Sudoku | v0.3 uses a 468px board, solid 4px box separators against 1px cell edges, bold givens and a three-column keypad. Remove per-given boxes and passive legends; retain note dots, active Notes/key outlines, explicit Check and saved undo |
+| Crown Fields | Large board, corner region letters and solid 5px region boundaries; keep crown/X marks independent of color |
+| Ten Pairs | Full-width 8-column sheet; rectangular row heights adapt to 4–11 rows while preserving reading order and usable digits |
+| Quiet Mines | Large field, clear open/closed/flag states, outlined active Flag mode and persistent mode/count feedback |
+| Sum Cross | Larger clue grid, filled inactive cells and a backslash separator between down/top-right and across/bottom-left clues; retain the 10-key number/Clear pad |
 
 These are scoped exceptions, not permission to create a different theme.
 Pocket Golf remains shelved and off the card. Wallpaper Randomizer is a utility
@@ -176,6 +182,60 @@ do not establish physical-device success. Check the revised grid, icon, clue
 weight and keypad on the reader before recording a confirmed result.
 
 ## Verification and future work
+
+### Complete 17-game pass — 2026-11-08
+
+User requested one complete review and rollout, including new upstream games,
+so they do not need to request each game's layout or install each update.
+Upstream `2a6af10` added Crown Fields, Ten Pairs, Quiet Mines and Sum Cross;
+these now use the same canonical fonts, theme, icon typography and quality gate.
+The [rollout plan](GAME_ROLLOUT_PLAN.md) records every game's review decision.
+
+Shared `UI.grid_geometry` reserves a real play band before computing a cell
+size. `UI.grid` uses filled pixel bars, with explicit row height for number
+sheets; `UI.stroke` guarantees semantic horizontal/vertical stroke widths.
+These avoid relying on one-pixel native stroke differences. Line Lift's
+interrupted rods retain their gaps; Island Links' paired bridges retain their
+separation. Frame/region tests reject cramped boards and missing filled edges.
+Sum Cross's old diagonal crossed its own clue positions: it now separates
+their upper-right/lower-left corners correctly, with a regression. Ray Vault's
+X marks are centered after enlarging the rim composition.
+
+Sparse authored shapes are not stretched arbitrarily. Nonogram keeps its
+approved measured clue composition; Oddity Hunt retains its already full shelf
+and object hitboxes. Their semantic strokes, metadata and icons were reviewed
+and refined. Oddity target chips adapt to measured name widths so names such
+as UMBRELLA remain complete at enlarged and bitmap font metrics. Sudoku retains the new large layout and shares the grid owner.
+Every active game has a versioned release; stock Sudoku and shelved Paper Golf
+remain outside this rollout.
+
+The icon pass uses readable Poppins numerals/letters where relevant, stronger
+silhouettes and clear game metaphors at 96px and 64px. Sudoku's recently refined
+icon is retained. The icon sheet now sizes itself to every active app rather
+than clipping later rows. All exported and packaged native icon pixels match.
+
+Games Hub includes all 17 engines in 30/32 code files (about 383 KB / 512 KiB
+code limit), without increasing the font image pack. Five large list rows per
+page reduce navigation; Resume stores a stable game ID and still reads legacy
+numeric records. The builder matches descriptions by game key and asserts
+complete coverage, avoiding accidental truncation when more games arrive.
+
+The full gate passes 17 standalone and bundled gameplay suites, 3,904 bitmap
+layout frames in total, enlarged/native fonts, stable saves/undo, independent
+solutions, all menu pages/row taps, cache release and native icon checks.
+The peak bitmap frame uses 589 commands, below the 950-command guard. See the
+[full before/after review](design/full-rollout-2026-11-08/README.md),
+[current first frames](design/game-family/first-sheet.png),
+[dense frames](design/game-family/dense-sheet.png) and
+[icons](design/game-family/icons.png). These remain host previews.
+
+`scripts/release_games.py` performs the repeatable complete check/build/archive
+and optional direct SD deployment. It guards immutable versioned packages with
+source fingerprints, updates the latest catalogue, backs up installed apps and
+recovery installers, and verifies all app data. New standalone games become
+available through the existing updated hub, without extra firmware registration.
+Changes during verification or unversioned source changes stop the release.
+Physical reader startup, touches and refresh behavior still need device checks.
 
 ### Games Hub — one collection update
 

@@ -1,0 +1,13 @@
+{
+  "game": "oddity-hunt",
+  "app_id": "oddityhunt",
+  "name": "Oddity Hunt",
+  "version": "0.3.1",
+  "file": "oddity-hunt-0.3.1.xtapp",
+  "bytes": 121696,
+  "sha256": "20bbff8085c1c659ebd303b3e07b0cc174479af49657e1902c41f0382259beb0",
+  "source_sha256": "c060d04c81df293ce133af9c695e09fbcd7dd9e5ec346efb8f59052e54798170",
+  "metadata_file": "oddity-hunt-0.3.1.json",
+  "personal_data": false,
+  "device_tested": false
+}

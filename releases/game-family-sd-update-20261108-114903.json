@@ -1,0 +1,35 @@
+{
+  "card": "/media/mellow/4A21-0000",
+  "backup": "/home/mellow/Backups/xteink-family-update-20261108-114857",
+  "updates": [
+    {
+      "app_id": "oddityhunt",
+      "from": "0.3.0",
+      "to": "0.3.1",
+      "sha256": "20bbff8085c1c659ebd303b3e07b0cc174479af49657e1902c41f0382259beb0"
+    },
+    {
+      "app_id": "gameshub",
+      "from": "0.3.1",
+      "to": "0.3.2",
+      "sha256": "dbc34cb9293627935fa409caeae61f82819bf90c6f5cee8bf7c70003e89a2be2"
+    }
+  ],
+  "app_data_files_preserved": 326,
+  "installed_files_verified": 346,
+  "new_games_available_in_hub": [
+    "crownfields",
+    "tenpairs",
+    "quietmines",
+    "sumcross"
+  ],
+  "standalone_apps_requiring_initial_registration": [
+    "crownfields",
+    "tenpairs",
+    "quietmines",
+    "sumcross"
+  ],
+  "recovery_installers_verified": 18,
+  "flushed": true,
+  "device_launch_verified": false
+}

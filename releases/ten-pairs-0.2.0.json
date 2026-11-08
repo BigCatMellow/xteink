@@ -1,0 +1,13 @@
+{
+  "game": "ten-pairs",
+  "app_id": "tenpairs",
+  "name": "Ten Pairs",
+  "version": "0.2.0",
+  "file": "ten-pairs-0.2.0.xtapp",
+  "bytes": 115248,
+  "sha256": "3b71ea04b1707346453bfa630aa4c150311dab5c9d228423e1d25cd627516bda",
+  "source_sha256": "53ace4d2931f019658364e84f625093b974f3d0f3f0ba7fc59217724f0c07c76",
+  "metadata_file": "ten-pairs-0.2.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

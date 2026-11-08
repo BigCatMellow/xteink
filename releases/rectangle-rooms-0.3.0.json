@@ -1,0 +1,13 @@
+{
+  "game": "rectangle-rooms",
+  "app_id": "rectrooms",
+  "name": "Rectangle Rooms",
+  "version": "0.3.0",
+  "file": "rectangle-rooms-0.3.0.xtapp",
+  "bytes": 115008,
+  "sha256": "72944e6fe4aa9709a06d3ebfed2d317377f55e188a3d2c6cd43068f43846d755",
+  "source_sha256": "7f2afa4fbe0b10a96de1fc9915d5231efddd207dbfbf295da20dca09cdb99cd5",
+  "metadata_file": "rectangle-rooms-0.3.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

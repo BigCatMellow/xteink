@@ -1,10 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="13" y="13" width="29" height="27" rx="4" fill="white" stroke-width="3"/>
-  <rect x="54" y="13" width="29" height="27" rx="4" fill="white" stroke-width="3"/>
-  <rect x="13" y="56" width="29" height="27" rx="4" fill="white" stroke-width="3"/>
-  <rect x="54" y="56" width="29" height="27" rx="4" fill="black" stroke-width="3"/>
-  <polyline points="27,40 27,48 68,48 68,56" stroke-width="3"/>
-  <path d="M22 23H34 M22 28H34 M22 33H34" stroke-width="2"/>
-  <path d="M63 24H75 M63 30H75" stroke-width="2"/>
-  <path d="M22 67H34 M28 62V77" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" stroke="black" stroke-width="3.5">
+  <rect x="10" y="10" width="76" height="29" rx="7"/>
+  <rect x="10" y="57" width="76" height="29" rx="7"/>
+  <path d="M 48 39 V 56 M 41 48 L 48 55 L 55 48" stroke-width="3"/>
+  <text x="48" y="25" font-size="21" font-weight="600" fill="black" stroke="none">CAT</text><text x="48" y="73" font-size="21" font-weight="600" fill="black" stroke="none">COT</text>
 </svg>

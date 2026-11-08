@@ -139,7 +139,8 @@ on_input(ctx,{type='pointer',phase='up',gesture='tap',x=x,y=y})
 eq(redraws,before+1,'one redraw per probe')
 on_input(ctx,{type='pointer',phase='up',gesture='tap',x=x,y=y})
 eq(redraws,before+1,'known port ignores repeated tap')
-local px,py=78+27,185+27
+local bx,by,spacing=A.geometry()
+local px,py=bx+spacing/2,by+spacing/2
 on_input(ctx,{type='pointer',phase='up',gesture='tap',x=px,y=py})
 eq(redraws,before+2,'mark a cell once')
 
@@ -185,4 +186,16 @@ end
 A.tap(420,30)
 layout(ctx,on_draw,'ray-vault help')
 A.tap(420,30)
+-- Cell marks remain centered when the rim composition grows.
+A.start(1,12);A.mark(0,0);A.mark(0,0)
+do
+ local bx,by,cell=A.geometry()
+ local canvas={clear=function()end,rect=function()end,circle=function()end,text=function()end}
+ local centered=0
+ function canvas:line(x,y,xx,yy)
+  if x~=xx and y~=yy and (x+xx)/2==bx+cell/2 and (y+yy)/2==by+cell/2 then centered=centered+1 end
+ end
+ on_draw(ctx,canvas)
+ eq(centered,2,'both X strokes centered in their cell')
+end
 print('Ray Vault: 12 ray levels, reciprocal probes, guessing, save, touch, static display PASS')

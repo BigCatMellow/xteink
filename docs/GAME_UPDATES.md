@@ -10,6 +10,31 @@ installed games. It replaces only `XTApps/<app_id>/app.xtapp`. It leaves game
 identity, registration directories, saves and all other files in place.
 No on-reader updater app or persistent desktop service is installed.
 
+## One-command family release
+
+The current family contains **17 games**, including Crown Fields, Ten Pairs,
+Quiet Mines and Sum Cross. After integrating upstream games and making changes:
+
+```bash
+python3 scripts/release_games.py --card /media/mellow/4A21-0000
+```
+
+This exports canonical assets, synchronizes helpers, builds the complete hub,
+runs the full quality gate, archives immutable versioned packages and a recovery
+ZIP, updates the latest catalogue, backs up the live card, applies installed
+game/hub updates, refreshes recovery installers and verifies all app data.
+Use `--packer` and `--linter` when the pinned tools are elsewhere. Omit `--card`
+to prepare a release without touching the SD card, then deploy it with:
+
+```bash
+python3 scripts/release_games.py --apply-only --card /media/mellow/4A21-0000
+```
+
+Apply-only requires the source to match its verified fingerprints. The complete
+hub makes newly added games available without individually registering their
+standalone packages. First-time standalone registration remains optional.
+The low-level updater procedure below is retained for targeted deployments.
+
 ## Developer update procedure
 
 1. Make the changes, bump versions, complete the quality gate and package the
@@ -31,7 +56,7 @@ python3 scripts/update_installed_games.py --card /media/mellow/4A21-0000 \
 ```
 
 For an already installed Games Hub, use its release metadata instead:
-`--catalogue releases/games-hub-0.2.0.json`. This updates the bundle in place;
+`--catalogue releases/games-hub-0.3.2.json`. This updates the bundle in place;
 individual game packages do not update engines embedded in an older hub.
 An uninitialized hub is skipped until its first-launch import is complete.
 The default family catalogue points to `game-family-latest.json`; update that

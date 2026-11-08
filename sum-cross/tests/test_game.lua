@@ -105,7 +105,7 @@ on_input(ctx,{type='pointer',phase='up',gesture='tap',x=x,y=y})
 eq(redraws,before+1);eq(S.selected[3],index)
 local digitValue=ANSWERS[3][index]
 local bx=15+((digitValue-1)%5)*93
-local by=560+math.floor((digitValue-1)/5)*56
+local by=600+math.floor((digitValue-1)/5)*56
 on_input(ctx,{type='pointer',phase='up',gesture='tap',x=bx+40,y=by+24})
 eq(redraws,before+2);eq(S.boards[3][index],digitValue)
 for level=1,12 do
@@ -118,5 +118,21 @@ A.tap(438,31);measured(ctx,on_draw,'cross sums help')
 A.tap(220,742)
 store['sum-cross.txt']='version=1\nlevel=999\nunlocked=999\n'
 on_load(ctx);eq(A.state().level,1)
+-- The backslash separator keeps the upper-right and lower-left clues apart.
+do
+ local canvas={clear=function()end,rect=function()end,circle=function()end,text=function()end}
+ local lines={}
+ function canvas:line(x,y,xx,yy) lines[#lines+1]={x,y,xx,yy} end
+ on_draw(ctx,canvas)
+ local bx,by,cell=A.geometry()
+ local g=A.grid(1);local checked=false
+ for i=1,g.n*g.n do if not g.white[i] and (g.p.across[i] or g.p.down[i]) then
+  local x=bx+(i-1)%g.n*cell;local y=by+math.floor((i-1)/g.n)*cell
+  for _,line in ipairs(lines) do
+   if line[1]==x+4 and line[2]==y+4 and line[3]==x+cell-4 and line[4]==y+cell-4 then checked=true end
+  end
+ end end
+ assert(checked,'clue separator must preserve the across/down corner labels')
+end
 assert(type(on_tick)=='nil','no animation')
 print('Sum Cross: 12 unique Kakuro levels, digit keypad, saved partial and layout PASS')

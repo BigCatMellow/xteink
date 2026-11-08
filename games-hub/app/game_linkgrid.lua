@@ -230,18 +230,20 @@ local function button(g,x,y,w,h,s)
   UI.button(g,CONTEXT,x,y,w,h,s)
 end
 local function board_origin(w)
-  return math.floor((480-w*CELL)/2),w==4 and 182 or 161
+  local x,y,c=UI.grid_geometry(w,120,568)
+  CELL=c
+  return x,y,c
 end
 local function draw(g)
   g:clear(0)
   put(g,30,18,'LINK GRID','large')
   put(g,30,65,string.format('PUZZLE %d / %d',STATE.level,TOTAL),'medium')
   g:line(30,104,450,104)
-  center(g,240,116,'TAP A TILE TO ROTATE','small')
   local board,tiles=STATE.board,STATE.tiles
   local w=board.size
   local bx,by=board_origin(w)
   UI.region(bx,by,w*CELL,w*CELL)
+  UI.grid(g,bx,by,w,w,CELL)
   for y=1,w do
     for x=1,w do
       local i=index(x,y,w)
@@ -249,12 +251,11 @@ local function draw(g)
       local px,py=bx+(x-1)*CELL,by+(y-1)*CELL
       local cx,cy=px+CELL/2,py+CELL/2
       -- Subtle square outlines. All strokes are black; no shaded fills.
-      g:rect(px,py,CELL,CELL,{line_width=2})
       if v~=0 then
-        if arm(v,1) then g:line(cx,cy,cx,py,{line_width=4}) end
-        if arm(v,2) then g:line(cx,cy,px+CELL,cy,{line_width=4}) end
-        if arm(v,3) then g:line(cx,cy,cx,py+CELL,{line_width=4}) end
-        if arm(v,4) then g:line(cx,cy,px,cy,{line_width=4}) end
+        if arm(v,1) then UI.stroke(g,cx,cy,cx,py,5) end
+        if arm(v,2) then UI.stroke(g,cx,cy,px+CELL,cy,5) end
+        if arm(v,3) then UI.stroke(g,cx,cy,cx,py+CELL,5) end
+        if arm(v,4) then UI.stroke(g,cx,cy,px,cy,5) end
         g:circle(cx,cy,4,{fill=true})
         if board.locked[i] then
           -- Solid top-left corner marker = nonrotatable anchor.
@@ -267,9 +268,9 @@ local function draw(g)
   if won then
     center(g,240,585,STATE.level==TOTAL and 'ALL 20 PUZZLES SOLVED' or 'CONNECTED!','medium')
   else
-    center(g,240,585,'MATCH ALL LINES INTO ONE NETWORK','small')
+    center(g,240,585,'Connect every tile into one network','small')
   end
-  center(g,240,630,'CORNER SQUARE = FIXED TILE','small')
+  UI.paragraph(g,CONTEXT,24,622,432,48,'Tap a tile to rotate. Corner squares mark fixed anchors.','small','center')
   button(g,30,689,128,68,STATE.level>1 and 'PREV' or 'LEVEL 1')
   button(g,175,689,128,68,'RESET')
   if STATE.level<TOTAL and (STATE.level<STATE.unlocked or won) then

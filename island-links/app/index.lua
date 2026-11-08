@@ -16,7 +16,7 @@ local LEVELS={
 }
 local C,S,ERR,MSG=nil,nil,nil,nil
 local key_ms=-1000
-local OX,OY,CELL=73,175,50
+local OX,OY,CELL=-36,76,92
 local function nodes(n)
   local p=LEVELS[n]
   if not p then error('invalid level') end
@@ -215,10 +215,10 @@ local function segment(g,p,q,offset)
   local x1,y1=pos(p);local x2,y2=pos(q)
   if y1==y2 then
     local a,b=math.min(x1,x2)+23,math.max(x1,x2)-23
-    g:line(a,y1+offset,b,y1+offset,{line_width=3})
+    UI.stroke(g,a,y1+offset,b,y1+offset,4)
   else
     local a,b=math.min(y1,y2)+23,math.max(y1,y2)-23
-    g:line(x1+offset,a,x1+offset,b,{line_width=3})
+    UI.stroke(g,x1+offset,a,x1+offset,b,4)
   end
 end
 local function draw(g)
@@ -233,15 +233,15 @@ local function draw(g)
       local x1,y1=pos(a);local x2,y2=pos(b)
       local cx,cy=(x1+x2)/2,(y1+y2)/2
       if y1==y2 then
-        g:line(cx-9,cy,cx+9,cy,{line_width=1})
-      else g:line(cx,cy-9,cx,cy+9,{line_width=1}) end
+        UI.stroke(g,cx-9,cy,cx+9,cy,2)
+      else UI.stroke(g,cx,cy-9,cx,cy+9,2) end
     elseif S.weights[i]==1 then segment(g,a,b,0)
     else segment(g,a,b,-5);segment(g,a,b,5) end
   end
   for _,p in ipairs(S.points) do
     local x,y=pos(p)
     g:circle(x,y,21,{line_width=3})
-    centered(g,x,y-13,tostring(p.need),'large')
+    centered(g,x,y-16,tostring(p.need),'strong')
   end
   local mismatch,linksCount,cross,connected=stats(S.points,S.edges,S.weights)
   if solved() then centered(g,240,569,'NETWORK COMPLETE!','medium')

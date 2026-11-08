@@ -1,8 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="10" y="11" width="76" height="74" rx="7" stroke-width="3"/>
-  <path d="M21 29H37 M21 29V55 M21 41H35" stroke-width="4"/>
-  <circle cx="51" cy="41" r="12" stroke-width="4"/>
-  <path d="M70 30L81 53 M81 30L70 53" stroke-width="4"/>
-  <path d="M21 67H75" stroke-width="3"/>
-  <circle cx="36" cy="67" r="5" fill="white" stroke-width="3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" stroke="black" stroke-width="3.5">
+  <rect x="9" y="9" width="78" height="78" rx="12"/>
+  <path d="M 35 11 V 85 M 61 11 V 85 M 11 48 H 85" stroke-width="1.5"/>
+  <circle cx="48" cy="68" r="16" stroke-width="2.5"/>
+  <text x="23" y="30" font-size="25" font-weight="600" fill="black" stroke="none">F</text><text x="48" y="30" font-size="25" font-weight="600" fill="black" stroke="none">O</text><text x="74" y="30" font-size="25" font-weight="600" fill="black" stroke="none">X</text><text x="23" y="69" font-size="22" font-weight="600" fill="black" stroke="none">O</text><text x="48" y="69" font-size="22" font-weight="600" fill="black" stroke="none">X</text><text x="74" y="69" font-size="22" font-weight="600" fill="black" stroke="none">F</text>
 </svg>

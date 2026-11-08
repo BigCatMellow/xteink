@@ -1,0 +1,13 @@
+{
+  "game": "word-hunt",
+  "app_id": "wordhunt",
+  "name": "Word Hunt",
+  "version": "0.4.0",
+  "file": "word-hunt-0.4.0.xtapp",
+  "bytes": 128416,
+  "sha256": "589161b0fef935c217c939051323c709d3ced1d1c09f50c319e174edf5db73ee",
+  "source_sha256": "2caa1ce2424c5fd48e2946038ec3962903f918cbf52f03968cf978da655874c8",
+  "metadata_file": "word-hunt-0.4.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

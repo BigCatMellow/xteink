@@ -1,0 +1,13 @@
+{
+  "game": "lantern-logic",
+  "app_id": "lanternlogic",
+  "name": "Lantern Logic",
+  "version": "0.4.0",
+  "file": "lantern-logic-0.4.0.xtapp",
+  "bytes": 115136,
+  "sha256": "66ce9f7940fc9159d57befaca258aa0bf301af6fce4d47e2db3ec59431c08933",
+  "source_sha256": "2dcb1d40f11655736f7aa322c7e894dbbc97a8aaf7df684ffe0781e7f6d45be8",
+  "metadata_file": "lantern-logic-0.4.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

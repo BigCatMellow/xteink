@@ -404,14 +404,14 @@ end
 local function button(g,x,y,w,h,label)
   UI.button(g,C,x,y,w,h,label)
 end
-local function chip(g,x,y,label,checked)
-  g:rect(x,y,140,40,{line_width=1})
+local function chip(g,x,y,w,label,checked)
+  g:rect(x,y,w,40,{line_width=1})
   g:rect(x+8,y+10,20,20,{line_width=2})
   if checked then
     g:line(x+11,y+20,x+16,y+26,{line_width=2})
     g:line(x+16,y+26,x+25,y+13,{line_width=2})
   end
-  text(g,x+34,y+10,label,'small',nil,102)
+  text(g,x+34,y+10,label,'small',nil,w-40)
 end
 local function help_screen(g)
   text(g,240,154,'HOW TO HUNT','large','center',360)
@@ -427,7 +427,7 @@ local function draw(g)
   g:clear(0)
   text(g,24,15,'ODDITY HUNT','large',nil,345)
   button(g,398,12,58,46,HELP and 'X' or '?')
-  text(g,25,60,'SCENE '..S.level..'/'..TOTAL..'  '..S.scene.name,'medium',nil,424)
+  text(g,25,65,'Scene '..S.level..' / '..TOTAL..'  '..S.scene.name,'small',nil,424)
   text(g,25,99,MSG or 'Five objects are hidden here','small',nil,425)
   g:line(23,126,457,126,{line_width=2})
   if HELP then help_screen(g);return end
@@ -449,10 +449,22 @@ local function draw(g)
     end
   end
   local labels=S.scene.targets
-  for i=1,TARGETS do
-    local x=i<=3 and 24+(i-1)*146 or 97+(i-4)*147
-    local y=i<=3 and 559 or 612
-    chip(g,x,y,Scenes.KINDS[labels[i]],has(mask,i))
+  for row=1,2 do
+    local first,last=row==1 and 1 or 4,row==1 and 3 or 5
+    local widths,total={},(last-first)*6
+    for i=first,last do
+      widths[i]=math.ceil(UI.width(C,Scenes.KINDS[labels[i]],'small'))+40
+      total=total+widths[i]
+    end
+    assert(total<=432,'Object names need more room')
+    local slack=432-total
+    local x=24
+    for i=first,last do
+      local share=math.floor(slack/(last-i+1))
+      local w=widths[i]+share;slack=slack-share
+      chip(g,x,row==1 and 559 or 612,w,Scenes.KINDS[labels[i]],has(mask,i))
+      x=x+w+6
+    end
   end
   local status='FOUND '..found_count(mask)..'/5   MISSES '..S.misses[S.level]..
      '   HINTS '..S.hints[S.level]..'/2'

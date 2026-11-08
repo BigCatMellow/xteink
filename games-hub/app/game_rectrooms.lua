@@ -218,8 +218,7 @@ local function restart()
   MSG='Fresh grid';save();return true
 end
 local function geometry(n)
-  local cell=(n==5 and 62 or n==6 and 54 or 47)
-  return math.floor((480-n*cell)/2),190,cell
+  return UI.grid_geometry(n,116,568)
 end
 local function text(g,x,y,s,style,align,width) UI.text(g,C,x,y,s,style,align,width) end
 local function button(g,x,y,w,h,s) UI.button(g,C,x,y,w,h,s) end
@@ -238,22 +237,20 @@ local function render(g)
   text(g,22,17,'RECTANGLE ROOMS','large',nil,360)
   button(g,417,13,43,45,HELP and 'X' or '?')
   text(g,22,75,'PUZZLE '..S.level..' / '..TOTAL,'medium')
-  text(g,22,117,'ONE NUMBER IN EVERY ROOM','small',nil,425)
-  g:line(22,155,458,155,{line_width=2})
   if HELP then draw_help(g);return end
   local gdata=grid(S.level)
   local bx,by,cell=geometry(gdata.n)
   UI.region(bx,by,cell*gdata.n,cell*gdata.n)
+  UI.grid(g,bx,by,gdata.n,gdata.n,cell)
   for y=1,gdata.n do
     for x=1,gdata.n do
       local px=bx+(x-1)*cell
       local py=by+(y-1)*cell
-      g:rect(px,py,cell,cell,{line_width=2})
       local i=(y-1)*gdata.n+x
       local clue=gdata.nums[i]
       if clue>0 then
         text(g,px+cell/2,py+math.floor((cell-24)/2),tostring(clue),
-             gdata.n==7 and 'small' or 'medium','center',cell-10)
+             'strong','center',cell-10)
       end
     end
   end
@@ -269,10 +266,10 @@ local function render(g)
     g:rect(bx+x*cell+6,by+y*cell+6,cell-12,cell-12,{line_width=2})
   end
   local rooms=S.rooms[S.level]
-  text(g,240,556,'ROOMS '..#rooms..'/'..gdata.goal..'   CELLS '..covered(rooms)..'/'..gdata.n*gdata.n,
+  text(g,240,590,'ROOMS '..#rooms..'/'..gdata.goal..'   CELLS '..covered(rooms)..'/'..gdata.n*gdata.n,
        'medium','center',432)
-  text(g,240,605,MSG or 'Tap two opposite corners','small','center',432)
-  text(g,240,643,done() and 'PUZZLE SOLVED' or 'Every number is a rectangle area',
+  text(g,240,632,MSG or 'Tap two opposite corners','small','center',432)
+  text(g,240,668,done() and 'PUZZLE SOLVED' or 'Every number is a rectangle area',
        'small','center',430)
   button(g,20,702,104,73,S.level>1 and 'PREV' or 'START')
   button(g,132,702,104,73,'UNDO')

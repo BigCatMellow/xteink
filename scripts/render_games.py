@@ -20,6 +20,10 @@ FIXTURES={
  'word-hunt': ("local s=A.state();s.unlocked={999999999,999999999};if LEVEL>8 then A.mode(2) end;A.visit(LEVEL);A.hint()",15,'A.tap(440,32)'),
  'word-bridge': ('A.state().unlocked=#A.levels;A.visit(LEVEL);A.hint()',12,'A.tap(440,32)'),
  'rectangle-rooms': ('A.state().unlocked=#A.puzzles;A.visit(LEVEL)',12,'A.tap(440,32)'),
+ 'crown-fields': ('A.state().unlocked=#A.levels;A.visit(LEVEL);A.mark(1);A.mark(2);A.mark(2)',12,'A.tap(440,32)'),
+ 'ten-pairs': ('A.state().unlocked=#A.levels;A.visit(LEVEL);if LEVEL==#A.levels then local t={};for i=1,88 do t[i]=i%9+1 end;A.state().boards[LEVEL]=t end;A.hint()',12,'A.tap(440,32)'),
+ 'quiet-mines': ('A.state().unlocked=#A.levels;A.visit(LEVEL);A.apply(1)',12,'A.tap(440,32)'),
+ 'sum-cross': ('A.state().unlocked=#A.levels;A.visit(LEVEL);local g=A.grid(LEVEL);for i=1,g.n*g.n do if g.white[i] then A.select(i);A.digit(1);break end end',12,'A.tap(440,32)'),
  'sudoku': ("if LEVEL>1 then A.new(3) end;local p=A.puzzle();for i=1,81 do if p.given[i]==0 then A.select((i-1)%9+1,math.floor((i-1)/9)+1);break end end;local b=A.controls.notes;A.tap(b[1]+b[3]/2,b[2]+b[4]/2);A.put(1);A.put(2);A.put(3)",2,'A.tap(448,36)'),
 }
 

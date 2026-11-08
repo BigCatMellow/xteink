@@ -6,6 +6,12 @@ on:
       - 'quiet-mines/**'
       - '.github/workflows/quiet-mines.yml'
       - 'shared/game_ui.lua'
+      - 'shared/game_theme.lua'
+      - 'shared/game_style.lua'
+      - 'shared/typefaces.lua'
+      - 'shared/font_data.lua'
+      - 'shared/font_license.lua'
+      - 'assets/fonts/game-ui/**'
       - 'assets/icons/quiet-mines.svg'
   workflow_dispatch:
 permissions:
@@ -26,15 +32,20 @@ jobs:
         run: python quiet-mines/tests/validate_levels.py
       - name: Gameplay, persistence and font-layout tests
         run: cd quiet-mines && lua tests/test_game.lua
+      - name: Verify shared theme and bitmap gameplay
+        run: |
+          python scripts/sync_game_ui.py --check
+          python scripts/sync_game_theme.py --check
+          cd quiet-mines && lua ../tests/run_themed_game.lua
       - name: Download pinned Licorice packer
         run: |
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
           git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
       - name: Check Lua 5.5 compatibility
         run: |
-          python /tmp/xtapp-tools/tools/lualint55.py quiet-mines/app/index.lua
-          python /tmp/xtapp-tools/tools/lualint55.py quiet-mines/app/levels.lua
-          python /tmp/xtapp-tools/tools/lualint55.py quiet-mines/app/ui.lua
+          for source in quiet-mines/app/*.lua; do
+            python /tmp/xtapp-tools/tools/lualint55.py "$source"
+          done
       - name: Build installable XTApp
         run: |
           mkdir -p dist

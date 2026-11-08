@@ -1,5 +1,79 @@
 # Project handoff — 2026-11-08
 
+## Complete 17-game rollout — current state
+
+The user requested a complete pass without per-game review/install back-and-forth.
+Fetched and merged upstream `2a6af10`, preserving prior local work in a checkpoint
+and full host backup. Crown Fields, Ten Pairs, Quiet Mines and Sum Cross are now
+part of the canonical family, Games Hub, icon export, render fixtures and checks.
+Paper Golf remains shelved; stock Sudoku, Dictionary and unrelated apps stay intact.
+
+Every game has a documented layout/icon review and a versioned release. Larger
+boards and clearer boundaries replace wasted space where appropriate; already
+sound Nonogram clue centering and Oddity shelf hitboxes are preserved. Fixed
+pixel strokes, responsive number-sheet rows and stronger glyphs are owned by
+the shared UI. Final review corrected Kakuro clue diagonal orientation and
+recentered Ray Vault marks. Target-name chips now preserve the full UMBRELLA label, with a regression. [Rollout plan](GAME_ROLLOUT_PLAN.md),
+[design decisions](GAME_DESIGN.md), [visual review](design/full-rollout-2026-11-08/README.md).
+
+Final current versions:
+
+| Game | Version |
+| --- | --- |
+| Line Lift | 0.6.0 |
+| Summit Putt | 0.6.0 |
+| Link Grid | 0.4.0 |
+| Ink Runes | 0.4.0 |
+| Lantern Logic | 0.4.0 |
+| Ray Vault | 0.4.1 |
+| Island Links | 0.4.0 |
+| Oddity Hunt | 0.3.1 |
+| Word Hunt | 0.4.0 |
+| Nonogram | 0.6.0 |
+| Word Bridge | 0.3.0 |
+| Rectangle Rooms | 0.3.0 |
+| Sudoku | 0.3.1 |
+| Crown Fields | 0.2.0 |
+| Ten Pairs | 0.2.0 |
+| Quiet Mines | 0.2.0 |
+| Sum Cross | 0.2.1 |
+| Games Hub | 0.3.2 |
+
+The full gate passed all 17 standalone and bundled suites, independent solvers,
+Lua compatibility and native icons. Bitmap suites audit 3,904 frames total,
+peak 589 commands, all images released. Hub navigation/import/error checks audit
+165 frames and release all 26,307 decoded font images. Code container is 383,238
+bytes, 30/32 code files. Five menu rows per page and stable-ID resumes preserve
+older numeric resumes. Builder coverage asserts prevent missing new games.
+
+`python3 scripts/release_games.py --card <mount>` now exports/syncs shared assets,
+verifies/builds every game, archives immutable packages and the latest catalogue,
+backs up the card, directly updates existing apps/Hub and verifies all app data.
+`--apply-only` deploys the verified current sources. A changed source fingerprint
+requires a version bump; a change during verification stops the release.
+
+**Applied to the live card:** all 13 existing standalone games and Games Hub
+were updated directly. All 326 app-data files remain byte-identical, including
+existing progress and unrelated apps. All 346 installed files were verified;
+all 18 recovery installers in Apps/ were refreshed. New games are playable
+inside the updated Hub without separate standalone registration. Do not tell
+the user to install all packages individually.
+
+Backups: `/home/mellow/Backups/xteink-family-update-20261108-112417/` (main
+rollout) and `/home/mellow/Backups/xteink-family-update-20261108-113525/`
+(Ray/Hub correction); the final target-label patch is also recorded in the latest SD receipt and its backup directory. Dated deployment receipts and the latest 17-game
+release catalogue are in releases/. Public packages have no personal save data.
+
+**Next physical check:** safely eject, open existing icons and the Hub, confirm
+new versions/layouts and preserved progress. Check all four new games inside
+Hub, repeated switching, sleep/resume and real e-ink/font behavior. Filesystem
+replacement is verified; no physical launch/refresh success is claimed yet.
+The older wallpaper sleep test remains separate and outstanding.
+
+The full rollout is prepared as an integrated Git update after merging the
+upstream new games; use repository history for the publication commit. Earlier
+sections below record historical deliveries and their limitations.
+
 ## Sudoku v0.3 / Games Hub v0.2 — latest change
 
 User supplied photos comparing stock Sudoku with ours. Their preference is

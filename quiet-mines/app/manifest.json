@@ -1,7 +1,7 @@
 {
   "app_id": "quietmines",
   "display_name": "Quiet Mines",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "BigCatMellow",
   "description": "Original deduction-first Minesweeper for monochrome e-ink",
   "entry": "index.lua",

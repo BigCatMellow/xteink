@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="24" y="24" width="48" height="48" rx="3"/>
-  <polyline points="20,48 48,48 48,76" stroke-width="3.5"/>
-  <circle cx="14" cy="48" r="5.5" fill="white"/>
-  <circle cx="82" cy="48" r="5.5" fill="white"/>
-  <circle cx="48" cy="14" r="5.5" fill="white"/>
-  <circle cx="48" cy="82" r="5.5" fill="white"/>
-  <circle cx="57" cy="39" r="5" fill="black" stroke="none"/>
-  <circle cx="34" cy="62" r="5" fill="black" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" stroke="black" stroke-width="3.5">
+  <rect x="21" y="21" width="54" height="54" rx="5"/>
+  <path d="M 39 22 V 74 M 57 22 V 74 M 22 39 H 74 M 22 57 H 74" stroke-width="1.5"/>
+  <circle cx="48" cy="12" r="3" fill="black"/>
+  <circle cx="84" cy="48" r="3" fill="black"/>
+  <path d="M 48 15 V 28 H 66 V 48 H 81" stroke-width="4"/>
+  <circle cx="33" cy="61" r="6" fill="black"/>
+  <circle cx="12" cy="48" r="3"/>
+  <circle cx="48" cy="84" r="3"/>
 </svg>

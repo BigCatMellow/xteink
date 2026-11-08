@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M35 20H61 M35 28H61 M24 36V60 M68 35V61 M76 35V61 M36 72H60"/>
-  <circle cx="24" cy="24" r="12" fill="white"/>
-  <circle cx="72" cy="24" r="12" fill="white"/>
-  <circle cx="24" cy="72" r="12" fill="white"/>
-  <circle cx="72" cy="72" r="12" fill="white"/>
-  <path d="M20 17H28V31H20 M22 24H28 M68 17V24H76 M76 17V31 M20 65H28V72H20V79H28 M68 65H76V79H68 M70 72H76" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" stroke="black" stroke-width="3.5">
+  <path d="M 24 23 H 72 M 24 29 H 72 M 24 29 V 71 M 72 29 V 71 M 25 72 H 71" stroke-width="3"/>
+  <circle cx="24" cy="26" r="15" fill="white"/>
+  <circle cx="72" cy="26" r="15" fill="white"/>
+  <circle cx="24" cy="72" r="15" fill="white"/>
+  <circle cx="72" cy="72" r="15" fill="white"/>
+  <text x="24" y="27" font-size="20" font-weight="600" fill="black" stroke="none">3</text><text x="72" y="27" font-size="20" font-weight="600" fill="black" stroke="none">3</text><text x="24" y="73" font-size="20" font-weight="600" fill="black" stroke="none">2</text><text x="72" y="73" font-size="20" font-weight="600" fill="black" stroke="none">2</text>
 </svg>

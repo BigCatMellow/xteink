@@ -1,6 +1,6 @@
 # XTEINK projects
 
-The active games share a Poppins/Inter design, rounded controls and stronger
+The 17 active games share a Poppins/Inter design, rounded controls and stronger
 monochrome graphics. [Game design contract](docs/GAME_DESIGN.md) records the
 tokens, per-game exceptions, changes and reasons. [Host preview sheet](docs/design/game-family/first-sheet.png).
 
@@ -16,8 +16,8 @@ the [wallpaper handoff](wallpaper-randomizer/docs/HANDOFF.md). The exact
 
 ## Games
 
-- [Games Hub](games-hub/README.md) — all 13 active games in one installer, with separate progress and a shared game-selection menu. Recommended for updating the collection together.
-- [Paper Golf](paper-golf/README.md) — monochrome golf puzzle.
+- [Games Hub](games-hub/README.md) — all 17 active games in one installer, with separate progress and a shared game-selection menu. Recommended for updating the collection together.
+- [Paper Golf](paper-golf/README.md) — shelved; excluded from the active collection and SD updates.
 - [Summit Putt](summit-putt/README.md) — card-based golf route puzzles.
 - [Line Lift](line-lift/README.md) — zero-animation crossing logic inspired by Hook.
 - [Link Grid](link-grid/README.md) — zero-animation tile-rotation network puzzles.
@@ -48,6 +48,12 @@ Contribution requirements are in [AGENTS.md](AGENTS.md) and
 [Game quality](docs/GAME_QUALITY.md). The [game quality gate](.github/workflows/game-quality.yml)
 checks measured layouts, save/resume, navigation, puzzle solutions and packages
 on pushes and pull requests. Run it locally with `python3 scripts/check_games.py`.
+
+The [complete rollout plan](docs/GAME_ROLLOUT_PLAN.md) records the per-game review.
+`python3 scripts/release_games.py --card /media/mellow/4A21-0000` runs checks,
+archives the whole family and applies updates to existing installed games and
+Games Hub with backups. New games are immediately available inside the updated
+hub; standalone installers remain optional. See [the release procedure](docs/GAME_UPDATES.md).
 
 The [Games Hub build](.github/workflows/games-hub.yml) runs the same quality gate
 and supplies a single `games-hub.xtapp` artifact for the whole active collection.

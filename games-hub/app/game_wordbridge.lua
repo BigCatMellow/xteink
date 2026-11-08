@@ -226,7 +226,7 @@ local function button(g,x,y,w,h,s) UI.button(g,C,x,y,w,h,s) end
 local function grid_point(i)
   local col=(i-1)%3
   local row=math.floor((i-1)/3)
-  return 22+col*150,275+row*58,136,54
+  return 16+col*152,242+row*70,144,62
 end
 local function draw_help(g)
   text(g,240,155,'HOW TO BRIDGE','large','center',420)
@@ -244,13 +244,11 @@ local function render(g)
   button(g,418,13,43,45,HELP and 'X' or '?')
   if S.level<S.unlocked and S.level<TOTAL then button(g,312,13,96,45,'NEXT') end
   text(g,22,76,'PUZZLE '..S.level..' / '..TOTAL,'medium')
-  text(g,22,118,'CHANGE ONE LETTER PER MOVE','small',nil,435)
-  g:line(22,154,458,154,{line_width=2})
   if HELP then draw_help(g);return end
   local p=level()
-  button(g,22,172,205,82,'NOW: '..current())
-  button(g,249,172,209,82,'GOAL: '..p.goal)
-  UI.region(22,275,436,228)
+  button(g,16,122,216,94,'NOW: '..current())
+  button(g,248,122,216,94,'GOAL: '..p.goal)
+  UI.region(16,242,448,272)
   for i,word in ipairs(p.words) do
     local x,y,w,h=grid_point(i)
     g:rect(x,y,w,h,{line_width=2})
@@ -266,7 +264,7 @@ local function render(g)
       g:circle(x+w-11,y+h-11,5,{line_width=2})
       g:circle(x+w-11,y+h-11,8,{line_width=1})
     end
-    text(g,x+w/2,y+14,word,'medium','center',w-20)
+    text(g,x+w/2,y+18,word,'control','center',w-20)
   end
   local used=#S.paths[S.level]-1
   text(g,240,544,'MOVES '..used..' / '..p.limit,'medium','center',430)

@@ -1,0 +1,13 @@
+{
+  "game": "sum-cross",
+  "app_id": "sumcross",
+  "name": "Sum Cross",
+  "version": "0.2.0",
+  "file": "sum-cross-0.2.0.xtapp",
+  "bytes": 116912,
+  "sha256": "09ee160753e18f4d919dd068359f10f8b2ff588ca3c3e481722bc6db12c72031",
+  "source_sha256": "6fdf91897eec61d1fe2cc54f191251accaf9f14d518c0e027d682ad39c953f64",
+  "metadata_file": "sum-cross-0.2.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

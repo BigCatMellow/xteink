@@ -70,6 +70,14 @@ to the game list in `scripts/sync_game_ui.py`; the runner discovers manifests
 and fails if a game is missing from that list. The global workflow runs on pushes
 and pull requests, including changes to shared helpers and tests.
 
+The 17-game rollout also checks minimum play-area widths, actual menu row taps,
+legacy/stable-ID resumes, filled pixel boundaries, rectangular number sheets,
+Sum Cross clue orientation and Ray Vault mark centering. The complete release
+helper has regressions for immutable archives, unversioned source changes,
+batch deployment, backup integrity and unchanged unrelated app data. New games
+must have hub descriptions and render fixtures; the builder rejects missing
+entries instead of truncating parallel lists. Keep code/file budget checks.
+
 ## Physical release check
 
 Games Hub is registered under `COLLECTIONS` alongside `GAMES`, with mandatory

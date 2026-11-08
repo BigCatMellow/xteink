@@ -194,6 +194,10 @@ for _,method in ipairs({'clear','line','rect','circle','text'}) do
       assert(v[#v].opacity==nil,'no alpha transition')
     end
     if method=='line' then lines[#lines+1]=v end
+    if method=='rect' and v[5] and v[5].fill then
+      if v[4]==4 then lines[#lines+1]={v[1],v[2]+2,v[1]+v[3]-1,v[2]+2} end
+      if v[3]==4 then lines[#lines+1]={v[1]+2,v[2],v[1]+2,v[2]+v[4]-1} end
+    end
     for i=1,math.min(4,#v) do
       if type(v[i])=='number' then
         assert(v[i]>=0 and v[i]<=800,'drawing coordinate out of bounds')

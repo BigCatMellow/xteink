@@ -1,0 +1,13 @@
+{
+  "game": "line-lift",
+  "app_id": "linelift",
+  "name": "Line Lift",
+  "version": "0.6.0",
+  "file": "line-lift-0.6.0.xtapp",
+  "bytes": 118960,
+  "sha256": "873a3d09906986cbef461181b034ef2cc164b8c27c772f6286c6b0d11dcc3068",
+  "source_sha256": "0c95172c387123a85aea5b3344d6f55e982150ffa1c8b3750f0ff6c2e94b3de7",
+  "metadata_file": "line-lift-0.6.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

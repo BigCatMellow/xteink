@@ -1,0 +1,13 @@
+{
+  "game": "word-bridge",
+  "app_id": "wordbridge",
+  "name": "Word Bridge",
+  "version": "0.3.0",
+  "file": "word-bridge-0.3.0.xtapp",
+  "bytes": 115792,
+  "sha256": "25f78c98c74c92fac978882018b7e9e4db44f6b9f705a22db91451fe97eb85f4",
+  "source_sha256": "e6bff700e17b96aaf86b9b61865b7f42b6323c15d079e0b4466e546340c53f86",
+  "metadata_file": "word-bridge-0.3.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

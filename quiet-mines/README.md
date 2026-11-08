@@ -1,5 +1,17 @@
 # Quiet Mines — original no-guess Minesweeper on XTEINK X4 Pro
 
+Updates are applied directly from the computer while the SD card is mounted;
+see the [family release procedure](../docs/GAME_UPDATES.md). All active games
+are also available inside Games Hub, so new games do not require separate
+installation when using the updated hub. Never uninstall to update.
+
+
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md):
+Poppins/Inter, larger play areas, clear semantic boundaries and rounded controls.
+The current release is also available inside Games Hub, with no separate
+installation needed when using the updated hub.
+
+
 A completely static, offline Minesweeper implementation for the X4 Pro. Twelve independently authored mine layouts, with four 6×6 fields (6 mines), four 7×7 fields (8 mines), and four 8×8 fields (10 mines).
 
 ## Rules

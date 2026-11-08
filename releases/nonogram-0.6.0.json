@@ -1,0 +1,13 @@
+{
+  "game": "nonogram",
+  "app_id": "nonogram",
+  "name": "Nonogram",
+  "version": "0.6.0",
+  "file": "nonogram-0.6.0.xtapp",
+  "bytes": 126960,
+  "sha256": "f7e5fd6d9d9364a79c807c5bb16e1879ea8975d8f9c16ad971a26477d9fec874",
+  "source_sha256": "c8283189cd62dc4919ad6ae4ae5d51471c2f6a4dfd97f2df00a2b98857f785ca",
+  "metadata_file": "nonogram-0.6.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

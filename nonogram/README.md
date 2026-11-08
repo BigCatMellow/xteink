@@ -1,5 +1,11 @@
 # Nonogram — picture-logic puzzles for XTEINK X4 Pro
 
+Updates are applied directly from the computer while the SD card is mounted;
+see the [family release procedure](../docs/GAME_UPDATES.md). All active games
+are also available inside Games Hub, so new games do not require separate
+installation when using the updated hub. Never uninstall to update.
+
+
 Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
 
 An original, offline, black-and-white nonogram game for XTOS Licorice. Solve rows and columns of numbered clues to reveal a hidden pixel picture.

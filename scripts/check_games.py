@@ -32,6 +32,7 @@ def main():
     run([sys.executable, ROOT / 'scripts/build_game_hub.py', '--check'])
     run([sys.executable, ROOT / 'tests/test_hub_migration.py'])
     run([sys.executable, ROOT / 'tests/test_installed_updates.py'])
+    run([sys.executable, ROOT / 'tests/test_release_games.py'])
     run(['lua', ROOT / 'tests/test_game_hub.lua'])
     run(['lua', ROOT / 'tests/test_game_ui.lua'])
     run(['lua', ROOT / 'tests/test_puzzle_store.lua'])

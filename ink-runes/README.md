@@ -1,5 +1,11 @@
 # Ink Runes — original cryptic word puzzles for XTEINK X4 Pro
 
+Updates are applied directly from the computer while the SD card is mounted;
+see the [family release procedure](../docs/GAME_UPDATES.md). All active games
+are also available inside Games Hub, so new games do not require separate
+installation when using the updated hub. Never uninstall to update.
+
+
 Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
 
 A standalone, offline, monochrome puzzle inspired by the **rule-discovery** idea of LOK by Blaž Urban Gracar, but not a port. The three rune words, powers, boards, implementation and graphics are original. No original LOK levels, vocabulary, writing or assets are copied.

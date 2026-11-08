@@ -1,6 +1,7 @@
 -- Sum Cross: original Kakuro / Cross Sums logic for XTEINK X4 Pro.
 -- Digit keypad, all-white static e-ink presentation; no animations.
 local UI=require('ui')
+local Theme=require('theme')
 local DATA=require('puzzles')
 local TOTAL=#DATA
 local C,S,ERR,MSG=nil,nil,nil,nil
@@ -199,8 +200,7 @@ local function check()
 end
 local function geometry()
   local n=grid(S.level).n
-  local cell=n==5 and 60 or n==6 and 52 or 46
-  return math.floor((480-n*cell)/2),165,cell
+  return UI.grid_geometry(n,112,512)
 end
 local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
 local function button(g,x,y,w,h,s) UI.button(g,C,x,y,w,h,s) end
@@ -217,46 +217,48 @@ end
 local function render(g)
   g:clear(0)
   text(g,21,15,'SUM CROSS','large',nil,310)
-  button(g,420,12,40,43,HELP and 'X' or '?')
+  button(g,416,12,48,48,HELP and 'X' or '?')
   if S.level<TOTAL and S.level<S.unlocked then button(g,309,12,98,43,'NEXT') end
   local gdata=grid(S.level)
   text(g,21,72,'PUZZLE '..S.level..' / '..TOTAL..'  '..gdata.n..'x'..gdata.n,'medium')
-  text(g,21,112,'BLACK CLUES: ACROSS / DOWN','small',nil,437)
-  g:line(21,151,459,151,{line_width=2})
   if HELP then draw_help(g);return end
   local bx,by,cell=geometry()
   UI.region(bx,by,gdata.n*cell,gdata.n*cell)
+  UI.grid(g,bx,by,gdata.n,gdata.n,cell)
   local board=S.boards[S.level]
   for y=1,gdata.n do
     for x=1,gdata.n do
       local i=(y-1)*gdata.n+x
       local px,py=bx+(x-1)*cell,by+(y-1)*cell
-      g:rect(px,py,cell,cell,{line_width=1})
       if gdata.white[i] then
         if board[i]>0 then
           text(g,px+cell/2,py+math.floor((cell-24)/2),board[i],'medium','center',cell-10)
         end
         if S.selected[S.level]==i then g:rect(px+3,py+3,cell-6,cell-6,{line_width=3}) end
       else
-        g:line(px+4,py+cell-4,px+cell-4,py+4,{line_width=1})
+        g:line(px+4,py+4,px+cell-4,py+cell-4,{line_width=1})
         local across=gdata.p.across[i]
         local down=gdata.p.down[i]
-        if down then text(g,px+cell-14,py+2,down,'small','center',cell/2) end
-        if across then text(g,px+14,py+cell-22,across,'small','center',cell/2) end
+        if down then
+          local w=UI.width(C,tostring(down),'clue_small')
+          text(g,px+cell-5-w,py+4,down,'clue_small',nil,cell-10)
+        end
+        if across then text(g,px+5,py+cell-UI.height(C,'clue_small')-4,across,'clue_small',nil,cell-10) end
+        if not across and not down then g:rect(px+3,py+3,cell-6,cell-6,{fill=true,radius=0}) end
       end
     end
   end
   local placed,total=progress()
-  text(g,240,509,'FILLED '..placed..' / '..total,'medium','center',420)
-  text(g,240,536,MSG or (S.submitted[S.level] and 'SOLVED' or 'Select cell, then number'),'small','center',435)
+  text(g,240,526,'FILLED '..placed..' / '..total,'medium','center',420)
+  text(g,240,563,MSG or (S.submitted[S.level] and 'SOLVED' or 'Select cell, then number'),'small','center',435)
   for i=1,9 do
     local col=(i-1)%5
     local row=math.floor((i-1)/5)
     local x=15+col*93
-    local y=560+row*56
+    local y=600+row*56
     button(g,x,y,82,48,tostring(i))
   end
-  button(g,387,616,82,48,'CLR')
+  button(g,387,656,82,48,'CLR')
   button(g,20,713,101,65,S.level>1 and 'PREV' or 'START')
   button(g,133,713,101,65,'UNDO')
   button(g,246,713,101,65,'RESET')
@@ -264,7 +266,7 @@ local function render(g)
 end
 local function hit(x,y,bx,by,w,h)return x>=bx and x<bx+w and y>=by and y<by+h end
 local function tap(x,y)
-  if hit(x,y,420,12,40,43) then HELP=not HELP;return true end
+  if hit(x,y,416,12,48,48) then HELP=not HELP;return true end
   if HELP then
     if hit(x,y,75,704,330,71) then HELP=false;return true end
     return false
@@ -276,10 +278,10 @@ local function tap(x,y)
   if hit(x,y,359,713,101,65) then return check() end
   for i=1,9 do
     local keyX=15+((i-1)%5)*93
-    local keyY=560+math.floor((i-1)/5)*56
+    local keyY=600+math.floor((i-1)/5)*56
     if hit(x,y,keyX,keyY,82,48) then return digit(i) end
   end
-  if hit(x,y,387,616,82,48) then return digit(0) end
+  if hit(x,y,387,656,82,48) then return digit(0) end
   local n=grid(S.level).n
   local bx,by,cell=geometry()
   if hit(x,y,bx,by,n*cell,n*cell) then
@@ -288,14 +290,14 @@ local function tap(x,y)
   return false
 end
 local function redraw() if C then pcall(function() C:invalidate() end) end end
-function on_load(ctx) C=ctx or context;ERR=nil
+function on_load(ctx) Theme.release();C=ctx or context;ERR=nil
   local ok,e=pcall(function() if not restore() then start() end end)
   if not ok then ERR=tostring(e) end
 end
 function on_draw(ctx,g) if ctx then C=ctx end
   if not g then return end
   if ERR then UI.error(g,C,'SUM CROSS',ERR);return end
-  local ok,e=pcall(function() render(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,render) end)
   if not ok then ERR=tostring(e);UI.error(g,C,'SUM CROSS',ERR) end
 end
 function on_input(ctx,e) if ctx then C=ctx end
@@ -322,7 +324,7 @@ function on_input(ctx,e) if ctx then C=ctx end
   if changed then redraw() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release();if S then save() end end
 if rawget(_G,'__TEST') then __TEST.api={
  levels=DATA,state=function()return S end,grid=grid,valid=valid,
  select=select_cell,digit=digit,undo=undo,check=check,

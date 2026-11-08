@@ -224,6 +224,20 @@ for level=1,12 do
   measured(ctx,on_draw,'oddity-hunt maximum counters '..level)
 end
 
+-- Target names are essential clues: even UMBRELLA must remain a full label.
+assert(A.visit(4))
+do
+ local T=require('game_canvas');local original=ctx.fonts;ctx.fonts=T.fonts(1.25)
+ local g=T.canvas();g:reset()
+ local audit=_G.__LAYOUT;local umbrella=false
+ _G.__LAYOUT=function(kind,box)
+  if kind=='text' and box.s=='UMBRELLA' then umbrella=true end
+  audit(kind,box)
+ end
+ on_draw(ctx,g);g:verify('oddity-hunt complete target labels')
+ assert(umbrella,'long object names must not be shortened')
+ ctx.fonts=original
+end
 -- Corrupt saves safely initialize new progress (but valid saves stay intact).
 storage['oddity-hunt.txt']='version=1\nlevel=200\nunlocked=400\n'
 on_load(ctx)

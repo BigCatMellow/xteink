@@ -1,5 +1,11 @@
 # Sudoku for XTEINK X4 Pro
 
+Updates are applied directly from the computer while the SD card is mounted;
+see the [family release procedure](../docs/GAME_UPDATES.md). All active games
+are also available inside Games Hub, so new games do not require separate
+installation when using the updated hub. Never uninstall to update.
+
+
 Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
 
 Offline, static monochrome Sudoku for XTOS Licorice. The seeded generation, uniqueness checks, notes and undo are adapted from the Sudoku in [BigCatMellow/meditation](https://github.com/BigCatMellow/meditation/blob/main/index.html). The interface is rewritten for the reader's 480×800 portrait touch screen; it has no animation or network requirement.

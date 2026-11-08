@@ -1,0 +1,13 @@
+{
+  "game": "island-links",
+  "app_id": "islandlinks",
+  "name": "Island Links",
+  "version": "0.4.0",
+  "file": "island-links-0.4.0.xtapp",
+  "bytes": 114096,
+  "sha256": "03def6dd99ee6d56d87bc51657efa20c3487b9027d1509c8eea4b0e9bcfcfed5",
+  "source_sha256": "4b12b8d37ad7d943e0b9b632a69fa43e00eaa0fa3f3854c09f83c134edfcd52f",
+  "metadata_file": "island-links-0.4.0.json",
+  "personal_data": false,
+  "device_tested": false
+}

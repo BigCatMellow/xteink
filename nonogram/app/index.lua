@@ -380,8 +380,8 @@ local function draw(g)
   end
   for i=1,p.n-1 do
     local weight=i==5 and STYLE.frame_stroke or STYLE.grid_stroke
-    g:line(bx+i*cell,by,bx+i*cell,by+p.n*cell,{line_width=weight})
-    g:line(bx,by+i*cell,bx+p.n*cell,by+i*cell,{line_width=weight})
+    UI.stroke(g,bx+i*cell,by,bx+i*cell,by+p.n*cell,weight)
+    UI.stroke(g,bx,by+i*cell,bx+p.n*cell,by+i*cell,weight)
   end
   g:rect(bx,by,cell*p.n,cell*p.n,{line_width=STYLE.frame_stroke,radius=STYLE.board_radius})
   text(g,24,608,'Rows '..rows..' / '..p.n,'small',nil,200)

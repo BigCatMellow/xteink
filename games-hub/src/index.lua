@@ -2,6 +2,7 @@
 local UI=require('ui')
 local Theme=require('theme')
 local Catalogue=require('catalogue')
+local PER_PAGE=5
 local Namespace=require('namespace')
 local Importer=require('importer')
 local Expected=require('import_expected')
@@ -11,7 +12,7 @@ local held=false
 local function redraw() if C then C:invalidate() end end
 local function inside(x,y,a,b,w,h) return x>=a and y>=b and x<a+w and y<b+h end
 local function save_last()
-  local ok,value,err=pcall(C.storage.write,C.storage,'hub.txt',tostring(last))
+  local ok,value,err=pcall(C.storage.write,C.storage,'hub.txt','id='..Catalogue[last].id)
   if not ok or value==false or (value==nil and err) then notice='Could not remember your last game' end
 end
 local function leave_game()
@@ -51,7 +52,12 @@ function on_load(context)
   if not ok then blocked=true;notice='Progress import needs attention. Reinstall the personal Games Hub package and try again.'
   elseif result.count>0 and not result.already then notice='Your saved progress is ready.' end
   local read,value,err=pcall(C.storage.read,C.storage,'hub.txt')
-  if read and tonumber(value) and Catalogue[tonumber(value)] then last=tonumber(value);page=math.floor((last-1)/4)+1 end
+  if read and type(value)=='string' then
+    local id=value:match('^id=([a-z]+)$')
+    if id then for n,item in ipairs(Catalogue) do if item.id==id then last=n;break end end
+    elseif tonumber(value) and Catalogue[tonumber(value)] then last=tonumber(value) end
+  end
+  page=math.floor((last-1)/PER_PAGE)+1
 end
 local function menu(g)
   g:clear(0)
@@ -63,16 +69,16 @@ local function menu(g)
     return
   end
   UI.button(g,C,24,112,432,64,'Resume '..Catalogue[last].name)
-  for row=1,4 do
-    local n=(page-1)*4+row;local item=Catalogue[n]
+  for row=1,PER_PAGE do
+    local n=(page-1)*PER_PAGE+row;local item=Catalogue[n]
     if item then
-      local y=200+(row-1)*108
-      g:rect(24,y,432,92,{radius=12,line_width=2})
-      UI.text(g,C,44,y+14,item.name,'control',nil,390)
-      UI.text(g,C,44,y+54,item.description,'small',nil,390)
+      local y=188+(row-1)*88
+      g:rect(24,y,432,80,{radius=12,line_width=2})
+      UI.text(g,C,44,y+8,item.name,'control',nil,390)
+      UI.text(g,C,44,y+48,item.description,'small',nil,390)
     end
   end
-  UI.text(g,C,240,650,'Page '..page..' of '..math.ceil(#Catalogue/4),'small','center',260)
+  UI.text(g,C,240,650,'Page '..page..' of '..math.ceil(#Catalogue/PER_PAGE),'small','center',260)
   UI.button(g,C,24,696,128,72,'Prev')
   UI.button(g,C,328,696,128,72,'Next')
   if notice then UI.text(g,C,240,674,notice,'small','center',432) end
@@ -102,7 +108,7 @@ function on_input(context,e)
       if e.phase=='up' then
         held=false
         if e.gesture=='tap' and inside(e.x or -1,e.y or -1,20,16,44,44) then
-          if leave_game() then notice=nil;page=math.floor((last-1)/4)+1 end
+          if leave_game() then notice=nil;page=math.floor((last-1)/PER_PAGE)+1 end
           redraw()
         end
         return true
@@ -117,12 +123,12 @@ function on_input(context,e)
     return false
   end
   if inside(x,y,24,112,432,64) then launch(last)
-  elseif inside(x,y,24,200,432,416) then
-    local row=math.floor((y-200)/108)+1
-    local n=(page-1)*4+row
-    if (y-200)%108<92 and Catalogue[n] then launch(n) else return false end
+  elseif inside(x,y,24,188,432,432) then
+    local row=math.floor((y-188)/88)+1
+    local n=(page-1)*PER_PAGE+row
+    if (y-188)%88<80 and Catalogue[n] then launch(n) else return false end
   elseif inside(x,y,24,696,128,72) then page=math.max(1,page-1)
-  elseif inside(x,y,328,696,128,72) then page=math.min(math.ceil(#Catalogue/4),page+1)
+  elseif inside(x,y,328,696,128,72) then page=math.min(math.ceil(#Catalogue/PER_PAGE),page+1)
   else return false end
   redraw();return true
 end
@@ -131,5 +137,5 @@ function on_leave()
   if not ok then error('Game save failed') end
 end
 if rawget(_G,'__TEST') then
-  __TEST.api={launch=launch,state=function() return {page=page,last=last,selected=selected,blocked=blocked,notice=notice,engine=active} end}
+  __TEST.api={per_page=PER_PAGE,launch=launch,state=function() return {page=page,last=last,selected=selected,blocked=blocked,notice=notice,engine=active} end}
 end

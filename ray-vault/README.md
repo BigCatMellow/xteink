@@ -1,5 +1,11 @@
 # Ray Vault — hidden-atom deduction for XTEINK X4 Pro
 
+Updates are applied directly from the computer while the SD card is mounted;
+see the [family release procedure](../docs/GAME_UPDATES.md). All active games
+are also available inside Games Hub, so new games do not require separate
+installation when using the updated hub. Never uninstall to update.
+
+
 Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
 
 An original 6×6 **Black Box-style** logic game for the XTEINK X4 Pro running XTOS Licorice. Completely static, monochrome and offline. Inspired by a traditional deduction mechanic, not a reproduction of any commercial game's art, branding or published level set.

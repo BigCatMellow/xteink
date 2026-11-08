@@ -229,14 +229,7 @@ local function draw(g)
       g:line(x+cell-7,y+7,x+cell-13,y+13,{line_width=2})
     end
   end
-  -- Solid bars guarantee visible box divisions even if firmware ignores
-  -- line_width. Fine cell edges are 1px; 3x3 boundaries and outer edges 4px.
-  for i=0,9 do
-    local width=i%3==0 and 4 or 1
-    local offset=i==0 and 0 or i==9 and size-width or i*cell-math.floor(width/2)
-    g:rect(bx+offset,by,width,size,{fill=true,radius=0})
-    g:rect(bx,by+offset,size,width,{fill=true,radius=0})
-  end
+  UI.grid(g,bx,by,9,9,cell,{every=3})
   local status=MSG
   if not status and S.selected>0 and S.notes[S.selected]>0 then
     local values={}

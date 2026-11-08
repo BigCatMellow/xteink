@@ -312,9 +312,9 @@ local function draw_rod(g,rod)
   local function segment(a,b)
     if b<=a then return end
     if rod.axis=='h' then
-      g:line(GX+a,py(rod.a),GX+b,py(rod.a),{line_width=3})
+      UI.stroke(g,GX+a,py(rod.a),GX+b,py(rod.a),4)
     else
-      g:line(px(rod.a),GY+a,px(rod.a),GY+b,{line_width=3})
+      UI.stroke(g,px(rod.a),GY+a,px(rod.a),GY+b,4)
     end
   end
   for _,cross in ipairs(interruptions) do
@@ -365,15 +365,13 @@ end
 local function draw(g)
   g:clear(0)
   face(g,30,14,'LINE LIFT','large')
-  UI.text(g,CTX,31,49,'PRECISION PUZZLES','small',nil,245)
   button(g,294,16,72,45,show_hint and 'HIDE' or 'HINT')
   button(g,382,16,68,45,tutorial and 'X' or '?')
   local cleared=0
   for i=1,#LEVEL.groups do if not active(i) then cleared=cleared+1 end end
-  UI.text(g,CTX,30,82,'Puzzle '..string.format('%02d',STATE.level)..' / '..string.format('%02d',MAX),'medium',nil,242)
-  UI.text(g,CTX,294,82,cleared..'/'..#LEVEL.groups..' RELEASED','small',nil,156)
+  UI.text(g,CTX,30,72,'Puzzle '..string.format('%02d',STATE.level)..' / '..string.format('%02d',MAX),'medium',nil,242)
+  UI.text(g,CTX,294,72,cleared..'/'..#LEVEL.groups..' RELEASED','small',nil,156)
   g:line(30,110,450,110,{line_width=2})
-  g:line(30,118,450,118,{line_width=1})
   if tutorial then draw_help(g); return end
 
   g:rect(28,136,424,422,{line_width=3})

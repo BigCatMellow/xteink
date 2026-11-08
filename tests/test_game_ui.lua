@@ -61,4 +61,19 @@ local used_font=nil
 function g:text(x,y,s,options) used_font=options.font;return original_text(self,x,y,s,options) end
 g:reset();UI.text(g,c,30,30,'8','strong');g:verify('strong numeral')
 assert(used_font==c.fonts.large,'numeric emphasis cannot silently become body text')
+-- Shared geometry must make semantic widths real pixels and preserve gaps.
+local bars={}
+local raster={rect=function(_,x,y,w,h,o) bars[#bars+1]={x,y,w,h,o} end}
+UI.stroke(raster,20,45,120,45,4)
+UI.stroke(raster,20,55,120,55,4)
+assert(bars[1][2]+bars[1][4]<bars[2][2],'parallel bridges must have a visible gap')
+assert(bars[1][5].fill and bars[1][5].radius==0,'stroke width must not depend on native line options')
+bars={};UI.grid(raster,6,108,9,9,52,{every=3})
+local boundaries=0
+for _,b in ipairs(bars) do if b[3]==4 and b[4]==468 then boundaries=boundaries+1 end end
+assert(boundaries==4,'Sudoku needs outer and both box boundaries')
+bars={};UI.grid(raster,16,120,8,4,56,{row_height=90})
+assert(bars[1][4]==360,'rectangular number sheets must use their visible row height')
+local bx,by,cell=UI.grid_geometry(7,120,568)
+assert(bx==16 and by==120 and cell==64,'dense boards must use the reserved play band')
 print('UI guard self-tests: collisions, clipping, board intrusion and button padding PASS')

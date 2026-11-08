@@ -1,7 +1,7 @@
 {
   "app_id": "crownfields",
   "display_name": "Crown Fields",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "BigCatMellow",
   "description": "Original one-crown-per-region e-ink puzzles",
   "entry": "index.lua",

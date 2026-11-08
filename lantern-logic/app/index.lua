@@ -208,8 +208,7 @@ local function button(g,x,y,w,h,s)
   UI.button(g,C,x,y,w,h,s)
 end
 local function position(n)
-  local cell=math.floor(392/n)
-  return math.floor((480-cell*n)/2),156,cell
+  return UI.grid_geometry(n,120,568)
 end
 local function draw(g)
   g:clear(0)
@@ -219,6 +218,7 @@ local function draw(g)
   local b,m=S.b,S.marks
   local bx,by,cell=position(b.n)
   UI.region(bx,by,b.n*cell,b.n*cell)
+  UI.grid(g,bx,by,b.n,b.n,cell)
   local dark,conflicts,bad,clues,lit=inspect(b,m)
   for y=1,b.n do
     for x=1,b.n do
@@ -226,14 +226,13 @@ local function draw(g)
       local ch=b.tiles[i]
       local px,py=bx+(x-1)*cell,by+(y-1)*cell
       local cx,cy=px+cell/2,py+cell/2
-      g:rect(px,py,cell,cell,{line_width=2})
       if wall(ch) then
         g:rect(px+3,py+3,cell-6,cell-6,{line_width=3})
         if ch=='#' then
           g:line(px+8,py+8,px+cell-8,py+cell-8,{line_width=2})
           g:line(px+cell-8,py+8,px+8,py+cell-8,{line_width=2})
         else
-          centered(g,cx,cy-16,ch,'large')
+          centered(g,cx,cy-16,ch,'strong')
           local nearby=0
           for _,d in ipairs(D) do
             local a,q=x+d[1],y+d[2]

@@ -31,6 +31,10 @@ the [wallpaper handoff](wallpaper-randomizer/docs/HANDOFF.md). The exact
 - [Sudoku](sudoku/README.md) — generated unique puzzles with notes, undo and saved puzzle history, adapted from the meditation app.
 - [Word Bridge](word-bridge/README.md) — 12 shortest-path four-letter word ladders with deceptive branches.
 - [Rectangle Rooms](rectangle-rooms/README.md) — 12 unique Shikaku-style rectangle-partition puzzles.
+- [Crown Fields](crown-fields/README.md) — 12 original letter-region crown-placement puzzles.
+- [Ten Pairs](ten-pairs/README.md) — 12 original Numberama number-clearing sheets.
+- [Quiet Mines](quiet-mines/README.md) — 12 deductive Minesweeper grids with a known-safe start.
+- [Sum Cross](sum-cross/README.md) — 12 uniquely solvable Kakuro number-crossword grids.
 
 Word Hunt and Nonogram now continue with offline generated puzzles after their original boards. Nonogram's generated continuation uses abstract patterns. Original levels and existing saves are preserved.
 
@@ -48,4 +52,9 @@ on pushes and pull requests. Run it locally with `python3 scripts/check_games.py
 The [Games Hub build](.github/workflows/games-hub.yml) runs the same quality gate
 and supplies a single `games-hub.xtapp` artifact for the whole active collection.
 
-Each project has its own installable XTApp build workflow: [Paper Golf](.github/workflows/build.yml), [Summit Putt](.github/workflows/summit-putt.yml), [Line Lift](.github/workflows/line-lift.yml), [Link Grid](.github/workflows/link-grid.yml), [Ink Runes](.github/workflows/ink-runes.yml), [Lantern Logic](.github/workflows/lantern-logic.yml), [Ray Vault](.github/workflows/ray-vault.yml), [Island Links](.github/workflows/island-links.yml), [Oddity Hunt](.github/workflows/oddity-hunt.yml), [Word Hunt](.github/workflows/word-hunt.yml), [Nonogram](.github/workflows/nonogram.yml), [Word Bridge](.github/workflows/word-bridge.yml), [Rectangle Rooms](.github/workflows/rectangle-rooms.yml), [Sudoku](.github/workflows/sudoku.yml), and [Wallpaper Randomizer](.github/workflows/wallpaper-randomizer.yml).
+Each project has its own installable XTApp build workflow: [Paper Golf](.github/workflows/build.yml), [Summit Putt](.github/workflows/summit-putt.yml), [Line Lift](.github/workflows/line-lift.yml), [Link Grid](.github/workflows/link-grid.yml), [Ink Runes](.github/workflows/ink-runes.yml), [Lantern Logic](.github/workflows/lantern-logic.yml), [Ray Vault](.github/workflows/ray-vault.yml), [Island Links](.github/workflows/island-links.yml), [Oddity Hunt](.github/workflows/oddity-hunt.yml), [Word Hunt](.github/workflows/word-hunt.yml), [Nonogram](.github/workflows/nonogram.yml), [Word Bridge](.github/workflows/word-bridge.yml), [Rectangle Rooms](.github/workflows/rectangle-rooms.yml), [Sudoku](.github/workflows/sudoku.yml), [Crown Fields](.github/workflows/crown-fields.yml), [Ten Pairs](.github/workflows/ten-pairs.yml), [Quiet Mines](.github/workflows/quiet-mines.yml), [Sum Cross](.github/workflows/sum-cross.yml), and [Wallpaper Randomizer](.github/workflows/wallpaper-randomizer.yml).
+
+## Scouting
+
+- [Steam puzzle adaptation candidates](research/steam-puzzle-scouting.md) — ranked references for original zero-animation word, deduction, sorting and placement games on X4 Pro (2026-11-07).
+

@@ -5,7 +5,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GAMES = ('line-lift', 'summit-putt', 'link-grid', 'ink-runes',
-         'lantern-logic', 'ray-vault', 'island-links', 'oddity-hunt', 'word-hunt', 'nonogram', 'word-bridge', 'rectangle-rooms', 'sudoku')
+         'lantern-logic', 'ray-vault', 'island-links', 'oddity-hunt', 'word-hunt', 'nonogram', 'word-bridge', 'rectangle-rooms', 'sudoku',
+         'crown-fields', 'ten-pairs', 'quiet-mines', 'sum-cross')
 OTHER_APPS = ('wallpaper-randomizer',)
 COLLECTIONS = ('games-hub',)  # Generated from GAMES; audited by check_games.py.
 

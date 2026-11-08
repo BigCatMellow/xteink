@@ -20,6 +20,7 @@ local LEVELS={
 }
 local D={{0,-1},{1,0},{0,1},{-1,0}}
 local UI=require('ui')
+local Theme=require('theme')
 local C,S,ERR,MSG=nil,nil,nil,nil
 local key_ms=-1000
 local function idx(x,y,n) return (y-1)*n+x end
@@ -225,7 +226,7 @@ local function draw(g)
       local ch=b.tiles[i]
       local px,py=bx+(x-1)*cell,by+(y-1)*cell
       local cx,cy=px+cell/2,py+cell/2
-      g:rect(px,py,cell,cell,{line_width=1})
+      g:rect(px,py,cell,cell,{line_width=2})
       if wall(ch) then
         g:rect(px+3,py+3,cell-6,cell-6,{line_width=3})
         if ch=='#' then
@@ -313,6 +314,7 @@ local function refresh()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(c)
+  Theme.release()
   C=c or ctx;ERR=nil
   local ok,e=pcall(function() if not restore() then start(1,1) end end)
   if not ok then ERR=tostring(e) end
@@ -324,7 +326,7 @@ function on_draw(c,g)
     UI.error(g,C,'LANTERN LOGIC',ERR)
     return
   end
-  local ok,e=pcall(function() draw(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,draw) end)
   if not ok then ERR=tostring(e) end
 end
 function on_input(c,e)
@@ -352,7 +354,7 @@ function on_input(c,e)
   if change then refresh() end
   return change
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release(); if S then save() end end
 if rawget(_G,'__TEST') then
   __TEST.api={
     levels=LEVELS,parse=parse,complete=complete,inspect=inspect,

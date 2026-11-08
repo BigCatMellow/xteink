@@ -2,6 +2,7 @@
 -- No animation, frame loop, timers, fading, sound, or network.
 local N,CELL,BX,BY=6,54,78,185
 local UI=require('ui')
+local Theme=require('theme')
 local LEVELS={
   {16,22,29},
   {4,6,12},
@@ -241,7 +242,7 @@ local function draw(g)
     for col=0,N-1 do
       local i=idx(col,row)
       local x,y=BX+col*CELL,BY+row*CELL
-      g:rect(x,y,CELL,CELL,{line_width=1})
+      g:rect(x,y,CELL,CELL,{line_width=2})
       if S.marks[i]==1 then
         g:circle(x+27,y+27,13,{line_width=3})
         g:circle(x+27,y+27,5,{fill=true})
@@ -290,6 +291,7 @@ local function invalidate()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(c)
+  Theme.release()
   C=c or ctx;ERR=nil
   local ok,e=pcall(function() if not restore() then start(1,1) end end)
   if not ok then ERR=tostring(e) end
@@ -301,7 +303,7 @@ function on_draw(c,g)
     UI.error(g,C,'RAY VAULT',ERR)
     return
   end
-  local ok,e=pcall(function() draw(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,draw) end)
   if not ok then ERR=tostring(e) end
 end
 function on_input(c,e)
@@ -329,7 +331,7 @@ function on_input(c,e)
   if changed then invalidate() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release(); if S then save() end end
 if rawget(_G,'__TEST') then
   __TEST.api={
     levels=LEVELS,atoms=atoms,trace=trace,pos=port_pos,

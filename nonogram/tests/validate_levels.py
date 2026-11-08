@@ -3,6 +3,7 @@
 by the visible row and column run clues, never merely checked against its image.
 """
 import re
+import subprocess
 from pathlib import Path
 
 SRC=(Path(__file__).resolve().parents[1]/'app'/'pictures.lua').read_text(encoding='utf-8')
@@ -66,3 +67,29 @@ for i,(name,raw) in enumerate(puzzles,1):
     assert found[0]==rows, f'{name}: solution does not match authored image'
     print(f'{i:02} {name:12} {n}x{n}, {black} filled cells, UNIQUE')
 print('PASS: 12 original nonograms, each with one exact solution')
+
+script = r"""
+package.path='app/?.lua;'..package.path
+local G=require('generator')
+for seed=13,112 do print('normal\t'..seed..'\t'..table.concat(G.generate(seed).rows,',')) end
+for _,seed in ipairs({999999998,999999999}) do print('normal\t'..seed..'\t'..table.concat(G.generate(seed).rows,',')) end
+-- Exhaustion must not be mistaken for a unique solution.
+assert(G.count({'#....','.#...','..#..','...#.','....#'})==2)
+assert(G.count({'#####','#####','#####','#####','#####'},1)==-1)
+G.count=function() return -1 end
+for seed=1,32 do print('fallback\t'..seed..'\t'..table.concat(G.generate(seed).rows,',')) end
+"""
+output = subprocess.check_output(['lua', '-'], input=script, text=True,
+    cwd=Path(__file__).resolve().parents[1])
+seen = set()
+for record in output.splitlines():
+    kind, seed, raw = record.split('\t')
+    rows = raw.split(',')
+    assert len(rows) in (5, 7, 8) and all(len(row) == len(rows) for row in rows)
+    assert .25 <= sum(row.count('#') for row in rows) / len(rows)**2 <= .8
+    found, _, _ = solutions(rows)
+    assert found == [rows], (kind, seed, 'not uniquely reconstructable')
+    if kind == 'normal':
+        assert tuple(rows) not in seen, 'duplicate generated board within sample'
+        seen.add(tuple(rows))
+print('PASS: 102 generated patterns + 32 forced fallbacks independently solved; unique, bounded clues')

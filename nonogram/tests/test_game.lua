@@ -23,7 +23,7 @@ on_load(ctx)
 local s=A.state()
 eq(s.level,1);eq(s.unlocked,1)
 eq(#A.pictures,12)
-assert(store['nonogram.txt']:find('version=1',1,true))
+assert(store['nonogram.txt']:find('version=2',1,true))
 assert(not A.next(),'cannot skip unopened puzzle')
 assert(not A.correct(1,s.boards[1]))
 assert(not s.submitted[1])
@@ -51,6 +51,27 @@ for level=1,12 do
   eq(rowBlack,black,'row totals correct')
   eq(colBlack,black,'column totals correct')
 end
+
+-- The board owns the screen: enforce usable cell sizes and a shared right edge.
+for _,level in ipairs({1,5,9}) do
+  s.unlocked=math.max(s.unlocked,level)
+  assert(A.visit(level));A.reset()
+  local bx,by,cell,gutter,clueArea=A.geometry()
+  local n=A.shape(level).n
+  assert(cell>=44,'touch cells must not return to the cramped 39px layout')
+  assert(n*cell>=336,'the puzzle must receive meaningful screen area')
+  assert(math.abs(((bx-gutter)+(bx+n*cell))/2-240)<=.5,'clues and board centered horizontally')
+  assert(math.abs(((by-clueArea)+(by+n*cell))/2-356)<=.5,'clues and board centered vertically')
+  assert(by+n*cell<=584,'board leaves room for feedback and controls')
+  assert(not A.tap(bx-1,by+cell/2),'clue gutter must not paint a square')
+  assert(A.tap(bx+1,by+1));eq(s.boards[level][1],1,'top-left touch matches drawn cell')
+  assert(A.tap(bx+n*cell-1,by+n*cell-1));eq(s.boards[level][n*n],1,'bottom-right touch matches drawn cell')
+  local undo=A.controls.undo
+  assert(A.tap(undo[1]+1,undo[2]+undo[4]/2),'full rounded control remains a touch target')
+  eq(s.boards[level][n*n],0)
+end
+-- Restore the fresh initial progression used by the behavioral scenarios below.
+store={};on_load(ctx);s=A.state()
 
 -- Touch cycles blank -> black -> X -> blank; undo has true snapshots.
 local board=s.boards[1]
@@ -92,7 +113,9 @@ assert(s.submitted[1])
 eq(s.unlocked,2)
 assert(not A.paint(1,1),'submitted board is read-only')
 measured(ctx,on_draw,'nonogram submitted first')
-assert(A.next())
+local primary=A.controls.check
+assert(A.tap(primary[1]+primary[3]/2,primary[2]+primary[4]/2),'solved primary action opens the next puzzle')
+eq(s.level,2)
 
 -- Solve all twelve with real tap API, save before and after submission.
 for level=2,12 do
@@ -110,12 +133,14 @@ for level=2,12 do
   assert(not s.submitted[level])
   assert(A.check())
   assert(s.submitted[level])
-  eq(s.unlocked,math.min(level+1,12))
+  eq(s.unlocked,level+1)
   measured(ctx,on_draw,'nonogram submitted '..level)
   on_leave();on_load(ctx);s=A.state()
   assert(s.submitted[level],'submission persisted')
-  if level<12 then assert(A.next()) else assert(not A.next()) end
+  if level<12 then assert(A.next()) end
 end
+assert(A.next(),'generated puzzles follow the authored pictures')
+eq(s.level,13);assert(A.prev())
 
 -- Revisit earlier stages; reset does not discard global unlocks.
 assert(A.visit(5))
@@ -131,7 +156,7 @@ eq(s.level,5)
 eq(s.boards[5][1]..s.boards[5][2],beforeMarks,'in-progress board survives visit')
 assert(A.undo(),'undo history preserved across visits')
 eq(s.boards[5][2],0)
-eq(s.unlocked,12,'global unlock unaffected by local reset')
+eq(s.unlocked,13,'global unlock unaffected by local reset')
 assert(A.visit(9))
 assert(s.submitted[9],'other completed puzzle still submitted')
 
@@ -166,9 +191,56 @@ for level=1,12 do
 end
 A.tap(443,34)
 measured(ctx,on_draw,'nonogram help')
+local opened=s.level
+local nextButton=A.controls.next
+assert(not A.tap(nextButton[1]+nextButton[3]/2,nextButton[2]+nextButton[4]/2),'help must block navigation hitboxes')
+eq(s.level,opened)
 A.tap(443,34)
+-- Upgrade a v1 save without losing submitted pictures or undo snapshots.
+assert(A.visit(5));A.reset();A.paint(1,1);A.paint(2,1)
+local legacy=store['nonogram.txt']:gsub('version=2','version=1'):gsub('unlocked=%d+','unlocked=12')
+store['nonogram.txt']=legacy
+on_load(ctx);s=A.state()
+eq(s.level,5);eq(s.unlocked,13);assert(A.undo());eq(s.boards[5][2],0)
+assert(A.visit(13))
+for number=13,24 do
+  local p=A.shape(number)
+  local signature=table.concat(p.rows)
+  measured(ctx,on_draw,'generated nonogram blank '..number)
+  assert(A.paint(1,1));assert(A.paint(2,1))
+  assert(A.prev());on_leave();on_load(ctx);s=A.state();assert(A.next())
+  eq(s.boards[number][1],1);eq(s.boards[number][2],1)
+  assert(A.undo(),'generated undo survives navigation and relaunch')
+  eq(s.boards[number][2],0)
+  A.reset();fill_pattern(number)
+  on_leave();on_load(ctx);s=A.state()
+  eq(table.concat(A.shape(number).rows),signature,'generated picture stable across reload')
+  assert(A.correct(number,s.boards[number]),'correct unsubmitted generated board retained')
+  assert(not s.submitted[number]);measured(ctx,on_draw,'generated unsubmitted '..number)
+  assert(A.check());assert(s.submitted[number]);eq(s.unlocked,number+1)
+  measured(ctx,on_draw,'generated nonogram solved '..number)
+  assert(A.next())
+end
+local entries=0
+for _ in pairs(s.boards) do entries=entries+1 end
+eq(entries,13,'only one generated board is resident')
+s.unlocked=999999999
+assert(A.visit(999999999))
+measured(ctx,on_draw,'nonogram maximum puzzle number')
+A.reset();fill_pattern(999999999);A.check()
+measured(ctx,on_draw,'nonogram maximum solved number')
+local working_write=ctx.storage.write
+ctx.storage.write=function() return nil,'quota' end
+assert(A.prev());eq(s.level,999999999,'failed save prevents leaving generated puzzle')
+measured(ctx,on_draw,'nonogram save failure')
+ctx.storage.write=working_write
+assert(A.visit(1))
+before=redraws
+assert(not on_input(ctx,{type='key',phase='down',key='up',time_ms=20000}))
+eq(s.level,1,'PREV at first puzzle must not fall through to NEXT')
+eq(redraws,before)
 store['nonogram.txt']='version=1\nlevel=500\nunlocked=800\n'
 on_load(ctx)
 eq(A.state().level,1,'malformed saves reset')
 assert(type(on_tick)=='nil','no background animation')
-print('Nonogram: 12 unique pictures, clues, undo, saved unsubmitted answers and layout PASS')
+print('Nonogram: authored + generated puzzles, legacy saves, undo, unsubmitted answers and layout PASS')

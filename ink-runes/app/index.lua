@@ -242,6 +242,7 @@ local function reset()
   return true
 end
 local UI=require('ui')
+local Theme=require('theme')
 local function text(g,x,y,s,which,align)
   UI.text(g,C,x,y,s,which,align)
 end
@@ -348,6 +349,7 @@ local function refresh()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(c)
+  Theme.release()
   C=c or ctx;ERROR=nil
   local ok,err=pcall(function()
     if not restore() then start(1,1,'') end
@@ -361,7 +363,7 @@ function on_draw(c,g)
     UI.error(g,C,'INK RUNES',ERROR)
     return
   end
-  local ok,err=pcall(function() draw(g) end)
+  local ok,err=pcall(function() Theme.draw(C,g,draw) end)
   if not ok then ERROR=tostring(err) end
 end
 function on_input(c,event)
@@ -389,7 +391,7 @@ function on_input(c,event)
   if changed then refresh() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release(); if S then save() end end
 if rawget(_G,'__TEST') then
   __TEST.api={
     levels=LEVELS,board=board,rune=rune,apply=apply,complete=complete,

@@ -3,6 +3,7 @@
 -- No animation, frame loop, network access, timers, or grayscale.
 local TOTAL=20
 local UI=require('ui')
+local Theme=require('theme')
 local DIR={{0,-1},{1,0},{0,1},{-1,0}}
 local BIT={1,2,4,8} -- north/east/south/west
 local OPP={4,8,1,2}
@@ -234,7 +235,7 @@ local function draw(g)
       local px,py=bx+(x-1)*CELL,by+(y-1)*CELL
       local cx,cy=px+CELL/2,py+CELL/2
       -- Subtle square outlines. All strokes are black; no shaded fills.
-      g:rect(px,py,CELL,CELL,{line_width=1})
+      g:rect(px,py,CELL,CELL,{line_width=2})
       if v~=0 then
         if arm(v,1) then g:line(cx,cy,cx,py,{line_width=4}) end
         if arm(v,2) then g:line(cx,cy,px+CELL,cy,{line_width=4}) end
@@ -283,6 +284,7 @@ local function invalidate()
   if CONTEXT then pcall(function() CONTEXT:invalidate() end) end
 end
 function on_load(c)
+  Theme.release()
   CONTEXT=c or ctx
   ERROR=nil
   local ok,err=pcall(function()
@@ -297,7 +299,7 @@ function on_draw(c,g)
     UI.error(g,CONTEXT,'LINK GRID',ERROR)
     return
   end
-  local ok,err=pcall(function() draw(g) end)
+  local ok,err=pcall(function() Theme.draw(CONTEXT,g,draw) end)
   if not ok then
     ERROR=tostring(err)
     pcall(function()
@@ -331,7 +333,7 @@ function on_input(c,event)
   if handled then invalidate() end
   return handled
 end
-function on_leave()
+function on_leave() Theme.release();
   if STATE then save() end
 end
 

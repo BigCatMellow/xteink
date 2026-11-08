@@ -1,0 +1,128 @@
+{
+  "design_contract": "docs/GAME_DESIGN.md",
+  "games": [
+    {
+      "game": "line-lift",
+      "app_id": "linelift",
+      "name": "Line Lift",
+      "version": "0.5.0",
+      "bytes": 117456,
+      "sha256": "0204696674afcfbb3a58b2f20f0001daa566a37bad85ee84906e1e4abe0b34b5",
+      "file": "line-lift-0.5.0.xtapp"
+    },
+    {
+      "game": "summit-putt",
+      "app_id": "summitputt",
+      "name": "Summit Putt",
+      "version": "0.5.0",
+      "bytes": 116944,
+      "sha256": "9fde8609f5482d0efa109276c1e39f30eb3f7533fb7dd9e5e8bddcde3066e2f3",
+      "file": "summit-putt-0.5.0.xtapp"
+    },
+    {
+      "game": "link-grid",
+      "app_id": "linkgrid",
+      "name": "Link Grid",
+      "version": "0.3.0",
+      "bytes": 113968,
+      "sha256": "08eee85f2864d6480e06d543307d1c1e00c0b80669265a4228fe95edd1179c05",
+      "file": "link-grid-0.3.0.xtapp"
+    },
+    {
+      "game": "ink-runes",
+      "app_id": "inkrunes",
+      "name": "Ink Runes",
+      "version": "0.3.0",
+      "bytes": 114880,
+      "sha256": "27ce0ab8f495c5cb322a610d43798dc9cf97870ef8c2c9bb8a4af83643883727",
+      "file": "ink-runes-0.3.0.xtapp"
+    },
+    {
+      "game": "lantern-logic",
+      "app_id": "lanternlogic",
+      "name": "Lantern Logic",
+      "version": "0.3.0",
+      "bytes": 113568,
+      "sha256": "687d7dee077712809e3c92df644404193127a58e6d09602d2b46bb26147831dd",
+      "file": "lantern-logic-0.3.0.xtapp"
+    },
+    {
+      "game": "ray-vault",
+      "app_id": "rayvault",
+      "name": "Ray Vault",
+      "version": "0.3.0",
+      "bytes": 113056,
+      "sha256": "29aa38dc65ae2f29877d7f1637aa91dbad4330e18c2fff2f66d2837c1855ce2c",
+      "file": "ray-vault-0.3.0.xtapp"
+    },
+    {
+      "game": "island-links",
+      "app_id": "islandlinks",
+      "name": "Island Links",
+      "version": "0.3.0",
+      "bytes": 112512,
+      "sha256": "5d9080134aebd90f8883cafca5b96695fa923dfed6251cc35fe0a0a0af89e545",
+      "file": "island-links-0.3.0.xtapp"
+    },
+    {
+      "game": "oddity-hunt",
+      "app_id": "oddityhunt",
+      "name": "Oddity Hunt",
+      "version": "0.2.0",
+      "bytes": 119680,
+      "sha256": "ec3da94c77ceefcf1116b19450e6292df3144a42bab3a46e10e53bbfc913041b",
+      "file": "oddity-hunt-0.2.0.xtapp"
+    },
+    {
+      "game": "word-hunt",
+      "app_id": "wordhunt",
+      "name": "Word Hunt",
+      "version": "0.3.0",
+      "bytes": 126848,
+      "sha256": "1b6826f53766b21115c1849a2589892e2259bc88cc988422c4d0c7caa0e32195",
+      "file": "word-hunt-0.3.0.xtapp"
+    },
+    {
+      "game": "nonogram",
+      "app_id": "nonogram",
+      "name": "Nonogram",
+      "version": "0.5.0",
+      "bytes": 125360,
+      "sha256": "948b459c3f39d5cf86d6f63f595348e334008f8139db6295952a133046da5453",
+      "file": "nonogram-0.5.0.xtapp"
+    },
+    {
+      "game": "word-bridge",
+      "app_id": "wordbridge",
+      "name": "Word Bridge",
+      "version": "0.2.0",
+      "bytes": 114272,
+      "sha256": "eae22e2995d2bcebd1162ab4acd662a4a8de43d8f1db78997dfe72ebc6c58d8e",
+      "file": "word-bridge-0.2.0.xtapp"
+    },
+    {
+      "game": "rectangle-rooms",
+      "app_id": "rectrooms",
+      "name": "Rectangle Rooms",
+      "version": "0.2.0",
+      "bytes": 113584,
+      "sha256": "643e075558a4ec60c985e3e7202780da5f8b205e8abb96bdf7eecc97c5dacb24",
+      "file": "rectangle-rooms-0.2.0.xtapp"
+    },
+    {
+      "game": "sudoku",
+      "app_id": "sudoku",
+      "name": "Sudoku",
+      "version": "0.2.0",
+      "bytes": 119952,
+      "sha256": "650f74168adfbbeef887e54adfb7d4b31ee32b9b0bb241a35a139c91326fc935",
+      "file": "sudoku-0.2.0.xtapp"
+    }
+  ],
+  "validation": {
+    "bitmap_frames": 1434,
+    "peak_drawing_commands": 589,
+    "all_games_quality_gate": "pass"
+  },
+  "physical_status": "Nonogram v0.4 appearance confirmed; new family versions pending reader checks"
+}

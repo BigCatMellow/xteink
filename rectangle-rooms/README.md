@@ -1,5 +1,7 @@
 # Rectangle Rooms — Shikaku logic puzzles on XTEINK X4 Pro
 
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
+
 An original, offline **numbered rectangle partition** puzzle game, inspired by the paper-and-pencil Shikaku rules. Designed for the XTEINK X4 Pro's 480×800 monochrome display running XTOS Licorice.
 
 ## Rules

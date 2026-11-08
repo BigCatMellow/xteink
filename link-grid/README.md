@@ -1,5 +1,7 @@
 # Link Grid — XTEINK X4 Pro
 
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
+
 An original **minimalist tile-and-line puzzle** for **XTOS Licorice**, designed for the XTEINK X4 Pro's 480 × 800 monochrome e-ink display. Inspired by the elegant single-tap puzzles of *klocki*; **not a port or reproduction** of its levels, assets, or proprietary rules.
 
 **Status: v0.2.** All 20 puzzles are frozen and independently solver-checked for a **unique connected solution**. CI verifies source, measured layouts, navigation, saves and packaging. The app still needs a smoke test on a physical X4 Pro.

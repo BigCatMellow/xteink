@@ -1,7 +1,7 @@
 {
   "app_id": "rectrooms",
   "display_name": "Rectangle Rooms",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "BigCatMellow",
   "description": "Twelve original static uniquely solvable rectangle partition puzzles for X4 Pro.",
   "entry": "index.lua",

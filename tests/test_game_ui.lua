@@ -36,4 +36,29 @@ g:verify('valid layout')
 g:reset()
 UI.text(g,{},20,20,'UTF-8: café — test','small',nil,120)
 g:verify('fallback metrics')
+-- Opt-in rounded controls keep the established geometry and padded text audit.
+local outlined={}
+local original_rect=g.rect
+function g:rect(x,y,w,h,options)
+  outlined[#outlined+1]={x=x,y=y,w=w,h=h,options=options}
+end
+g:reset()
+UI.button(g,c,20,20,180,68,'Check',true,{radius=12,line_width=3})
+g:verify('rounded primary control')
+assert(outlined[1].options.radius==12 and outlined[1].options.line_width==3)
+assert(outlined[2].options.radius==8,'nested radius must account for the inset')
+outlined={}
+g:reset();UI.button(g,c,20,20,180,68,'Existing control');g:verify('unchanged default control')
+assert(outlined[1].options.radius==0 and outlined[1].options.line_width==2)
+g.rect=original_rect
+-- Larger number keys and fixed clues reuse the shipped heading face.
+assert(UI.font(c,'strong')==c.fonts.large,'strong text must retain native large-font metrics')
+g:reset()
+UI.button(g,c,20,20,98,52,'8',false,{font='strong'})
+g:verify('large numeric key')
+local original_text=g.text
+local used_font=nil
+function g:text(x,y,s,options) used_font=options.font;return original_text(self,x,y,s,options) end
+g:reset();UI.text(g,c,30,30,'8','strong');g:verify('strong numeral')
+assert(used_font==c.fonts.large,'numeric emphasis cannot silently become body text')
 print('UI guard self-tests: collisions, clipping, board intrusion and button padding PASS')

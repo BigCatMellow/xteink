@@ -1,9 +1,14 @@
 -- Word Hunt: classic word search plus Find the Fox for XTEINK X4 Pro.
 -- One tap for the first letter, one for the last. No animation or drag.
 local UI=require('ui')
+local Theme=require('theme')
 local P=require('puzzles')
+local Generator=require('generator')
+local Store=require('puzzle_store')
 local MODES={'classic','fox'}
 local TOTAL={#P.classic,#P.fox}
+local MAX=999999999
+local generated={}
 local C,S,ERR,MSG=nil,nil,nil,nil
 local HELP=false
 local KEY_MS=-1000
@@ -14,9 +19,9 @@ local function copyfill(n,value)
   for i=1,n do r[i]=value end
   return r
 end
-local function encode(v)
+local function encode(v,n)
   local out={}
-  for i,a in ipairs(v) do out[i]=tostring(a) end
+  for i=1,n or #v do out[i]=tostring(v[i]) end
   return table.concat(out,',')
 end
 local function decode(s,n,max)
@@ -31,7 +36,12 @@ local function decode(s,n,max)
   return result
 end
 local function level()
-  return P[MODES[S.mode]][S.levels[S.mode]]
+  local m,n=S.mode,S.levels[S.mode]
+  if n<=TOTAL[m] then return P[MODES[m]][n] end
+  if not generated[m] or generated[m].number~=n then
+    generated[m]={number=n,puzzle=Generator.generate(m,n)}
+  end
+  return generated[m].puzzle
 end
 local function count()
   local total=0
@@ -44,15 +54,42 @@ local function complete()
   return S and count()==#level().words
 end
 local function save()
-  if not S or not C or not C.storage then return end
+  if not S or not C or not C.storage then return true end
   local data=table.concat({
-    'version=1','mode='..S.mode,
+    'version=2','mode='..S.mode,
     'levels='..encode(S.levels),'unlocked='..encode(S.unlocked),
-    'foundC='..encode(S.found[1]),'foundF='..encode(S.found[2]),
-    'hintsC='..encode(S.hints[1]),'hintsF='..encode(S.hints[2]),
-    'revealedC='..encode(S.revealed[1]),'revealedF='..encode(S.revealed[2])
+    'foundC='..encode(S.found[1],TOTAL[1]),'foundF='..encode(S.found[2],TOTAL[2]),
+    'hintsC='..encode(S.hints[1],TOTAL[1]),'hintsF='..encode(S.hints[2],TOTAL[2]),
+    'revealedC='..encode(S.revealed[1],TOTAL[1]),'revealedF='..encode(S.revealed[2],TOTAL[2])
   },'\n')
-  pcall(function() C.storage:write('word-hunt.txt',data) end)
+  local ok=pcall(function()
+    for m=1,2 do
+      local n=S.levels[m]
+      if n>TOTAL[m] then
+        Store.put(C.storage,'search-'..m,n,table.concat({S.found[m][n],S.hints[m][n],S.revealed[m][n]},','))
+      end
+    end
+    Store.write(C.storage,'word-hunt.txt',data)
+  end)
+  if not ok then MSG='Save failed - keep this puzzle open' end
+  return ok
+end
+local function load_generated(state,m,n)
+  if n<=TOTAL[m] then return end
+  local found,hints,revealed=0,0,0
+  if C and C.storage then
+    local data=Store.get(C.storage,'search-'..m,n)
+    local values=decode(data,3,15)
+    if values and values[1]<=(m==1 and 15 or 1) and values[2]<=2 and values[3]<=(m==1 and 4 or 1) and
+       (values[3]==0 or (values[2]>0 and not has(values[1],values[3]))) then
+      found,hints,revealed=values[1],values[2],values[3]
+    end
+  end
+  local old=state.levels[m]
+  if old>TOTAL[m] then
+    state.found[m][old]=nil;state.hints[m][old]=nil;state.revealed[m][old]=nil
+  end
+  state.found[m][n]=found;state.hints[m][n]=hints;state.revealed[m][n]=revealed
 end
 local function initialize()
   S={mode=1,levels={1,1},unlocked={1,1},found={},hints={},revealed={},selected=nil}
@@ -67,21 +104,27 @@ local function initialize()
 end
 local function restore()
   if not C or not C.storage then return false end
-  local ok,data=pcall(function() return C.storage:read('word-hunt.txt') end)
-  if not ok or type(data)~='string' then return false end
+  local ok,data=pcall(function()
+    local data,err=C.storage:read('word-hunt.txt')
+    if not data and err and err~='not_found' then error('Save read failed') end
+    return data
+  end)
+  if not ok then error('Could not read saved progress') end
+  if type(data)~='string' then return false end
   local f={}
   for k,v in data:gmatch('([%w_]+)=([^\n]*)') do f[k]=v end
-  if f.version~='1' then return false end
+  if f.version~='1' and f.version~='2' then return false end
   local mode=tonumber(f.mode)
-  local levels=decode(f.levels,2,math.max(TOTAL[1],TOTAL[2]))
-  local unlocked=decode(f.unlocked,2,math.max(TOTAL[1],TOTAL[2]))
+  local limit=f.version=='1' and math.max(TOTAL[1],TOTAL[2]) or MAX
+  local levels=decode(f.levels,2,limit)
+  local unlocked=decode(f.unlocked,2,limit)
   if not mode or mode~=math.floor(mode) or mode<1 or mode>2 or not levels or not unlocked then return false end
   local result={
     mode=mode,levels=levels,unlocked=unlocked,
     found={},hints={},revealed={},selected=nil
   }
   for m=1,2 do
-    if levels[m]<1 or levels[m]>TOTAL[m] or unlocked[m]<levels[m] or unlocked[m]>TOTAL[m] then return false end
+    if levels[m]<1 or unlocked[m]<levels[m] then return false end
     local suffix=m==1 and 'C' or 'F'
     result.found[m]=decode(f['found'..suffix],TOTAL[m],m==1 and 15 or 1)
     result.hints[m]=decode(f['hints'..suffix],TOTAL[m],2)
@@ -93,13 +136,23 @@ local function restore()
       local all=(m==1 and 15 or 1)
       if result.found[m][i]==all and i<TOTAL[m] and unlocked[m]<i+1 then return false end
     end
+    if result.found[m][TOTAL[m]]==(m==1 and 15 or 1) then
+      unlocked[m]=math.max(unlocked[m],TOTAL[m]+1)
+    end
+    load_generated(result,m,levels[m])
   end
   S=result;MSG=nil;HELP=false
   return true
 end
 local function visit(newLevel)
   local m=S.mode
-  if newLevel<1 or newLevel>TOTAL[m] or newLevel>S.unlocked[m] then return false end
+  if newLevel<1 or newLevel>MAX or newLevel~=math.floor(newLevel) or newLevel>S.unlocked[m] then return false end
+  if not save() then return true end
+  local old=S.levels[m]
+  if newLevel>TOTAL[m] then load_generated(S,m,newLevel) end
+  if old>TOTAL[m] and old~=newLevel then
+    S.found[m][old]=nil;S.hints[m][old]=nil;S.revealed[m][old]=nil
+  end
   S.levels[m]=newLevel
   S.selected=nil
   MSG=nil;HELP=false
@@ -176,7 +229,7 @@ local function select_cell(x,y)
       if S.revealed[m][n]==i then S.revealed[m][n]=0 end
       MSG='Found '..word..'!'
       if complete() then
-        S.unlocked[m]=math.min(TOTAL[m],math.max(S.unlocked[m],n+1))
+        S.unlocked[m]=math.min(MAX,math.max(S.unlocked[m],n+1))
         MSG='Puzzle completed!'
       end
       save()
@@ -205,6 +258,8 @@ local function draw_help(g)
     'FOX: find one straight FOX among F, O and X. Read either direction.', 'medium')
   UI.paragraph(g,C,28,449,424,169,
     'HINT rings a start cell. Two hints per puzzle. RESET only clears the current grid; both modes save independently.', 'medium')
+  UI.paragraph(g,C,28,625,424,68,
+    'After eight boards, NEXT generates more. Earlier puzzles stay saved.', 'small')
   button(g,72,704,336,68,'BACK TO GAME')
 end
 local function render(g)
@@ -216,12 +271,12 @@ local function render(g)
   if S.mode==1 then g:line(266,61,323,61,{line_width=3})
   else g:line(360,61,404,61,{line_width=3}) end
   local p=level()
-  text(g,24,78,(S.mode==1 and 'WORDS ' or 'FOX ')..S.levels[S.mode]..'/'..TOTAL[S.mode]..'  '..p.title,'medium',nil,433)
+  text(g,24,78,(S.mode==1 and 'WORDS ' or 'FOX ')..S.levels[S.mode]..'  '..p.title,'medium',nil,433)
   g:line(24,118,456,118,{line_width=2})
   if HELP then draw_help(g);return end
   local bx,by,cell=geometry()
   UI.region(bx,by,p.n*cell,p.n*cell)
-  g:rect(bx,by,cell*p.n,cell*p.n,{line_width=1})
+  g:rect(bx,by,cell*p.n,cell*p.n,{line_width=3})
   local m,n=S.mode,S.levels[S.mode]
   local found=S.found[m][n]
   local marked={}
@@ -280,7 +335,7 @@ local function render(g)
   button(g,20,713,100,65,S.levels[m]>1 and 'PREV' or 'START')
   button(g,132,713,100,65,'RESET')
   button(g,244,713,100,65,'HINT')
-  if S.levels[m]<TOTAL[m] and S.levels[m]<S.unlocked[m] then
+  if S.levels[m]<S.unlocked[m] then
     button(g,356,713,104,65,'NEXT')
   elseif complete() then
     text(g,409,733,'DONE','small','center',90)
@@ -312,7 +367,8 @@ local function redraw()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(context)
-  C=context or ctx;ERR=nil
+  Theme.release()
+  C=context or ctx;S=nil;ERR=nil;KEY_MS=-1000
   local ok,e=pcall(function() if not restore() then initialize() end end)
   if not ok then ERR=tostring(e) end
 end
@@ -320,7 +376,7 @@ function on_draw(context,g)
   if context then C=context end
   if not g then return end
   if ERR then UI.error(g,C,'WORD HUNT',ERR);return end
-  local ok,e=pcall(function() render(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,render) end)
   if not ok then ERR=tostring(e);UI.error(g,C,'WORD HUNT',ERR) end
 end
 function on_input(context,e)
@@ -341,19 +397,19 @@ function on_input(context,e)
       end
       if now and now>=KEY_MS and now-KEY_MS<230 then return end
       if now then KEY_MS=now end
-      changed=e.key=='up' and prev_level() or next_level()
+      if e.key=='up' then changed=prev_level() else changed=next_level() end
     end
   end)
   if not ok then ERR=tostring(err);changed=true end
   if changed then redraw() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release(); if S then save() end end
 if rawget(_G,'__TEST') then
   __TEST.api={
     data=P,state=function() return S end,select=select_cell,tap=tap,
     visit=visit,mode=set_mode,reset=restart,hint=hint,
     next=next_level,prev=prev_level,complete=complete,
-    count=count,geometry=geometry,restore=restore
+    count=count,geometry=geometry,restore=restore,puzzle=level
   }
 end

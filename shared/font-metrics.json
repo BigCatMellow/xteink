@@ -1,0 +1,50 @@
+{
+  "images": 333,
+  "decoded_pixels": 64384,
+  "decoded_rgb_bytes": 193152,
+  "png_bytes": 33413,
+  "lua_bytes": 80048,
+  "roles": {
+    "small": {
+      "name": "Inter",
+      "size": 20,
+      "weight": 500,
+      "line_height": 22
+    },
+    "medium": {
+      "name": "Poppins-Medium",
+      "size": 24,
+      "weight": 500,
+      "line_height": 31
+    },
+    "large": {
+      "name": "Poppins-SemiBold",
+      "size": 30,
+      "weight": 600,
+      "line_height": 32
+    },
+    "body": {
+      "name": "Inter",
+      "size": 24,
+      "weight": 500,
+      "line_height": 26
+    },
+    "clue_small": {
+      "name": "Inter",
+      "size": 20,
+      "weight": 500,
+      "line_height": 20
+    },
+    "clue": {
+      "name": "Inter",
+      "size": 24,
+      "weight": 500,
+      "line_height": 24
+    }
+  },
+  "source_sha256": {
+    "Inter.ttf": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+    "Poppins-Medium.ttf": "90373e7d838d32468438fc3e152dca0bdb12edcab99ea639f158790b1ba1fd05",
+    "Poppins-SemiBold.ttf": "d3bf1bdaf0550e83da9ac0b1d1d9fe6db086835a83aa28578e609a394b9a0286"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "game": "sudoku",
+  "app_id": "sudoku",
+  "name": "Sudoku",
+  "version": "0.3.0",
+  "file": "sudoku-0.3.0.xtapp",
+  "bytes": 120976,
+  "sha256": "ebd0af3c0f87244fc8c2613250335599c38eefe31095c752247368c51bb04d3b",
+  "personal_data": false,
+  "device_tested": false
+}

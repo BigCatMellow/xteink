@@ -1,0 +1,31 @@
+name: Build Games Hub
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install host tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lua5.4
+          python -m pip install cryptography Pillow==10.2.0
+      - name: Get pinned community packer
+        run: |
+          git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
+          git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
+      - name: Verify source freshness, all games, collection and package
+        run: python scripts/check_games.py --packer /tmp/xtapp-tools/xtpack.py --linter /tmp/xtapp-tools/tools/lualint55.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: games-hub-xtapp
+          path: dist/games-hub.xtapp
+          if-no-files-found: error

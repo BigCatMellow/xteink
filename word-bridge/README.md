@@ -1,5 +1,7 @@
 # Word Bridge — short word-ladder puzzles on XTEINK X4 Pro
 
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
+
 A completely offline, black-and-white word-chain game for **XTOS Licorice** on XTEINK X4 Pro (480×800). Each level supplies twelve fixed four-letter English word cards, a start word, a goal word, and a strict move budget.
 
 ## Rules

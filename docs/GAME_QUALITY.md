@@ -14,6 +14,13 @@ The canonical helper is `shared/game_ui.lua`. App-local `ui.lua` files are
 generated copies because XTApp packages cannot import files outside their own
 app. Run `python3 scripts/sync_game_ui.py`; CI rejects drift or raw text calls.
 
+The adopted presentation contract is [GAME_DESIGN.md](GAME_DESIGN.md).
+`scripts/sync_game_theme.py` verifies the shared theme, style tokens, bitmap
+renderer, glyph data and licenses in all active game packages. The quality gate
+also replays each full gameplay suite through `tests/run_themed_game.lua`, using
+the actual shipped bitmap metrics, glyph ink bounds and cache lifecycle. The
+canonical font sources/export live under `assets/fonts/game-ui/` and `shared/`.
+
 Use crisp lines, understandable symbols, consistent spacing and readable type.
 E-ink does not excuse weak presentation. Color or grayscale must not be the
 only explanation of a state; avoid gratuitous refreshes and animations.
@@ -64,6 +71,15 @@ and fails if a game is missing from that list. The global workflow runs on pushe
 and pull requests, including changes to shared helpers and tests.
 
 ## Physical release check
+
+Games Hub is registered under `COLLECTIONS` alongside `GAMES`, with mandatory
+checks in the same runner. `build_game_hub.py --check` rejects source drift and
+firmware code/file budget overflow. The original gameplay suites run through
+every bundled engine and namespaced context, both native and bitmap. Hub tests
+check the reserved header menu target, all menu pages, actual game switching,
+saved boards/undo, read/write failures, font cleanup and first-launch import
+retry/no-overwrite behavior. The USB migration test uses a fake card. No
+personal save payload may be checked into `games-hub/app` or public releases.
 
 Install over the previous app without removing its files. Check real font
 placement, clear line intersections, touch targets, sleep/resume and existing

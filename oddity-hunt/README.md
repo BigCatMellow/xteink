@@ -1,5 +1,7 @@
 # Oddity Hunt — original illustrated seek-and-find for XTEINK X4 Pro
 
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
+
 A **static black-and-white I Spy–style game** made for the 480 × 800 XTEINK X4 Pro running XTOS Licorice. The scenes and 20 miniature line-art object types are original; no I Spy photographs, branded books, or proprietary image assets are included.
 
 **v0.1:** Twelve illustrated shelves, each containing **42 drawn objects** and **five objects to find**. There are 504 object placements across the game and 60 individual searches. Objects are placed with deliberately varied positions rather than being labeled on a grid.

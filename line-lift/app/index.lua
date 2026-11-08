@@ -4,6 +4,7 @@
 -- Tap a circular pull point; if another rod lies above it, the puzzle resets.
 local W,H=480,800
 local UI=require('ui')
+local Theme=require('theme')
 local GX,GY,STEP=45,151,39
 local MAX=12
 local CTX,STATE,LEVEL,ERROR,MESSAGE
@@ -286,7 +287,7 @@ local function centered(g,x,y,label,which)
   UI.text(g,CTX,x,y,label,which,'center')
 end
 local function button(g,x,y,w,h,label)
-  UI.button(g,CTX,x,y,w,h,label,true)
+  UI.button(g,CTX,x,y,w,h,label,false)
 end
 
 local function draw_rod(g,rod)
@@ -369,13 +370,13 @@ local function draw(g)
   button(g,382,16,68,45,tutorial and 'X' or '?')
   local cleared=0
   for i=1,#LEVEL.groups do if not active(i) then cleared=cleared+1 end end
-  UI.text(g,CTX,30,82,'MECHANISM '..string.format('%02d',STATE.level)..' / '..string.format('%02d',MAX),'medium',nil,242)
+  UI.text(g,CTX,30,82,'Puzzle '..string.format('%02d',STATE.level)..' / '..string.format('%02d',MAX),'medium',nil,242)
   UI.text(g,CTX,294,82,cleared..'/'..#LEVEL.groups..' RELEASED','small',nil,156)
   g:line(30,110,450,110,{line_width=2})
   g:line(30,118,450,118,{line_width=1})
   if tutorial then draw_help(g); return end
 
-  g:rect(28,136,424,422,{line_width=1})
+  g:rect(28,136,424,422,{line_width=3})
   UI.region(18,126,444,442)
 
   for _,rod in ipairs(LEVEL.rods) do
@@ -447,6 +448,7 @@ local function invalidate()
 end
 
 function on_load(c)
+  Theme.release()
   CTX=c or ctx
   ERROR=nil
   local ok,e=pcall(function()
@@ -461,7 +463,7 @@ function on_draw(c,g)
     UI.error(g,CTX,'LINE LIFT',ERROR)
     return
   end
-  local ok,e=pcall(function() draw(g) end)
+  local ok,e=pcall(function() Theme.draw(CTX,g,draw) end)
   if not ok then
     ERROR=tostring(e)
     pcall(function()
@@ -499,7 +501,7 @@ function on_input(c,e)
   if handled then invalidate() end
   return handled
 end
-function on_leave()
+function on_leave() Theme.release();
   if STATE then write_save() end
 end
 

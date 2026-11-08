@@ -2,6 +2,7 @@
 -- No animation, no network, no color dependence. 480x800 portrait.
 local W,H=480,800
 local UI=require('ui')
+local Theme=require('theme')
 local N=7
 local CELL,BX,BY=54,51,141
 local MAX_LEVEL=10
@@ -251,7 +252,7 @@ local function center(g,x,y,s,which)
   UI.text(g,C,x,y,s,which,'center')
 end
 local function box(g,x,y,w,h,label)
-  UI.button(g,C,x,y,w,h,label,true)
+  UI.button(g,C,x,y,w,h,label,false)
 end
 local function draw_tiles(g)
   UI.region(BX-9,BY-9,N*CELL+18,N*CELL+18)
@@ -347,15 +348,14 @@ local function draw(g)
   end
   for i,v in ipairs(BOARD.hand) do
     local cx=30+(i-1)*87
-    g:rect(cx,562,75,65,{line_width=2})
-    g:rect(cx+4,566,67,57,{line_width=1})
+    g:rect(cx,562,75,65,{line_width=2,radius=8})
     if used(STATE.mask,i) then
       g:line(cx+8,570,cx+67,619)
       g:line(cx+8,619,cx+67,570)
     else
       center(g,cx+37,576,tostring(v),'large')
       for p=1,v do g:circle(cx+18+(p-1)*18,613,2,{fill=true}) end
-      if STATE.selected==i then g:rect(cx+3,565,69,59,{line_width=1}) end
+      if STATE.selected==i then g:rect(cx+3,565,69,59,{line_width=1,radius=5}) end
     end
   end
   center(g,240,647,'Tap a card, then choose a direction','small')
@@ -393,6 +393,7 @@ local function refresh()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(c)
+  Theme.release()
   C=c or ctx
   ERR=nil
   local ok,err=pcall(function()
@@ -407,7 +408,7 @@ function on_draw(c,g)
     UI.error(g,C,'SUMMIT PUTT',ERR)
     return
   end
-  local ok,err=pcall(function() draw(g) end)
+  local ok,err=pcall(function() Theme.draw(C,g,draw) end)
   if not ok then ERR=tostring(err) end
 end
 function on_input(c,e)
@@ -445,7 +446,7 @@ function on_input(c,e)
   refresh()
   return true
 end
-function on_leave()
+function on_leave() Theme.release();
   if STATE then save() end
 end
 if rawget(_G,'__TEST') then

@@ -202,6 +202,7 @@ local function font(which)
   return C and C.fonts and C.fonts[which or 'medium']
 end
 local UI=require('ui')
+local Theme=require('theme')
 local function put(g,x,y,s,which,align)
   UI.text(g,C,x,y,s,which,align)
 end
@@ -279,6 +280,7 @@ local function refresh()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(c)
+  Theme.release()
   C=c or ctx;ERR=nil
   local ok,e=pcall(function() if not restore() then start(1,1) end end)
   if not ok then ERR=tostring(e) end
@@ -290,7 +292,7 @@ function on_draw(c,g)
     UI.error(g,C,'ISLAND LINKS',ERR)
     return
   end
-  local ok,e=pcall(function() draw(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,draw) end)
   if not ok then ERR=tostring(e) end
 end
 function on_input(c,e)
@@ -318,7 +320,7 @@ function on_input(c,e)
   if changed then refresh() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release(); if S then save() end end
 if rawget(_G,'__TEST') then
   __TEST.api={
     levels=LEVELS,nodes=nodes,links=links,crosses=crosses,stats=stats,

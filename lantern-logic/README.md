@@ -1,5 +1,7 @@
 # Lantern Logic — static Light Up puzzles for XTEINK X4 Pro
 
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
+
 An original implementation of the public-domain-style **Akari / Light Up** logic puzzle, with 16 newly generated, frozen and solver-verified boards. The app uses only black-and-white 480×800 graphics, tap input and a static redraw. No animation, networking, clocks or sound. It is a separate Ink App for XTOS Licorice.
 
 ## Rules

@@ -12,5 +12,7 @@
 10. RESET on one grid must not clear progress on others. Physical page buttons navigate only.
 11. Check a long word in an 8×8 grid, help screen, all four bottom controls, and highlighted letters for alignment and ghosting.
 12. Leave idle; there should be no animation or periodic redraw.
+13. Upgrade from v0.1.1 with unfinished searches in both modes; finds, hints and unlocks must remain. Complete each mode's eighth puzzle and verify NEXT generates puzzle 9.
+14. Start a generated grid, find one word, use a hint, visit an earlier puzzle and relaunch. Return to the exact same grid, find count and hint state. Record generation time for WORDS and FOX.
 
 CI validates uniqueness and host rendering but cannot substitute for this device check.

@@ -2,7 +2,8 @@
 """Rasterize the repository's vector icons into native 96px 1-bit app icons.
 
 Uses only Pillow. The supported SVG subset is deliberately small: rect, circle,
-polyline, polygon, and absolute M/L/H/V paths. Unknown elements fail the build.
+polyline, polygon, absolute M/L/H/V paths, and text in the shipped Poppins fonts.
+Unknown elements fail the build.
 Run --check to compare pixels without writing; --sheet writes a review contact
 sheet at 96px and 64px. Artwork remains editable as SVG in assets/icons/.
 """
@@ -14,9 +15,9 @@ import xml.etree.ElementTree as ET
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from sync_game_ui import GAMES, ROOT
+from sync_game_ui import GAMES, COLLECTIONS, ROOT
 
-APPS = (*GAMES, 'wallpaper-randomizer')
+APPS = (*GAMES, *COLLECTIONS, 'wallpaper-randomizer')
 SIZE, SCALE = 96, 4
 
 
@@ -85,6 +86,14 @@ def render(source):
             x, y, w, h = number('x'), number('y'), number('width'), number('height')
             radius = number('rx')
             pen.rounded_rectangle((x, y, x+w, y+h), radius=radius, fill=fill, outline=stroke, width=width)
+        elif kind == 'text':
+            family = shape.get('font-family', 'Poppins')
+            weight = shape.get('font-weight', '600')
+            assert family == 'Poppins' and weight in ('500', '600'), 'Use the canonical Poppins icon typography'
+            file = 'Poppins-SemiBold.ttf' if weight == '600' else 'Poppins-Medium.ttf'
+            font = ImageFont.truetype(str(ROOT/'assets/fonts/game-ui'/file), round(number('font-size', '20')))
+            assert shape.get('text-anchor', 'middle') == 'middle'
+            pen.text((number('x'),number('y')), shape.text or '', fill=fill, font=font, anchor='mm', features=['-kern'])
         elif kind in ('polyline', 'polygon', 'path'):
             if kind == 'path':
                 paths = path_lines(shape.get('d'))

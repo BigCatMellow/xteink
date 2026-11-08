@@ -1,5 +1,7 @@
 # Summit Putt — XTEINK X4 Pro
 
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
+
 An original, offline card-routing golf puzzle made for **XTOS Licorice** on the XTEINK X4 Pro. Inspired by the *idea* of a golf ball controlled by single-use movement cards, not a port of **Golf Peaks**. Maps, title, graphics, level arrangements, and code are original; none of the commercial game's art or stages is included.
 
 **Status:** v0.4 — measured typography, separated header/status/control rows, programmatic gameplay tests, an in-game rules guide, and packaging workflow; **not yet verified on a physical X4 Pro**.

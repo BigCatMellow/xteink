@@ -1,7 +1,7 @@
 {
   "app_id": "oddityhunt",
   "display_name": "Oddity Hunt",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "author": "BigCatMellow",
   "description": "Original static seek-and-find illustrated objects for XTEINK X4 Pro",
   "entry": "index.lua",

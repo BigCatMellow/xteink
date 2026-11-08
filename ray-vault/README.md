@@ -1,5 +1,7 @@
 # Ray Vault — hidden-atom deduction for XTEINK X4 Pro
 
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
+
 An original 6×6 **Black Box-style** logic game for the XTEINK X4 Pro running XTOS Licorice. Completely static, monochrome and offline. Inspired by a traditional deduction mechanic, not a reproduction of any commercial game's art, branding or published level set.
 
 **Version 0.2:** 12 frozen original atom arrangements; 3 atoms on levels 1–6 and 4 on 7–12. Adds illustrated rules, measured layouts and safe resume before submitting an answer.

@@ -1,5 +1,7 @@
 # Island Links — original Bridges/Hashi logic game for XTEINK X4 Pro
 
+Presentation follows the [shared game design contract](../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
+
 A compact, static monochrome version of the classic **Bridges (Hashiwokakero)** logic puzzle, with 12 original boards specifically built for the 480×800 XTEINK X4 Pro on XTOS Licorice.
 
 ## Rules

@@ -23,7 +23,7 @@ on_load(ctx)
 local s=A.state()
 eq(s.mode,1);eq(s.levels[1],1);eq(s.unlocked[2],1)
 assert(not A.next())
-assert(storage['word-hunt.txt']:find('version=1',1,true))
+assert(storage['word-hunt.txt']:find('version=2',1,true))
 eq(#A.data.classic,8);eq(#A.data.fox,8)
 
 local function choose_word(p,i,reverse)
@@ -45,7 +45,7 @@ local function finish(mode,number)
     eq(A.count(),i,'found count increases by one')
   end
   assert(A.complete(),'puzzle completed')
-  eq(s.unlocked[mode],math.min(8,number+1),'unlocked stage')
+  eq(s.unlocked[mode],number+1,'unlocked stage')
   measured(ctx,on_draw,'word-hunt solved '..mode..'/'..number)
   on_leave();on_load(ctx)
   s=A.state()
@@ -100,11 +100,12 @@ for n=1,8 do
   finish(1,n)
   if n<8 then assert(A.next()) end
 end
-assert(not A.next())
+assert(A.next(),'generated classic puzzle follows authored finale')
+eq(s.levels[1],9);assert(A.prev())
 -- Separate-mode progress and independent save arrays.
 assert(A.mode(2))
 eq(s.levels[2],1);eq(s.unlocked[2],1)
-eq(s.unlocked[1],8)
+eq(s.unlocked[1],9)
 assert(A.hint());measured(ctx,on_draw,'fox hint')
 on_leave();on_load(ctx);s=A.state()
 eq(s.mode,2);eq(s.hints[2][1],1)
@@ -115,9 +116,10 @@ for n=1,8 do
   finish(2,n)
   if n<8 then assert(A.next()) end
 end
-assert(not A.next())
+assert(A.next(),'generated FOX follows authored finale')
+eq(s.levels[2],9);assert(A.prev())
 assert(A.mode(1))
-eq(s.unlocked[1],8)
+eq(s.unlocked[1],9)
 assert(A.prev())
 eq(s.levels[1],7)
 assert(A.next())
@@ -178,8 +180,55 @@ for mode=1,2 do
   measured(ctx,on_draw,'word-hunt help '..mode)
   A.tap(440,35)
 end
+-- A legacy v1 save migrates all finds/hints and opens the generated continuation.
+local legacy=storage['word-hunt.txt']:gsub('version=2','version=1'):gsub('unlocked=[^\n]+','unlocked=8,8')
+storage['word-hunt.txt']=legacy
+on_load(ctx);s=A.state()
+eq(s.levels[2],8);eq(s.unlocked[1],9);eq(s.unlocked[2],9)
+assert(A.complete(),'legacy completed board retained')
+-- Reproducible generated boards, both independent mode saves and sparse state.
+for mode=1,2 do
+  if s.mode~=mode then A.mode(mode) end
+  assert(A.visit(9))
+  for number=9,20 do
+    local p=A.puzzle()
+    local signature=table.concat(p.rows)
+    eq(s.levels[mode],number)
+    A.hint();measured(ctx,on_draw,'generated hint '..mode..'/'..number)
+    choose_word(p,1)
+    on_leave();on_load(ctx);s=A.state()
+    eq(table.concat(A.puzzle().rows),signature,'seed survives reload')
+    eq(A.count(),1,'generated find retained')
+    if mode==1 then
+      assert(A.prev());on_leave();on_load(ctx);s=A.state();assert(A.next())
+      eq(A.count(),1,'generated partial survives a level visit')
+      eq(s.hints[mode][number],1,'generated hint use retained')
+      for i=2,4 do choose_word(A.puzzle(),i) end
+    end
+    assert(A.complete())
+    measured(ctx,on_draw,'generated solved '..mode..'/'..number)
+    assert(A.next(),'no authored last-level stop')
+  end
+  local entries=0
+  for _ in pairs(s.found[mode]) do entries=entries+1 end
+  assert(entries<=9,'generated boards do not accumulate in RAM')
+end
+-- Header, hints and counters also fit a very large puzzle number.
+s.unlocked[s.mode]=999999999
+assert(A.visit(999999999))
+A.hint();measured(ctx,on_draw,'word hunt maximum puzzle number')
+local working_write=ctx.storage.write
+ctx.storage.write=function() return nil,'quota' end
+assert(A.prev());eq(s.levels[s.mode],999999999,'failed save prevents leaving generated puzzle')
+measured(ctx,on_draw,'word hunt save failure')
+ctx.storage.write=working_write
+assert(A.visit(1))
+before=redraws
+assert(not on_input(ctx,{type='key',phase='down',key='up',time_ms=20000}))
+eq(s.levels[s.mode],1,'PREV at first puzzle must not fall through to NEXT')
+eq(redraws,before)
 storage['word-hunt.txt']='version=1\nmode=9\nlevels=400\n'
 on_load(ctx)
 eq(A.state().mode,1,'corrupt save safely reset')
 assert(type(on_tick)=='nil','no animation timer')
-print('Word Hunt: 8 classic + 8 FOX boards, saves, hints, selection, 8-way input and layout PASS')
+print('Word Hunt: authored + generated WORDS/FOX, legacy saves, visits, hints and layout PASS')

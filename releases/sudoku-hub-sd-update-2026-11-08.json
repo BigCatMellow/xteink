@@ -1,0 +1,27 @@
+{
+  "card": "/media/mellow/4A21-0000",
+  "backup": "/home/mellow/Backups/xteink-sudoku-hub-direct-20261108-104456",
+  "updates": [
+    {
+      "app_id": "sudoku",
+      "from": "0.2.0",
+      "to": "0.3.0",
+      "sha256": "ebd0af3c0f87244fc8c2613250335599c38eefe31095c752247368c51bb04d3b"
+    },
+    {
+      "app_id": "gameshub",
+      "from": "0.1.0",
+      "to": "0.2.0",
+      "sha256": "95582549a211d8c97e60de43befea3ff7d0eeef307d3b5f59a1220a11e4fb4c6"
+    }
+  ],
+  "installed_files_verified": 346,
+  "save_files_preserved": 326,
+  "unrelated_installed_files_unchanged": 344,
+  "recovery_installers_updated": [
+    "Apps/sudoku.xtapp",
+    "Apps/games-hub.xtapp"
+  ],
+  "flushed": true,
+  "device_launch_verified": false
+}

@@ -1,6 +1,7 @@
 -- Rectangle Rooms: original Shikaku partition puzzles for XTEINK X4 Pro.
 -- Tap opposite corners, one static e-ink redraw per accepted action.
 local UI=require('ui')
+local Theme=require('theme')
 local Puzzles=require('puzzles')
 local TOTAL=#Puzzles
 local C,S,ERR,MSG=nil,nil,nil,nil
@@ -213,7 +214,7 @@ local function render(g)
     for x=1,gdata.n do
       local px=bx+(x-1)*cell
       local py=by+(y-1)*cell
-      g:rect(px,py,cell,cell,{line_width=1})
+      g:rect(px,py,cell,cell,{line_width=2})
       local i=(y-1)*gdata.n+x
       local clue=gdata.nums[i]
       if clue>0 then
@@ -272,6 +273,7 @@ local function refresh()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(context)
+  Theme.release()
   C=context or ctx;ERR=nil
   local ok,e=pcall(function() if not restore() then start() end end)
   if not ok then ERR=tostring(e) end
@@ -280,7 +282,7 @@ function on_draw(context,g)
   if context then C=context end
   if not g then return end
   if ERR then UI.error(g,C,'RECTANGLE ROOMS',ERR);return end
-  local ok,e=pcall(function() render(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,render) end)
   if not ok then ERR=tostring(e);UI.error(g,C,'RECTANGLE ROOMS',ERR) end
 end
 function on_input(context,event)
@@ -308,7 +310,7 @@ function on_input(context,event)
   if changed then refresh() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release(); if S then save() end end
 if rawget(_G,'__TEST') then
   __TEST.api={
     puzzles=Puzzles,state=function() return S end,

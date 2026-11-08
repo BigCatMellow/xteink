@@ -1,6 +1,7 @@
 -- ODDITY HUNT: original illustrated seek-and-find game for XTEINK X4 Pro.
 -- Static black-and-white drawing; no animations, update loop or timers.
 local UI=require('ui')
+local Theme=require('theme')
 local Scenes=require('scenes')
 local Art=require('art')
 local TOTAL=#Scenes.LEVELS
@@ -211,7 +212,7 @@ local function draw(g)
   if HELP then help_screen(g);return end
 
   UI.region(18,137,444,414)
-  g:rect(18,137,444,414,{line_width=2})
+  g:rect(18,137,444,414,{line_width=3})
   for i=0,4 do
     local lineY=204+i*70
     g:line(24,lineY,456,lineY,{line_width=1})
@@ -264,6 +265,7 @@ local function refresh()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(context)
+  Theme.release()
   C=context or ctx
   ERR=nil
   local ok,e=pcall(function() if not restore() then start() end end)
@@ -273,7 +275,7 @@ function on_draw(context,g)
   if context then C=context end
   if not g then return end
   if ERR then UI.error(g,C,'ODDITY HUNT',ERR);return end
-  local ok,e=pcall(function() draw(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,draw) end)
   if not ok then ERR=tostring(e);UI.error(g,C,'ODDITY HUNT',ERR) end
 end
 function on_input(context,event)
@@ -301,7 +303,7 @@ function on_input(context,event)
   if changed then refresh() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release(); if S then save() end end
 
 if rawget(_G,'__TEST') then
   __TEST.api={

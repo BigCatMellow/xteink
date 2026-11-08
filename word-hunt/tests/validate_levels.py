@@ -6,6 +6,7 @@ The F/O/X mode must contain only those letters, and its eight puzzles must
 collectively cover every compass direction, as in the supplied example.
 """
 import re
+import subprocess
 from pathlib import Path
 
 SOURCE=(Path(__file__).resolve().parents[1]/'app'/'puzzles.lua').read_text(encoding='utf-8')
@@ -50,3 +51,52 @@ for i,(name,size,rows_literal,words_literal,paths_literal) in enumerate(games,1)
     print(f'{i:02}: {name:15} {n}x{n} {", ".join(words)} - unique, 8-way scan')
 assert fox_dirs==DIRECTIONS,f'Expected all eight FOX directions, found {fox_dirs}'
 print('PASS: 8 classic and 8 FOX searches, every word unique, all eight FOX directions')
+
+# Scan generated grids independently of the generator's own uniqueness check.
+script = r"""
+package.path='app/?.lua;'..package.path
+local G=require('generator')
+local function emit(mode,seed,p,kind)
+  local paths={}
+  for i,a in ipairs(p.paths) do paths[i]=table.concat(a,',') end
+  print(table.concat({kind,mode,seed,table.concat(p.rows,','),table.concat(p.words,','),table.concat(paths,';')},'\t'))
+end
+for mode=1,2 do
+  for seed=9,108 do emit(mode,seed,G.generate(mode,seed),'normal') end
+  for _,seed in ipairs({999999998,999999999}) do emit(mode,seed,G.generate(mode,seed),'normal') end
+end
+-- Exercise guaranteed constructions, not just the usually accepted candidates.
+local file=assert(io.open('app/generator.lua'));local source=file:read('*a');file:close()
+source=source:gsub('for attempt=1,64 do','for attempt=1,0 do'):gsub('for repair=1,2048 do','for repair=1,0 do')
+local fallback=assert((loadstring or load)(source))()
+for mode=1,2 do for seed=1,32 do emit(mode,seed,fallback.generate(mode,seed),'fallback') end end
+"""
+output = subprocess.check_output(['lua', '-'], input=script, text=True,
+    cwd=Path(__file__).resolve().parents[1])
+seen = {1: set(), 2: set()}
+for record in output.splitlines():
+    kind, mode, seed, raw_rows, raw_words, raw_paths = record.split('\t')
+    mode, seed = int(mode), int(seed)
+    rows, words = raw_rows.split(','), raw_words.split(',')
+    paths = [tuple(map(int, path.split(','))) for path in raw_paths.split(';')]
+    n = 8 if mode == 1 else 13
+    assert len(rows) == n and all(len(row) == n for row in rows)
+    assert len(words) == len(paths) == (4 if mode == 1 else 1)
+    assert len(set(words)) == len(words)
+    if mode == 2:
+        assert set(''.join(rows)) == set('FOX') and words == ['FOX']
+    if kind == 'normal':
+        assert tuple(rows) not in seen[mode], 'repeated board within sample'
+        seen[mode].add(tuple(rows))
+    for word, path in zip(words, paths):
+        occurrences = []
+        for y in range(n):
+            for x in range(n):
+                for dx, dy in DIRECTIONS:
+                    ex, ey = x + (len(word)-1)*dx, y + (len(word)-1)*dy
+                    if not (0 <= ex < n and 0 <= ey < n):
+                        continue
+                    if ''.join(rows[y+j*dy][x+j*dx] for j in range(len(word))) == word:
+                        occurrences.append((x+1, y+1, dx, dy))
+        assert occurrences == [path], (kind, mode, seed, word, occurrences, path)
+print('PASS: 204 generated grids + 64 forced fallbacks independently scanned in all eight directions')

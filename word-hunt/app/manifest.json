@@ -1,7 +1,7 @@
 {
   "app_id": "wordhunt",
   "display_name": "Word Hunt",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "author": "BigCatMellow",
   "description": "Classic word searches and Find the Fox, static monochrome for XTEINK X4 Pro",
   "entry": "index.lua",

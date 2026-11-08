@@ -2,10 +2,35 @@
 -- Tap cells to cycle blank -> ink -> X. Static monochrome refresh only.
 local UI=require('ui')
 local Pictures=require('pictures')
+local Generator=require('generator')
+local Store=require('puzzle_store')
+local Typefaces=require('typefaces')
+local Family=require('game_style')
 local TOTAL=#Pictures
+local MAX=999999999
+local generated=nil
+local function picture(level)
+  if level<=TOTAL then return Pictures[level] end
+  if not generated or generated.number~=level then
+    generated={number=level,puzzle=Generator.generate(level)}
+  end
+  return generated.puzzle
+end
 local C,S,ERR,MSG=nil,nil,nil,nil
+local FONTSET,D=nil,nil
+local FAILED_FONTSET=nil
+local NEEDS_FONTS=true
+local FONT_ERROR=nil
 local HELP=false
 local KEY_MS=-1000
+-- One geometry contract for visible controls and touch. See docs/DESIGN.md.
+local BUTTONS={
+  help={408,20,48,48},next={352,78,104,44},
+  prev={24,708,96,68},undo={132,708,96,68},
+  reset={240,708,96,68},check={348,708,108,68},
+  back={24,708,432,68}
+}
+local STYLE=Family
 local function copy(arr)
   local dst={}
   for i,v in ipairs(arr) do dst[i]=v end
@@ -23,7 +48,7 @@ local function runs(seq)
   return out
 end
 local function shape(level)
-  local p=Pictures[level]
+  local p=picture(level)
   if not p then error('Missing picture') end
   local n=#p.rows
   local rows,cols={},{}
@@ -57,7 +82,7 @@ local function decode(s,n)
   return a
 end
 local function picture_correct(level,marks)
-  local p=Pictures[level]
+  local p=picture(level)
   local n=#p.rows
   for y=1,n do
     for x=1,n do
@@ -79,21 +104,24 @@ local function counters()
   local p=current()
   local marks=S.boards[S.level]
   local rowOK,colOK=0,0
+  local rowMatches,colMatches={},{}
   for y=1,p.n do
     local state={}
     for x=1,p.n do state[x]=marks[(y-1)*p.n+x] end
-    if hint_equal(runs(state),p.rowClues[y]) then rowOK=rowOK+1 end
+    rowMatches[y]=hint_equal(runs(state),p.rowClues[y])
+    if rowMatches[y] then rowOK=rowOK+1 end
   end
   for x=1,p.n do
     local state={}
     for y=1,p.n do state[y]=marks[(y-1)*p.n+x] end
-    if hint_equal(runs(state),p.colClues[x]) then colOK=colOK+1 end
+    colMatches[x]=hint_equal(runs(state),p.colClues[x])
+    if colMatches[x] then colOK=colOK+1 end
   end
-  return rowOK,colOK
+  return rowOK,colOK,rowMatches,colMatches
 end
 local function save()
-  if not S or not C or not C.storage then return end
-  local lines={'version=1','level='..S.level,'unlocked='..S.unlocked}
+  if not S or not C or not C.storage then return true end
+  local lines={'version=2','level='..S.level,'unlocked='..S.unlocked}
   local won={}
   for i=1,TOTAL do won[i]=S.submitted[i] and '1' or '0' end
   lines[#lines+1]='submitted='..table.concat(won)
@@ -103,7 +131,39 @@ local function save()
     for j,m in ipairs(S.history[i]) do past[j]=code(m) end
     lines[#lines+1]='H'..i..'='..table.concat(past,';')
   end
-  pcall(function() C.storage:write('nonogram.txt',table.concat(lines,'\n')) end)
+  local ok=pcall(function()
+    if S.level>TOTAL then
+      local past={}
+      for j,m in ipairs(S.history[S.level]) do past[j]=code(m) end
+      local data=table.concat({code(S.boards[S.level]),S.submitted[S.level] and '1' or '0',table.concat(past,';')},'\n')
+      Store.put(C.storage,'pattern',S.level,data)
+    end
+    Store.write(C.storage,'nonogram.txt',table.concat(lines,'\n'))
+  end)
+  if not ok then MSG='Save failed - keep this puzzle open' end
+  return ok
+end
+local function load_generated(state,level)
+  if level<=TOTAL then return end
+  local n=#picture(level).rows
+  local marks,submitted,hist=fresh_marks(n),false,{}
+  if C and C.storage then
+    local data=Store.get(C.storage,'pattern',level)
+    if type(data)=='string' then
+      local b,won,past=data:match('^([^\n]+)\n([01])\n(.*)$')
+      local decoded=decode(b,n)
+      local valid=decoded~=nil
+      for part in (past or ''):gmatch('[^;]+') do
+        local snapshot=decode(part,n)
+        if not snapshot or #hist>=16 then valid=false;break end
+        hist[#hist+1]=snapshot
+      end
+      if valid and won and (won=='0' or picture_correct(level,decoded)) then
+        marks=decoded;submitted=won=='1'
+      else hist={} end
+    end
+  end
+  state.boards[level]=marks;state.history[level]=hist;state.submitted[level]=submitted
 end
 local function start()
   S={level=1,unlocked=1,boards={},history={},submitted={}}
@@ -118,14 +178,20 @@ local function start()
 end
 local function restore()
   if not C or not C.storage then return false end
-  local ok,data=pcall(function() return C.storage:read('nonogram.txt') end)
-  if not ok or type(data)~='string' then return false end
+  local ok,data=pcall(function()
+    local data,err=C.storage:read('nonogram.txt')
+    if not data and err and err~='not_found' then error('Save read failed') end
+    return data
+  end)
+  if not ok then error('Could not read saved progress') end
+  if type(data)~='string' then return false end
   local f={}
   for k,v in data:gmatch('([%w_]+)=([^\n]*)') do f[k]=v end
-  if f.version~='1' then return false end
+  if f.version~='1' and f.version~='2' then return false end
   local level,unlocked=tonumber(f.level),tonumber(f.unlocked)
-  if not level or level~=math.floor(level) or level<1 or level>TOTAL or
-     not unlocked or unlocked~=math.floor(unlocked) or unlocked<level or unlocked>TOTAL or
+  local limit=f.version=='1' and TOTAL or MAX
+  if not level or level~=math.floor(level) or level<1 or level>limit or
+     not unlocked or unlocked~=math.floor(unlocked) or unlocked<level or unlocked>limit or
      type(f.submitted)~='string' or #f.submitted~=TOTAL or
      f.submitted:find('[^01]') then return false end
   local loaded={level=level,unlocked=unlocked,boards={},history={},submitted={}}
@@ -145,12 +211,19 @@ local function restore()
     if loaded.submitted[i] and not picture_correct(i,marks) then return false end
     if loaded.submitted[i] and i<TOTAL and unlocked<i+1 then return false end
   end
+  if loaded.submitted[TOTAL] then loaded.unlocked=math.max(unlocked,TOTAL+1) end
+  load_generated(loaded,level)
   S=loaded
   HELP=false;MSG=nil
   return true
 end
 local function visit(level)
-  if not S or level<1 or level>TOTAL or level>S.unlocked then return false end
+  if not S or level<1 or level>MAX or level~=math.floor(level) or level>S.unlocked then return false end
+  if not save() then return true end
+  if level>TOTAL then load_generated(S,level) end
+  if S.level>TOTAL and S.level~=level then
+    S.boards[S.level]=nil;S.history[S.level]=nil;S.submitted[S.level]=nil
+  end
   S.level=level
   MSG=nil;HELP=false
   save()
@@ -184,36 +257,55 @@ end
 local function reset()
   if not S then return false end
   local n=S.level
-  S.boards[n]=fresh_marks(#Pictures[n].rows)
+  S.boards[n]=fresh_marks(#picture(n).rows)
   S.history[n]={}
   S.submitted[n]=false
   MSG='Fresh grid'
   save()
   return true
 end
+local function display_name(name)
+  return name:sub(1,1)..name:sub(2):lower()
+end
 local function check()
   if not S or S.submitted[S.level] then return false end
   if picture_correct(S.level,S.boards[S.level]) then
     S.submitted[S.level]=true
-    S.unlocked=math.min(TOTAL,math.max(S.unlocked,S.level+1))
-    MSG='REVEALED: '..Pictures[S.level].name
+    S.unlocked=math.min(MAX,math.max(S.unlocked,S.level+1))
+    MSG='Revealed: '..display_name(picture(S.level).name)
   else
-    MSG='Not solved - review the clues'
+    MSG='Not solved: review the clues'
   end
   save()
   return true
 end
 local function geometry()
-  local n=#Pictures[S.level].rows
-  if n==5 then return 147,262,58 end
-  if n==7 then return 138,247,44 end
-  return 135,246,39
+  local p=current()
+  local n=p.n
+  local cell=n==5 and 68 or n==7 and 48 or 44
+  local font=n==5 and 'clue' or 'clue_small'
+  local widest,maxColumn=0,0
+  for _,clue in ipairs(p.rowClues) do
+    local values={};for i,v in ipairs(clue) do values[i]=tostring(v) end
+    widest=math.max(widest,UI.width(D or C,table.concat(values,' '),font))
+  end
+  for _,clue in ipairs(p.colClues) do maxColumn=math.max(maxColumn,#clue) end
+  local gutter=widest+16
+  local height=UI.height(D or C,font)
+  local clueArea=14+height+(maxColumn-1)*(height+6)
+  -- Center the complete clue + board object in the 128..584 puzzle band.
+  local x=math.floor((480-(n*cell+gutter))/2)+gutter
+  local y=128+math.floor((456-(n*cell+clueArea))/2)+clueArea
+  return x,y,cell,gutter,clueArea
 end
-local function button(g,x,y,w,h,s)
-  UI.button(g,C,x,y,w,h,s)
+local function button(g,key,label,primary,enabled)
+  local b=BUTTONS[key]
+  UI.button(g,D or C,b[1],b[2],b[3],b[4],label,false,{
+    radius=STYLE.control_radius,line_width=enabled==false and STYLE.inactive_stroke or primary and STYLE.primary_stroke or STYLE.control_stroke
+  })
 end
 local function text(g,x,y,s,style,align,width)
-  UI.text(g,C,x,y,s,style,align,width)
+  UI.text(g,D or C,x,y,s,style,align,width)
 end
 local function format_run(list)
   local result={}
@@ -221,78 +313,108 @@ local function format_run(list)
   return table.concat(result,' ')
 end
 local function help_screen(g)
-  text(g,240,174,'HOW TO SOLVE','large','center',420)
-  UI.paragraph(g,C,25,235,430,126,
-    'Numbers give the lengths of black runs. Separate each run by a blank cell.', 'medium')
-  UI.paragraph(g,C,25,369,430,110,
-    'Tap a cell: blank, black, X, then clear. X means empty.', 'medium')
-  UI.paragraph(g,C,25,490,430,147,
-    'CHECK submits the picture. Wrong grids remain editable. Progress and UNDO are saved.', 'medium')
-  button(g,75,710,330,65,'BACK TO GRID')
+  text(g,240,164,'How to solve','large','center',432)
+  UI.paragraph(g,D or C,24,222,432,118,
+    'Each number is a run of filled cells. Leave at least one empty cell between runs.', 'body')
+  UI.paragraph(g,D or C,24,350,432,120,
+    'Tap a cell to cycle: filled, X, clear. X marks a cell you know is empty.', 'body')
+  UI.paragraph(g,D or C,24,484,432,116,
+    'Check reveals a solved picture. Undo and Reset affect this puzzle. Every board keeps your progress.', 'body')
+  UI.paragraph(g,D or C,24,614,432,72,
+    'Ticks mean a line matches its clues. More patterns follow picture 12.', 'small')
+  button(g,'back','Back to puzzle',true)
+end
+local function tick(g,x,y)
+  g:line(x,y+3,x+3,y+6,{line_width=3})
+  g:line(x+3,y+6,x+8,y,{line_width=3})
 end
 local function draw(g)
   g:clear(0)
-  text(g,23,17,'NONOGRAM','large',nil,285)
-  if S.level<S.unlocked and S.level<TOTAL then
-    button(g,320,13,95,45,'NEXT')
+  -- A small tile mark supplies identity; the puzzle remains the dominant shape.
+  g:rect(24,26,32,32,{radius=6,line_width=2})
+  for _,a in ipairs({{1,0},{0,1},{1,1},{2,1},{1,2}}) do
+    g:rect(30+a[1]*7,32+a[2]*7,5,5,{fill=true,radius=1})
   end
-  button(g,425,13,35,45,HELP and 'X' or '?')
+  text(g,72,25,'Nonogram','large',nil,312)
+  button(g,'help',HELP and 'X' or '?')
   local p=current()
-  text(g,23,76,'PUZZLE '..S.level..' / '..TOTAL..'     '..p.n..' x '..p.n,'medium',nil,435)
-  text(g,23,115,'NUMBERS = RUNS OF BLACK CELLS','small',nil,430)
-  g:line(22,151,458,151,{line_width=2})
+  text(g,24,89,'Puzzle '..S.level,'small',nil,230)
+  text(g,274,89,p.n..' x '..p.n,'small',nil,66)
+  if not HELP and not S.submitted[S.level] and S.level<S.unlocked then
+    button(g,'next','Next')
+  end
   if HELP then help_screen(g);return end
   local bx,by,cell=geometry()
   UI.region(bx,by,cell*p.n,cell*p.n)
   local board=S.boards[S.level]
+  local rows,cols,rowMatches,colMatches=counters()
+  local clueFont=p.n==5 and 'clue' or 'clue_small'
+  local clueHeight=UI.height(D or C,clueFont)
   for x=1,p.n do
     local clue=p.colClues[x]
     local cx=bx+(x-.5)*cell
     for j=1,#clue do
-      text(g,cx,219+(j-#clue)*23,tostring(clue[j]),'small','center',cell-6)
+      text(g,cx,by-14-clueHeight+(j-#clue)*(clueHeight+6),tostring(clue[j]),clueFont,'center',cell-8)
     end
+    if colMatches[x] then tick(g,cx-4,by-10) end
   end
   for y=1,p.n do
-    local cy=by+(y-1)*cell+math.floor((cell-20)/2)
-    text(g,23,cy,format_run(p.rowClues[y]),'small',nil,bx-35)
+    local cy=by+(y-1)*cell+math.floor((cell-clueHeight)/2)
+    local label=format_run(p.rowClues[y])
+    text(g,bx-16-UI.width(D or C,label,clueFont),cy,label,clueFont,nil,bx-40)
+    if rowMatches[y] then tick(g,bx-12,by+(y-.5)*cell-3) end
   end
   for y=1,p.n do
     for x=1,p.n do
       local i=(y-1)*p.n+x
       local px=bx+(x-1)*cell
       local py=by+(y-1)*cell
-      g:rect(px,py,cell,cell,{line_width=1})
       if board[i]==1 then
-        g:rect(px+4,py+4,cell-8,cell-8,{fill=true})
+        g:rect(px+5,py+5,cell-10,cell-10,{fill=true,radius=STYLE.ink_radius})
       elseif board[i]==2 then
-        g:line(px+12,py+12,px+cell-12,py+cell-12,{line_width=2})
-        g:line(px+cell-12,py+12,px+12,py+cell-12,{line_width=2})
+        local inset=math.floor(cell*.32)
+        g:line(px+inset,py+inset,px+cell-inset,py+cell-inset,{line_width=STYLE.mark_stroke})
+        g:line(px+cell-inset,py+inset,px+inset,py+cell-inset,{line_width=STYLE.mark_stroke})
       end
     end
   end
-  local rows,cols=counters()
-  text(g,240,582,'ROWS '..rows..'/'..p.n..'     COLUMNS '..cols..'/'..p.n,'medium','center',420)
-  text(g,240,619,MSG or 'Tap a cell: black / X / clear','small','center',424)
-  text(g,240,660,S.submitted[S.level] and 'PICTURE: '..p.name or 'PICTURE HIDDEN UNTIL CHECK','small','center',425)
-  button(g,21,710,101,65,S.level>1 and 'PREV' or 'START')
-  button(g,133,710,101,65,'UNDO')
-  button(g,245,710,101,65,'RESET')
-  button(g,357,710,102,65,S.submitted[S.level] and 'DONE' or 'CHECK')
+  for i=1,p.n-1 do
+    local weight=i==5 and STYLE.frame_stroke or STYLE.grid_stroke
+    g:line(bx+i*cell,by,bx+i*cell,by+p.n*cell,{line_width=weight})
+    g:line(bx,by+i*cell,bx+p.n*cell,by+i*cell,{line_width=weight})
+  end
+  g:rect(bx,by,cell*p.n,cell*p.n,{line_width=STYLE.frame_stroke,radius=STYLE.board_radius})
+  text(g,24,608,'Rows '..rows..' / '..p.n,'small',nil,200)
+  text(g,264,608,'Columns '..cols..' / '..p.n,'small',nil,192)
+  g:line(24,640,456,640,{line_width=1})
+  local won=S.submitted[S.level]
+  local status=MSG or (won and 'Revealed: '..display_name(p.name) or 'Tap a cell: fill / X / clear')
+  text(g,240,660,status,'small','center',432)
+  button(g,'prev','Prev',false,S.level>1)
+  button(g,'undo','Undo',false,not won and #S.history[S.level]>0)
+  button(g,'reset','Reset')
+  button(g,'check',won and (S.level<S.unlocked and 'Next' or 'Done') or 'Check',true,not won or S.level<S.unlocked)
 end
 local function hit(x,y,bx,by,w,h)
   return x>=bx and x<bx+w and y>=by and y<by+h
 end
+local function control_hit(key,x,y)
+  local b=BUTTONS[key]
+  return hit(x,y,b[1],b[2],b[3],b[4])
+end
 local function tap(x,y)
-  if hit(x,y,425,13,35,45) then HELP=not HELP;return true end
+  if control_hit('help',x,y) then HELP=not HELP;return true end
   if HELP then
-    if hit(x,y,75,710,330,65) then HELP=false;return true end
+    if control_hit('back',x,y) then HELP=false;return true end
     return false
   end
-  if hit(x,y,320,13,95,45) then return next_level() end
-  if hit(x,y,21,710,101,65) then return prev() end
-  if hit(x,y,133,710,101,65) then return undo() end
-  if hit(x,y,245,710,101,65) then return reset() end
-  if hit(x,y,357,710,102,65) then return check() end
+  if control_hit('next',x,y) and not S.submitted[S.level] then return next_level() end
+  if control_hit('prev',x,y) then return prev() end
+  if control_hit('undo',x,y) then return undo() end
+  if control_hit('reset',x,y) then return reset() end
+  if control_hit('check',x,y) then
+    if S.submitted[S.level] then return next_level() else return check() end
+  end
   local p=current()
   local bx,by,cell=geometry()
   if hit(x,y,bx,by,cell*p.n,cell*p.n) then
@@ -304,7 +426,10 @@ local function redraw()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(context)
-  C=context or ctx;ERR=nil
+  if FONTSET then FONTSET:release() end
+  if FAILED_FONTSET then FAILED_FONTSET:release();FAILED_FONTSET=nil end
+  FONTSET=nil;D=nil;NEEDS_FONTS=true;FONT_ERROR=nil
+  C=context or ctx;S=nil;ERR=nil;KEY_MS=-1000
   local ok,e=pcall(function() if not restore() then start() end end)
   if not ok then ERR=tostring(e) end
 end
@@ -312,7 +437,25 @@ function on_draw(context,g)
   if context then C=context end
   if not g then return end
   if ERR then UI.error(g,C,'NONOGRAM',ERR);return end
+  if NEEDS_FONTS then
+    NEEDS_FONTS=false
+    local ok,fonts,reason=pcall(function() return Typefaces.open(C) end)
+    if ok then FONTSET=fonts;FONT_ERROR=reason else FONT_ERROR=tostring(fonts) end
+    if not FONTSET and C and C.image then MSG='System fonts active' end
+  end
+  if FONTSET and type(g.image)~='function' then
+    FONT_ERROR='Image drawing unavailable'
+    FONTSET:release();FONTSET=nil;MSG='System fonts active'
+  end
+  D=FONTSET or C
   local ok,e=pcall(function() draw(g) end)
+  if not ok and D==FONTSET then
+    FONT_ERROR=tostring(e)
+    -- Keep images alive until leave: earlier commands in this frame may own them.
+    FAILED_FONTSET=FONTSET;FONTSET=nil;D=C
+    MSG='System fonts active'
+    ok,e=pcall(function() draw(g) end)
+  end
   if not ok then ERR=tostring(e);UI.error(g,C,'NONOGRAM',ERR) end
 end
 function on_input(context,event)
@@ -333,19 +476,26 @@ function on_input(context,event)
       end
       if now and now>=KEY_MS and now-KEY_MS<230 then return end
       if now then KEY_MS=now end
-      changed=event.key=='up' and prev() or next_level()
+      if event.key=='up' then changed=prev() else changed=next_level() end
     end
   end)
   if not ok then ERR=tostring(e);changed=true end
   if changed then redraw() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave()
+  if S then save() end
+  if FONTSET then FONTSET:release();FONTSET=nil end
+  if FAILED_FONTSET then FAILED_FONTSET:release();FAILED_FONTSET=nil end
+  D=nil;NEEDS_FONTS=true
+end
 if rawget(_G,'__TEST') then
   __TEST.api={
     pictures=Pictures,state=function() return S end,
     shape=shape,runs=runs,correct=picture_correct,paint=paint,
     check=check,reset=reset,undo=undo,visit=visit,next=next_level,
-    prev=prev,geometry=geometry,counters=counters,tap=tap,restore=restore
+    prev=prev,geometry=geometry,counters=counters,tap=tap,restore=restore,
+    controls=BUTTONS,style=STYLE,
+    typefaces=function() return FONTSET,FONT_ERROR end
   }
 end

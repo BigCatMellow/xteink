@@ -1,6 +1,7 @@
 -- Word Bridge: zero-animation four-letter chain puzzles for XTEINK X4 Pro.
 -- Choose from twelve words; each move changes exactly one letter.
 local UI=require('ui')
+local Theme=require('theme')
 local LEVELS=require('levels')
 local TOTAL=#LEVELS
 local C,S,ERR,MSG=nil,nil,nil,nil
@@ -267,6 +268,7 @@ local function refresh()
   if C then pcall(function() C:invalidate() end) end
 end
 function on_load(context)
+  Theme.release()
   C=context or ctx;ERR=nil
   local ok,e=pcall(function() if not restore() then start() end end)
   if not ok then ERR=tostring(e) end
@@ -275,7 +277,7 @@ function on_draw(context,g)
   if context then C=context end
   if not g then return end
   if ERR then UI.error(g,C,'WORD BRIDGE',ERR);return end
-  local ok,e=pcall(function() render(g) end)
+  local ok,e=pcall(function() Theme.draw(C,g,render) end)
   if not ok then ERR=tostring(e);UI.error(g,C,'WORD BRIDGE',ERR) end
 end
 function on_input(context,event)
@@ -303,7 +305,7 @@ function on_input(context,event)
   if changed then refresh() end
   return changed
 end
-function on_leave() if S then save() end end
+function on_leave() Theme.release(); if S then save() end end
 if rawget(_G,'__TEST') then
   __TEST.api={
     levels=LEVELS,state=function() return S end,

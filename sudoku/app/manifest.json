@@ -1,0 +1,10 @@
+{
+  "app_id": "sudoku",
+  "display_name": "Sudoku",
+  "version": "0.3.0",
+  "author": "BigCatMellow",
+  "description": "Endless offline Sudoku with unique puzzles, pencil notes and saved undo",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

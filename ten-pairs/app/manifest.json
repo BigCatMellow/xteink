@@ -1,0 +1,10 @@
+{
+  "app_id": "tenpairs",
+  "display_name": "Ten Pairs",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Original nested-pair Numberama matching puzzles",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "title": "X4 Pro Licorice shell research source register",
+  "checked_on": "2026-11-08",
+  "scope": "Source-only research. No physical probe, SD/hardware access, firmware changes or secrets extraction.",
+  "primary_pins": {
+    "x4pro_emu": "51860db361660d69507acbf3c6d2ce930c267533",
+    "touch_licorice_apps": "98988cb083bd0c205219575da9783fdaba1148fd"
+  },
+  "sources": [
+    {
+      "id": "E1",
+      "type": "pinned_upstream_github",
+      "repository": "kycube/x4pro-emu",
+      "revision": "51860db361660d69507acbf3c6d2ce930c267533",
+      "path": "docs/licorice-apps.md",
+      "blob_sha": "6a341ff527598a01f68ac583f057711a0bcddca7",
+      "url": "https://github.com/kycube/x4pro-emu/blob/51860db361660d69507acbf3c6d2ce930c267533/docs/licorice-apps.md",
+      "retrieved": "2026-11-08",
+      "scope": "Package format, native list/launch, XTCO limits and inferred RTC resume",
+      "evidence_limit": "Hardware install/launch report on 26102901; emulator tests; reverse engineering, explicitly distinguishes unexercised streamed and RTC paths."
+    },
+    {
+      "id": "E2",
+      "type": "pinned_upstream_github",
+      "repository": "kycube/x4pro-emu",
+      "revision": "51860db361660d69507acbf3c6d2ce930c267533",
+      "path": "docs/stock-licorice.md",
+      "blob_sha": "19b6a3e7d5cb6cc72397cce9453679ae6252b9c4",
+      "url": "https://github.com/kycube/x4pro-emu/blob/51860db361660d69507acbf3c6d2ce930c267533/docs/stock-licorice.md",
+      "retrieved": "2026-11-08",
+      "scope": "Firmware generations, wake policy, home_app observation, USB mode and lockscreen uncertainty",
+      "evidence_limit": "Covers 261013 and 26102901; not a 26110201 test. NVS names are descriptive leads, not supported APIs."
+    },
+    {
+      "id": "E3",
+      "type": "pinned_upstream_github",
+      "repository": "omer-faruq-xteink/touch-licorice-apps",
+      "revision": "98988cb083bd0c205219575da9783fdaba1148fd",
+      "path": "docs/firmware-notes.md",
+      "blob_sha": "466ea14e5331ace6f36494ced730ec7644de968e",
+      "url": "https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/98988cb083bd0c205219575da9783fdaba1148fd/docs/firmware-notes.md",
+      "retrieved": "2026-11-08",
+      "scope": "API selection, system member presence, storage sandbox/quota, display limits and historical image behavior",
+      "evidence_limit": "Living chronological document. Opening API0.8 no-network conclusion is superseded by later API2.9 results. No system open signature, target grammar or successful launch example supplied."
+    },
+    {
+      "id": "E4",
+      "type": "pinned_upstream_github",
+      "repository": "omer-faruq-xteink/touch-licorice-apps",
+      "revision": "98988cb083bd0c205219575da9783fdaba1148fd",
+      "path": "README.md",
+      "blob_sha": "ffc63eed1d1911ee10d7e46c9a843be828326388",
+      "url": "https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/98988cb083bd0c205219575da9783fdaba1148fd/README.md",
+      "retrieved": "2026-11-08",
+      "scope": "Current app capabilities, API2 selection, API2.18 requirements, store and host update claims",
+      "evidence_limit": "Mixes old API2.9 overview with newer per-app requirements. Firmware key changes are possible. Store/host updates do not demonstrate app-to-app package writes."
+    },
+    {
+      "id": "E5",
+      "type": "pinned_upstream_github",
+      "repository": "omer-faruq-xteink/touch-licorice-apps",
+      "revision": "98988cb083bd0c205219575da9783fdaba1148fd",
+      "path": "docs/xtapp-api/README.md",
+      "blob_sha": "132a25119ec47c69eefb03516f5913533770aeed",
+      "url": "https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/98988cb083bd0c205219575da9783fdaba1148fd/docs/xtapp-api/README.md",
+      "retrieved": "2026-11-08",
+      "scope": "Official API documentation access boundary",
+      "evidence_limit": "Official docs site is invite-only; extracted files are not committed. This research did not access or reconstruct those docs."
+    },
+    {
+      "id": "E9",
+      "type": "pinned_upstream_github",
+      "repository": "omer-faruq-xteink/touch-licorice-apps",
+      "revision": "98988cb083bd0c205219575da9783fdaba1148fd",
+      "path": "xtpack.py",
+      "blob_sha": "9b70f9b56d8be9ad5a59793a86788bad1ab76c7a",
+      "url": "https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/98988cb083bd0c205219575da9783fdaba1148fd/xtpack.py",
+      "retrieved": "2026-11-08",
+      "scope": "Packer enforces supported in-RAM code-section size",
+      "evidence_limit": "Packer rejection is not proof that reversed larger streamed firmware path is impossible."
+    },
+    {
+      "id": "E10",
+      "type": "pinned_upstream_github",
+      "repository": "omer-faruq-xteink/touch-licorice-apps",
+      "revision": "98988cb083bd0c205219575da9783fdaba1148fd",
+      "path": "apps/notes/lockscreen.lua",
+      "blob_sha": "5863d4d99c1a7c9f4320531c17d38736138e9c2c",
+      "url": "https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/98988cb083bd0c205219575da9783fdaba1148fd/apps/notes/lockscreen.lua",
+      "retrieved": "2026-11-08",
+      "scope": "26110201 lock interval observations",
+      "evidence_limit": "Source comments report 30–3600 seconds and per-session reset; not this project's hardware verification."
+    },
+    {
+      "id": "E11",
+      "type": "pinned_upstream_github",
+      "repository": "omer-faruq-xteink/touch-licorice-apps",
+      "revision": "98988cb083bd0c205219575da9783fdaba1148fd",
+      "path": "apps/textadv/README.md",
+      "blob_sha": "e1ad13adaf6aeadc0c5f6653ee2300de47f94a1d",
+      "url": "https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/98988cb083bd0c205219575da9783fdaba1148fd/apps/textadv/README.md",
+      "retrieved": "2026-11-08",
+      "scope": "Newer approximate Lua heap account",
+      "evidence_limit": "Approximate 2 MiB statement does not guarantee a fixed budget for every build or exclude native allocations."
+    },
+    {
+      "id": "E12",
+      "type": "pinned_upstream_github",
+      "repository": "omer-faruq-xteink/touch-licorice-apps",
+      "revision": "98988cb083bd0c205219575da9783fdaba1148fd",
+      "path": "apps/skytonight/README.md",
+      "blob_sha": "17e17ceb57a31f1860a0365509d3b6de804a6423",
+      "url": "https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/98988cb083bd0c205219575da9783fdaba1148fd/apps/skytonight/README.md",
+      "retrieved": "2026-11-08",
+      "scope": "Callback/lockscreen time-budget limits",
+      "evidence_limit": "Upstream app account; not an official constant guaranteed across builds."
+    },
+    {
+      "id": "E6",
+      "type": "vendor_versioned_documentation",
+      "publisher": "Espressif",
+      "version": "ESP-IDF v6.0.1 / ESP32-S3",
+      "url": "https://docs.espressif.com/projects/esp-idf/en/v6.0.1/esp32s3/api-guides/startup.html",
+      "retrieved": "2026-11-08",
+      "scope": "ROM/second-stage flash boot and deep-sleep RTC entry",
+      "evidence_limit": "SoC startup description, not proof of a particular Licorice startup policy. Licorice reversed images report v6.1-dirty."
+    },
+    {
+      "id": "E7",
+      "type": "vendor_mutable_documentation",
+      "publisher": "Espressif",
+      "version": "esptool latest / ESP32-S3",
+      "url": "https://docs.espressif.com/projects/esptool/en/latest/esp32s3/advanced-topics/boot-mode-selection.html",
+      "retrieved": "2026-11-08",
+      "scope": "Normal SPI flash execution versus ROM USB/UART download",
+      "evidence_limit": "Describes ROM modes. Does not test Xteink board wiring or establish an SD/USB-storage boot path."
+    },
+    {
+      "id": "E8",
+      "type": "vendor_versioned_documentation",
+      "publisher": "Espressif",
+      "version": "ESP-IDF v6.0.1 / ESP32-S3",
+      "url": "https://docs.espressif.com/projects/esp-idf/en/v6.0.1/esp32s3/api-reference/system/sleep_modes.html",
+      "retrieved": "2026-11-08",
+      "scope": "Light/deep sleep and retained state distinctions",
+      "evidence_limit": "Mechanism description; a named stock UI action cannot be assigned a sleep mode without build-specific evidence."
+    },
+    {
+      "id": "L1",
+      "type": "local_project",
+      "observed_revision": "3f39c460a9d1f59303f5a8f1cdfad2e9f4d78f22",
+      "paths": [
+        "docs/HANDOFF.md",
+        "scripts/build_game_hub.py",
+        "games-hub/README.md",
+        "wallpaper-randomizer/README.md",
+        "wallpaper-randomizer/docs/HANDOFF.md"
+      ],
+      "retrieved": "2026-11-08",
+      "scope": "Local 17-game hub 30/32 files, 383525/524288 code bytes; prior preservation receipts; pending physical checks",
+      "evidence_limit": "Filesystem/host evidence is not reader launch, startup, sleep or rendering verification. No private save/firmware content was included."
+    }
+  ],
+  "search_limits": [
+    {
+      "topic": "system.can_open/system.open",
+      "result": "Names observed in upstream API2.9 inventory; no exact public signature/target grammar or app-to-app launch demonstration found.",
+      "note": "GitHub code search returned zero with incomplete_results=true; absence is not proof of unsupported functionality."
+    },
+    {
+      "topic": "official API docs",
+      "result": "Public upstream access note says invite-only, extracted docs uncommitted.",
+      "note": "Do not cite unavailable official text as if read."
+    },
+    {
+      "topic": "Onion precedent",
+      "result": "Not used as capability evidence.",
+      "note": "A product-design analogy does not establish ESP32-S3 external boot."
+    }
+  ]
+}

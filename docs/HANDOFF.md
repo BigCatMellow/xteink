@@ -1,5 +1,13 @@
 # Project handoff — 2026-11-08
 
+## Shell research and planning
+
+The separate [shell project index](shell/README.md) owns the new research and
+OS planning work. Follow [current state](shell/STATE.md) and its canonical
+roadmap for startup, native navigation, return paths and USB updates. MAPS_Lean
+methods and helper model/effort assignments are recorded there. This is a
+planning delivery; no shell installation or new physical result is implied.
+
 ## Complete 17-game rollout — current state
 
 The user requested a complete pass without per-game review/install back-and-forth.

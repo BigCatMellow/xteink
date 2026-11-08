@@ -6,6 +6,9 @@ tokens, per-game exceptions, changes and reasons. [Host preview sheet](docs/desi
 
 Projects and experiments for the XTEINK X4 Pro, primarily running XTOS Licorice.
 
+[Card-loaded shell research and OS roadmap](docs/shell/README.md) — device
+capabilities, THINK/PLAN, applied MAPS_Lean protocols and model assignments.
+
 [Applying game updates from this computer](docs/GAME_UPDATES.md): update existing
 installed packages together while preserving saves. Direct replacement has
 passed host tests and awaits its first physical reader test.

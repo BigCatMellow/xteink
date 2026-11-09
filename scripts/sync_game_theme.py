@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ship the canonical theme and licensed font pack in every active game."""
 import argparse
-from sync_game_ui import GAMES, ROOT
+from sync_game_ui import GAMES, ROOT, project_path
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
     }
     for game in GAMES:
         for name, source in sources.items():
-            target = ROOT/game/'app'/name
+            target = project_path(game) /'app'/name
             if target == source:
                 continue
             if args.check:

@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'nonogram/**'
+      - 'games/nonogram/**'
       - '.github/workflows/nonogram.yml'
       - 'shared/game_ui.lua'
       - 'shared/puzzle_store.lua'
@@ -35,31 +35,31 @@ jobs:
       - name: Verify all distinct monochrome launcher icons
         run: python scripts/make_icons.py --check
       - name: Verify authored and generated puzzle solutions
-        run: python nonogram/tests/validate_levels.py
+        run: python games/nonogram/tests/validate_levels.py
       - name: Test gameplay, saving and measured layout
-        run: cd nonogram && lua tests/test_game.lua
+        run: cd games/nonogram && lua tests/test_game.lua
       - name: Verify shared copies and bitmap gameplay layouts
         run: |
           python scripts/sync_game_ui.py --check
           python scripts/sync_game_theme.py --check
-          cd nonogram && lua ../tests/run_themed_game.lua
+          cd games/nonogram && lua ../../tests/run_themed_game.lua
       - name: Verify bitmap font pixels, bounds, lifecycle and fallback
         run: |
-          python nonogram/tests/validate_fonts.py
-          cd nonogram && lua tests/test_fonts.lua
+          python games/nonogram/tests/validate_fonts.py
+          cd games/nonogram && lua tests/test_fonts.lua
       - name: Get pinned community Licorice packer
         run: |
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
           git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
       - name: Check Lua 5.5 source compatibility
         run: |
-          for source in nonogram/app/*.lua; do
+          for source in games/nonogram/app/*.lua; do
             python /tmp/xtapp-tools/tools/lualint55.py "$source"
           done
       - name: Package installable XTApp
         run: |
           mkdir -p dist
-          python /tmp/xtapp-tools/xtpack.py nonogram/app -o dist/nonogram.xtapp
+          python /tmp/xtapp-tools/xtpack.py games/nonogram/app -o dist/nonogram.xtapp
           python -c "from pathlib import Path; p=Path('dist/nonogram.xtapp'); assert p.read_bytes()[:4]==b'XTAP' and p.stat().st_size>256"
       - name: Verify embedded 1-bit XTAB/XIC icon data
         run: python scripts/verify_package_icons.py dist/nonogram.xtapp

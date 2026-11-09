@@ -1,6 +1,6 @@
 # Shell Probe (host preparation)
 
-Minimal diagnostic app for the [frozen probe contract](../../docs/shell/probes/contract.json).
+Minimal diagnostic app for the [frozen probe contract](../docs/probes/contract.json).
 It is distinct from the proposed shell and all installed apps: app ID
 `xteinkshellprobe`, version `0.1.0`, API `2.0`, no permissions or lockscreen.
 This work has performed no SD, USB/serial, firmware or device operation.
@@ -19,10 +19,10 @@ credential is needed. The build checks exact packer, vendor and linter bytes
 against that Git commit, even if the checkout HEAD is newer.
 
 ```sh
-python3 scripts/build_shell_probe.py --packer ../touch-licorice-apps/xtpack.py
-lua5.4 tests/test_shell_probe.lua
-lua5.1 tests/test_shell_probe.lua
-python3 scripts/build_shell_probe.py --check --packer ../touch-licorice-apps/xtpack.py
+python3 shell/tools/build_probe.py --packer ../touch-licorice-apps/xtpack.py
+lua5.4 shell/tests/test_probe.lua
+lua5.1 shell/tests/test_probe.lua
+python3 shell/tools/build_probe.py --check --packer ../touch-licorice-apps/xtpack.py
 ```
 
 `--linter /path/to/tools/lualint55.py` overrides the linter location, which must

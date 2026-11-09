@@ -255,7 +255,7 @@ moving game controls. The Nonogram brand mark yields that space to navigation.
 
 Do not fork the engines to style the collection. `build_game_hub.py` wraps each
 source engine and its private modules, shares the canonical UI/theme/fonts,
-and records source fingerprints. `games-hub/src/ui.lua` only adapts header
+and records source fingerprints. `games/games-hub/src/ui.lua` only adapts header
 space and delegates measurement/drawing to generated `ui_core.lua`. The
 collection has its own required quality checks and a distinct native icon.
 

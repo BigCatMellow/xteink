@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'crown-fields/**'
+      - 'games/crown-fields/**'
       - '.github/workflows/crown-fields.yml'
       - 'shared/game_ui.lua'
       - 'shared/game_theme.lua'
@@ -29,27 +29,27 @@ jobs:
       - name: Verify original monochrome launcher icons
         run: python scripts/make_icons.py --check
       - name: Independent level validation
-        run: python crown-fields/tests/validate_levels.py
+        run: python games/crown-fields/tests/validate_levels.py
       - name: Gameplay, persistence and font-layout tests
-        run: cd crown-fields && lua tests/test_game.lua
+        run: cd games/crown-fields && lua tests/test_game.lua
       - name: Verify shared theme and bitmap gameplay
         run: |
           python scripts/sync_game_ui.py --check
           python scripts/sync_game_theme.py --check
-          cd crown-fields && lua ../tests/run_themed_game.lua
+          cd games/crown-fields && lua ../../tests/run_themed_game.lua
       - name: Download pinned Licorice packer
         run: |
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
           git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
       - name: Check Lua 5.5 compatibility
         run: |
-          for source in crown-fields/app/*.lua; do
+          for source in games/crown-fields/app/*.lua; do
             python /tmp/xtapp-tools/tools/lualint55.py "$source"
           done
       - name: Build installable XTApp
         run: |
           mkdir -p dist
-          python /tmp/xtapp-tools/xtpack.py crown-fields/app -o dist/crown-fields.xtapp
+          python /tmp/xtapp-tools/xtpack.py games/crown-fields/app -o dist/crown-fields.xtapp
           python -c "from pathlib import Path; p=Path('dist/crown-fields.xtapp'); assert p.read_bytes()[:4]==b'XTAP' and p.stat().st_size>256"
       - name: Verify embedded native 1-bit icon
         run: python scripts/verify_package_icons.py dist/crown-fields.xtapp

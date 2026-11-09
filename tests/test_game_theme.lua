@@ -1,4 +1,4 @@
-package.path='shared/?.lua;nonogram/app/?.lua;tests/?.lua;'..package.path
+package.path='shared/?.lua;games/nonogram/app/?.lua;tests/?.lua;'..package.path
 local Theme=require('game_theme')
 local UI=require('ui')
 local T=require('game_canvas')

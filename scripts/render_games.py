@@ -6,7 +6,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from render_nonogram import ROOT, FONT, render
-from sync_game_ui import GAMES
+from sync_game_ui import GAMES, project_path
 
 FIXTURES={
  'line-lift': ('A.fresh(LEVEL,#A.raw)',12,'A.tap(415,40)'),
@@ -30,12 +30,12 @@ FIXTURES={
 
 def shot(game,level,scene):
     if game=='nonogram':
-        return render(ROOT/game/'app/index.lua',level,scene,bitmap=True)
+        return render(project_path(game) /'app/index.lua',level,scene,bitmap=True)
     setup,_,help_action=FIXTURES[game]
     fixture='dofile(SOURCE)\non_load(ctx)\nlocal A=__TEST.api\n'+setup+'\n'
     if scene=='help' and help_action:
         fixture+=help_action+'\n'
-    return render(ROOT/game/'app/index.lua',level,scene,bitmap=True,game=game,fixture=fixture)
+    return render(project_path(game) /'app/index.lua',level,scene,bitmap=True,game=game,fixture=fixture)
 
 
 def main():

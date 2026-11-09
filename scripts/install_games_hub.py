@@ -16,7 +16,7 @@ import tempfile
 from datetime import datetime
 
 from build_game_hub import HUB, outputs
-from sync_game_ui import GAMES, ROOT
+from sync_game_ui import GAMES, ROOT, project_path
 from verify_package_icons import verify_icon
 
 
@@ -27,7 +27,7 @@ def snapshot(card):
     records = {}
     originals = {}
     for game in GAMES:
-        appid = json.loads((ROOT / game / 'app/manifest.json').read_text())['app_id']
+        appid = json.loads((project_path(game) / 'app/manifest.json').read_text())['app_id']
         folder = card / 'XTApps' / appid / 'files'
         if not folder.exists():
             continue

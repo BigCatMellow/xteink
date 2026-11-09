@@ -16,7 +16,7 @@ import re
 import shutil
 import struct
 
-from sync_game_ui import GAMES, COLLECTIONS
+from sync_game_ui import GAMES, COLLECTIONS, project_path
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -63,7 +63,7 @@ def plan(card, catalogue):
     updates, skipped = [], []
     document = json.loads(catalogue.read_text())
     entries = document['games'] if isinstance(document.get('games'), list) else [document]
-    allowed = {json.loads((ROOT/game/'app/manifest.json').read_text())['app_id'] for game in GAMES + COLLECTIONS}
+    allowed = {json.loads((project_path(game) /'app/manifest.json').read_text())['app_id'] for game in GAMES + COLLECTIONS}
     seen = set()
     for entry in entries:
         appid = entry['app_id']

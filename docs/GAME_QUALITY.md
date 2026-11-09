@@ -87,7 +87,7 @@ every bundled engine and namespaced context, both native and bitmap. Hub tests
 check the reserved header menu target, all menu pages, actual game switching,
 saved boards/undo, read/write failures, font cleanup and first-launch import
 retry/no-overwrite behavior. The USB migration test uses a fake card. No
-personal save payload may be checked into `games-hub/app` or public releases.
+personal save payload may be checked into `games/games-hub/app` or public releases.
 
 Install over the previous app without removing its files. Check real font
 placement, clear line intersections, touch targets, sleep/resume and existing

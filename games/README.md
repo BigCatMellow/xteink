@@ -1,0 +1,49 @@
+# Xteink games
+
+All 17 active games and Games Hub live here. Paper Golf remains shelved.
+Shared fonts, UI, build scripts and release archives stay at the repo root
+because utilities and the shell use them too.
+
+Run all commands below from the repository root.
+
+
+- [Games Hub](games-hub/README.md) — all 17 active games in one installer, with separate progress and a shared game-selection menu. Recommended for updating the collection together.
+- [Paper Golf](paper-golf/README.md) — shelved; excluded from the active collection and SD updates.
+- [Summit Putt](summit-putt/README.md) — card-based golf route puzzles.
+- [Line Lift](line-lift/README.md) — zero-animation crossing logic inspired by Hook.
+- [Link Grid](link-grid/README.md) — zero-animation tile-rotation network puzzles.
+- [Ink Runes](ink-runes/README.md) — original cryptic word-deduction puzzles inspired by LOK.
+- [Lantern Logic](lantern-logic/README.md) — classic Akari-style illumination with 16 uniquely solvable boards.
+- [Ray Vault](ray-vault/README.md) — Black Box-style hidden-atom deduction with 12 original stages.
+- [Island Links](island-links/README.md) — Bridges/Hashi-style single/double-line island logic with 12 unique puzzles.
+- [Oddity Hunt](oddity-hunt/README.md) — a no-animation seek-and-find game with 12 crowded shelves and five objects per scene.
+- [Word Hunt](word-hunt/README.md) — 8 classic word searches and 8 Find the Fox letter-grid puzzles.
+- [Nonogram](nonogram/README.md) — 12 original, uniquely solvable hidden-picture logic puzzles.
+- [Sudoku](sudoku/README.md) — generated unique puzzles with notes, undo and saved puzzle history, adapted from the meditation app.
+- [Word Bridge](word-bridge/README.md) — 12 shortest-path four-letter word ladders with deceptive branches.
+- [Rectangle Rooms](rectangle-rooms/README.md) — 12 unique Shikaku-style rectangle-partition puzzles.
+- [Crown Fields](crown-fields/README.md) — 12 original letter-region crown-placement puzzles.
+- [Ten Pairs](ten-pairs/README.md) — 12 original Numberama number-clearing sheets.
+- [Quiet Mines](quiet-mines/README.md) — 12 deductive Minesweeper grids with a known-safe start.
+- [Sum Cross](sum-cross/README.md) — 12 uniquely solvable Kakuro number-crossword grids.
+
+Word Hunt and Nonogram now continue with offline generated puzzles after their original boards. Nonogram's generated continuation uses abstract patterns. Original levels and existing saves are preserved.
+
+## Builds and updates
+
+
+Contribution requirements are in [AGENTS.md](../AGENTS.md) and
+[Game quality](../docs/GAME_QUALITY.md). The [game quality gate](../.github/workflows/game-quality.yml)
+checks measured layouts, save/resume, navigation, puzzle solutions and packages
+on pushes and pull requests. Run it locally with `python3 scripts/check_games.py`.
+
+The [complete rollout plan](../docs/GAME_ROLLOUT_PLAN.md) records the per-game review.
+`python3 scripts/release_games.py --card /media/mellow/4A21-0000` runs checks,
+archives the whole family and applies updates to existing installed games and
+Games Hub with backups. New games are immediately available inside the updated
+hub; standalone installers remain optional. See [the release procedure](../docs/GAME_UPDATES.md).
+
+The [Games Hub build](../.github/workflows/games-hub.yml) runs the same quality gate
+and supplies a single `games-hub.xtapp` artifact for the whole active collection.
+
+Each project has its own installable XTApp build workflow: [Paper Golf](../.github/workflows/build.yml), [Summit Putt](../.github/workflows/summit-putt.yml), [Line Lift](../.github/workflows/line-lift.yml), [Link Grid](../.github/workflows/link-grid.yml), [Ink Runes](../.github/workflows/ink-runes.yml), [Lantern Logic](../.github/workflows/lantern-logic.yml), [Ray Vault](../.github/workflows/ray-vault.yml), [Island Links](../.github/workflows/island-links.yml), [Oddity Hunt](../.github/workflows/oddity-hunt.yml), [Word Hunt](../.github/workflows/word-hunt.yml), [Nonogram](../.github/workflows/nonogram.yml), [Word Bridge](../.github/workflows/word-bridge.yml), [Rectangle Rooms](../.github/workflows/rectangle-rooms.yml), [Sudoku](../.github/workflows/sudoku.yml), [Crown Fields](../.github/workflows/crown-fields.yml), [Ten Pairs](../.github/workflows/ten-pairs.yml), [Quiet Mines](../.github/workflows/quiet-mines.yml), [Sum Cross](../.github/workflows/sum-cross.yml), and [Wallpaper Randomizer](../.github/workflows/wallpaper-randomizer.yml).

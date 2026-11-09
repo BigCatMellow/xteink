@@ -1,4 +1,4 @@
-package.path='games-hub/app/?.lua;tests/?.lua;'..package.path
+package.path='games/games-hub/app/?.lua;tests/?.lua;'..package.path
 local T=require('game_canvas')
 local Namespace=require('namespace')
 local Importer=require('importer')
@@ -51,7 +51,7 @@ C.package=nil
 assert(pcall(Importer.run,C,expected,allowed)) -- Receipt makes a consumed import independent of package data.
 saves={};assert(not pcall(Importer.run,C,expected,allowed),'missing personal seed must block')
 _G.__TEST={}
-dofile('games-hub/app/index.lua')
+dofile('games/games-hub/app/index.lua')
 local A=__TEST.api
 local function tap(x,y)
  return on_input(C,{type='pointer',phase='up',gesture='tap',x=x,y=y})
@@ -134,7 +134,7 @@ eq(A.state().engine.api.state().boards[puzzle.state().level][1],(marks+2)%3)
 on_leave()
 -- Actual hub startup blocks on a missing required seed, and Retry recovers.
 package.loaded.import_expected={id='personal-ui',count=0}
-_G.__TEST={};dofile('games-hub/app/index.lua');A=__TEST.api
+_G.__TEST={};dofile('games/games-hub/app/index.lua');A=__TEST.api
 on_load(C);assert(A.state().blocked);assert(not A.launch(1));draw('blocked import')
 C.package={read=function()return 'HUBSAVES1\n' end}
 assert(tap(200,730));assert(not A.state().blocked);on_leave()

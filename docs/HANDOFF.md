@@ -1,12 +1,19 @@
 # Project handoff — 2026-11-08
 
+## Repository organization
+
+Games and Games Hub now live under `games/`; the shell project owns its docs,
+tools and tests under `shell/`. Start at the root README or
+[layout guide](REPOSITORY_LAYOUT.md). This source-layout change preserves app
+payloads and release identities and requires no SD updates.
+
 ## Shell research and planning
 
-The separate [shell project index](shell/README.md) owns the new research and
-OS planning work. Follow [current state](shell/STATE.md) and its canonical
+The separate [shell project index](../shell/docs/README.md) owns the new research and
+OS planning work. Follow [current state](../shell/docs/STATE.md) and its canonical
 roadmap for startup, native navigation, return paths and USB updates. MAPS_Lean
 methods and helper model/effort assignments are recorded there. The subsequent
-[probe wave](shell/probes/README.md) supplies a frozen contract, separate host
+[probe wave](../shell/docs/probes/README.md) supplies a frozen contract, separate host
 diagnostic, package builder and capture harness. No shell installation or new
 physical result is implied; see its host receipt and independent review.
 
@@ -134,7 +141,7 @@ See [before/after](design/sudoku-2026-11-08/before-after.png),
 [design decisions](GAME_DESIGN.md). Source is still local/uncommitted/unpushed.
 
 **Deployed directly on 2026-11-08:** after the user remounted the SD card,
-replaced installed `sudoku/app.xtapp` (0.2.0 → 0.3.0) and `gameshub/app.xtapp`
+replaced installed `games/sudoku/app.xtapp` (0.2.0 → 0.3.0) and `gameshub/app.xtapp`
 (0.1.0 → 0.2.0). The other 12 standalone games were already current. Hub import
 was complete before replacement. All 346 installed files were checksum-checked:
 only those two packages changed; all 326 app-data files and all unrelated apps,
@@ -195,7 +202,7 @@ no user data. Public metadata/checksums and the SD copy receipt are in
 `releases/games-hub-0.1.0.json`, `SHA256SUMS`, and `games-hub-sd-copy.json`.
 Source changes are local and remain uncommitted/unpushed.
 
-Maintenance: [hub README](../games-hub/README.md),
+Maintenance: [hub README](../games/games-hub/README.md),
 [design rationale](GAME_DESIGN.md), [host previews](design/games-hub/overview.png).
 Edit source games/shared helpers, then run `scripts/build_game_hub.py`.
 Generated game modules isolate private level/generator modules and mutable
@@ -273,7 +280,7 @@ The user approved implementing Poppins/Inter. Nonogram now ships actual 1-bit
 PNG glyphs: Poppins SemiBold headings, Poppins Medium controls, Inter Medium
 clues, status and help. It uses no TTF runtime loader or global font changes.
 The source fonts and licenses are in `assets/fonts/game-ui/`; generated
-metrics/PNGs are `nonogram/app/font_data.lua`, renderer `typefaces.lua`, and
+metrics/PNGs are `games/nonogram/app/font_data.lua`, renderer `typefaces.lua`, and
 full packaged notices `font_license.lua`. Rebuild with
 `python3 scripts/make_game_fonts.py`.
 
@@ -283,9 +290,9 @@ are decoded on the first frame, reused and released on leave. Native fallback
 handles decode/draw failures and unsupported text. Separate Inter clue roles
 preserve the chosen typeface on the larger 5×5 grids.
 
-See [updated design rationale](../nonogram/docs/DESIGN.md),
-[actual packaged-glyph preview](../nonogram/docs/design/bitmap/native-vs-bitmap.png),
-and [state sheet](../nonogram/docs/design/bitmap/states.png). They replay real
+See [updated design rationale](../games/nonogram/docs/DESIGN.md),
+[actual packaged-glyph preview](../games/nonogram/docs/design/bitmap/native-vs-bitmap.png),
+and [state sheet](../games/nonogram/docs/design/bitmap/states.png). They replay real
 shipped glyph pixels through the app, but remain host previews.
 
 The full 13-game quality gate passed, including glyph-source masks, bounds,
@@ -314,10 +321,10 @@ boards, aligned clues, line-match ticks, 2/3px grid strokes, 3px X marks and a
 12px rounded control family. Check becomes Next when solved. Save format,
 app ID and generated seeds remain compatible.
 
-Read [Nonogram design rationale](../nonogram/docs/DESIGN.md) for the applied
+Read [Nonogram design rationale](../games/nonogram/docs/DESIGN.md) for the applied
 Bible rules, space budget, stroke/radius tokens, interaction decisions and
-physical checks. The [before/after preview](../nonogram/docs/design/before-after.png)
-and [state sheet](../nonogram/docs/design/states.png) replay real Lua drawing
+physical checks. The [before/after preview](../games/nonogram/docs/design/before-after.png)
+and [state sheet](../games/nonogram/docs/design/states.png) replay real Lua drawing
 commands using a desktop font; they are not device screenshots.
 
 The full 13-game quality gate passed again with compatibility checks, builds
@@ -332,7 +339,7 @@ the release; copying to SD:/Apps is pending. This v0.3 layout still needs the
 reader's actual fonts, radius support, touch accuracy and ghosting checked.
 Source changes remain local and uncommitted.
 
-A follow-up [Inter/Poppins typography study](../nonogram/docs/design/font-comparison.png)
+A follow-up [Inter/Poppins typography study](../games/nonogram/docs/design/font-comparison.png)
 uses real fonts in the host preview. Proposed direction: Poppins title and
 controls, Inter clue numbers. The v0.3 installer uses native font handles;
 the v0.4 bitmap implementation above follows that initial study. Native

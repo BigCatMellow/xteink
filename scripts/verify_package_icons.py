@@ -6,7 +6,7 @@ import struct
 
 from PIL import Image
 
-from sync_game_ui import ROOT
+from sync_game_ui import project_path
 
 
 def verify_icon(package, source):
@@ -52,7 +52,7 @@ def main():
     parser.add_argument('packages', nargs='+', type=Path)
     args = parser.parse_args()
     for package in args.packages:
-        verify_icon(package, ROOT / package.stem / 'app/icon.png')
+        verify_icon(package, project_path(package.stem) / 'app/icon.png')
 
 
 if __name__ == '__main__':

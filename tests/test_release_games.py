@@ -22,7 +22,7 @@ def package(appid,version):
 class Releases(unittest.TestCase):
     def test_immutable_archive_and_source_version_guard(self):
         with tempfile.TemporaryDirectory() as temp:
-            root=Path(temp);app=root/'nonogram/app';app.mkdir(parents=True)
+            root=Path(temp);app=root/'games/nonogram/app';app.mkdir(parents=True)
             (app/'manifest.json').write_text(json.dumps({'app_id':'nonogram','version':'0.7.0','display_name':'Nonogram'}))
             (app/'index.lua').write_text('return 1')
             dist=root/'dist';dist.mkdir();releases=root/'releases';releases.mkdir()

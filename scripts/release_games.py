@@ -15,7 +15,7 @@ import subprocess
 import sys
 import zipfile
 
-from sync_game_ui import GAMES, COLLECTIONS, ROOT
+from sync_game_ui import GAMES, COLLECTIONS, ROOT, project_path
 import update_installed_games as Update
 
 
@@ -27,7 +27,7 @@ def source_hash(app):
 
 
 def archive_game(game, dist, releases, root=ROOT):
-    app=root/game/'app'
+    app=project_path(game, root) /'app'
     manifest=json.loads((app/'manifest.json').read_text())
     filename=f"{game}-{manifest['version']}.xtapp"
     target=releases/filename
@@ -56,7 +56,7 @@ def archive_game(game, dist, releases, root=ROOT):
     if game in COLLECTIONS:
         sources=list(app.glob('*.lua'))
         entry.update(code_files=len(sources),code_container_bytes=16+104*len(sources)+sum(p.stat().st_size for p in sources),
-                     games={g:json.loads((root/g/'app/manifest.json').read_text())['version'] for g in GAMES})
+                     games={g:json.loads((project_path(g, root) /'app/manifest.json').read_text())['version'] for g in GAMES})
     metadata.write_text(json.dumps(entry,indent=2)+'\n')
     return entry
 
@@ -64,10 +64,10 @@ def archive_game(game, dist, releases, root=ROOT):
 def prepare(packer, linter):
     for script in ('make_game_fonts.py','make_icons.py','sync_game_ui.py','sync_game_theme.py','sync_puzzle_store.py','build_game_hub.py'):
         subprocess.run([sys.executable,str(ROOT/'scripts'/script)],check=True,cwd=ROOT)
-    verified_sources={game:source_hash(ROOT/game/'app') for game in GAMES+COLLECTIONS}
+    verified_sources={game:source_hash(project_path(game) /'app') for game in GAMES+COLLECTIONS}
     command=[sys.executable,str(ROOT/'scripts/check_games.py'),'--packer',str(packer),'--linter',str(linter)]
     subprocess.run(command,check=True,cwd=ROOT)
-    assert all(source_hash(ROOT/game/'app')==fingerprint for game,fingerprint in verified_sources.items()), 'Source changed during verification; rerun the release'
+    assert all(source_hash(project_path(game) /'app')==fingerprint for game,fingerprint in verified_sources.items()), 'Source changed during verification; rerun the release'
     releases=ROOT/'releases';releases.mkdir(exist_ok=True)
     entries=[archive_game(game,ROOT/'dist',releases) for game in GAMES]
     hub=archive_game('games-hub',ROOT/'dist',releases)
@@ -174,7 +174,7 @@ def main():
         document=json.loads(catalogue.read_text())
         assert {entry['game'] for entry in document['games']}==set(GAMES),'Incomplete game catalogue'
         for entry in document['games']+[document['hub']]:
-            assert source_hash(ROOT/entry['game']/'app')==entry['source_sha256'],'Source changed since release verification'
+            assert source_hash(project_path(entry['game'])/'app')==entry['source_sha256'],'Source changed since release verification'
         receipt=deploy(args.card.resolve(),catalogue,args.backup.resolve())
         (ROOT/'releases'/('game-family-sd-update-'+datetime.now().strftime('%Y%m%d-%H%M%S')+'.json')).write_text(json.dumps(receipt,indent=2)+'\n')
 

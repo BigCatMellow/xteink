@@ -1,8 +1,8 @@
 -- Replay an unchanged source suite against its bundled engine and storage adapter.
--- Run from a source game's directory: lua ../tests/run_hub_game.lua [--bitmap]
+-- Run from a source game's directory: lua ../../tests/run_hub_game.lua [--bitmap]
 local native_require=require
 local native_dofile=dofile
-package.path='../games-hub/app/?.lua;../tests/?.lua;'..package.path
+package.path='../games-hub/app/?.lua;../../tests/?.lua;'..package.path
 local manifest=assert(io.open('app/manifest.json')):read('*a')
 local id=assert(manifest:match('"app_id"%s*:%s*"([a-z]+)"'))
 local factory=native_require('game_'..id)
@@ -43,6 +43,6 @@ function dofile(path)
   function on_input(c,e) return engine.input(context(c),e) end
   function on_leave() return engine.leave() end
 end
-if arg[1]=='--bitmap' then dofile('../tests/run_themed_game.lua')
+if arg[1]=='--bitmap' then dofile('../../tests/run_themed_game.lua')
 else dofile('tests/test_game.lua');on_leave() end
 print('HUB ENGINE: '..id..' passed through private modules, header and save namespace')

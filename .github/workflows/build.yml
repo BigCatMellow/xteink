@@ -16,17 +16,17 @@ jobs:
           sudo apt-get install -y lua5.4
           python -m pip install cryptography
       - name: Test game rules
-        run: cd paper-golf && lua tests/test_game.lua
+        run: cd games/paper-golf && lua tests/test_game.lua
       - name: Get pinned Licorice packer
         run: |
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
           git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
       - name: Lint for Lua 5.5
-        run: python /tmp/xtapp-tools/tools/lualint55.py paper-golf/app/index.lua
+        run: python /tmp/xtapp-tools/tools/lualint55.py games/paper-golf/app/index.lua
       - name: Build app
         run: |
           mkdir -p dist
-          python /tmp/xtapp-tools/xtpack.py paper-golf/app -o dist/pocket-golf.xtapp
+          python /tmp/xtapp-tools/xtpack.py games/paper-golf/app -o dist/pocket-golf.xtapp
           python -c "from pathlib import Path; p=Path('dist/pocket-golf.xtapp'); assert p.read_bytes()[:4]==b'XTAP' and p.stat().st_size>256"
       - uses: actions/upload-artifact@v4
         with:

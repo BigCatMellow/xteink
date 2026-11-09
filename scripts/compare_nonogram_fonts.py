@@ -6,6 +6,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from render_nonogram import ROOT, FONT, render
+from sync_game_ui import project_path
 
 
 def inter(path, size, weight):
@@ -21,7 +22,7 @@ def inter(path, size, weight):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--fonts', type=Path, default=Path.home()/'.cache/xteink-font-review')
-    parser.add_argument('--out', type=Path, default=ROOT/'nonogram/docs/design')
+    parser.add_argument('--out', type=Path, default=project_path('nonogram')/'docs/design')
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     ui = {size: inter(args.fonts/'Inter.ttf', size, 600 if size == 30 else 500)
@@ -38,7 +39,7 @@ def main():
     title = ImageFont.truetype(FONT, 23)
     caption = ImageFont.truetype(FONT, 17)
     for i, (name, label, fonts) in enumerate(profiles):
-        shot = render(ROOT/'nonogram/app/index.lua', 9, 'partial', fonts)
+        shot = render(project_path('nonogram')/'app/index.lua', 9, 'partial', fonts)
         shot.save(args.out/('font-'+name.lower().replace(' + ', '-').replace(' ', '-')+'.png'))
         x = i*504+12
         pen.text((x, 9), name, font=title, fill='black')

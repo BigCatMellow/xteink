@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from sync_game_ui import GAMES, COLLECTIONS, ROOT
+from sync_game_ui import GAMES, COLLECTIONS, ROOT, project_path
 
 APPS = (*GAMES, *COLLECTIONS, 'wallpaper-randomizer')
 SIZE, SCALE = 96, 4
@@ -157,7 +157,7 @@ def main():
         validate(expected, app)
         assert expected.tobytes() not in signatures, f'{app}: duplicates another icon'
         signatures.add(expected.tobytes())
-        target = ROOT / app / 'app/icon.png'
+        target = project_path(app) / 'app/icon.png'
         if args.check:
             with Image.open(target) as actual:
                 validate(actual, app)

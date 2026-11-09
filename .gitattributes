@@ -2,3 +2,4 @@
 assets/fonts/game-ui/*-OFL.txt -whitespace
 shared/font_license.lua -whitespace
 */app/font_license.lua -whitespace
+games/*/app/font_license.lua -whitespace

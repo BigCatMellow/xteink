@@ -7,7 +7,7 @@ import re
 import subprocess
 import sys
 
-from sync_game_ui import GAMES, COLLECTIONS, ROOT
+from sync_game_ui import GAMES, COLLECTIONS, OTHER_APPS, SHELVED, ROOT, project_path
 from verify_package_icons import verify_icon
 
 
@@ -15,16 +15,28 @@ def run(command, cwd=ROOT):
     subprocess.run([str(item) for item in command], cwd=cwd, check=True)
 
 
+def verify_project_layout(root=ROOT):
+    """Reject misplaced or unregistered apps before they can escape checks."""
+    root = Path(root)
+    root_apps = {manifest.parents[1].name for manifest in root.glob('*/app/manifest.json')}
+    assert root_apps == set(OTHER_APPS), (
+        f'Root app registry mismatch: {root_apps ^ set(OTHER_APPS)}. '
+        'Move games into games/ and register them; register root utilities in OTHER_APPS.'
+    )
+    games = {
+        manifest.parents[1].name for manifest in (root/'games').glob('*/app/manifest.json')
+        if manifest.parents[1].name not in SHELVED
+    }
+    assert games == set(GAMES + COLLECTIONS), f'Game registry mismatch: {games ^ set(GAMES + COLLECTIONS)}'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--packer', type=Path)
     parser.add_argument('--linter', type=Path)
     args = parser.parse_args()
-    discovered = {
-        manifest.parents[1].name for manifest in ROOT.glob('*/app/manifest.json')
-        if manifest.parents[1].name not in {'wallpaper-randomizer', 'paper-golf'}
-    }
-    assert discovered == set(GAMES + COLLECTIONS), f'Game registry mismatch: {discovered ^ set(GAMES + COLLECTIONS)}'
+    verify_project_layout()
+    run([sys.executable, ROOT / 'tests/test_game_discovery.py'])
     run([sys.executable, ROOT / 'scripts/sync_game_ui.py', '--check'])
     run([sys.executable, ROOT / 'scripts/sync_puzzle_store.py', '--check'])
     run([sys.executable, ROOT / 'scripts/sync_game_theme.py', '--check'])
@@ -38,7 +50,7 @@ def main():
     run(['lua', ROOT / 'tests/test_puzzle_store.lua'])
     run(['lua', ROOT / 'tests/test_game_theme.lua'])
     for game in GAMES:
-        folder = ROOT / game
+        folder = project_path(game)
         manifest = json.loads((folder / 'app/manifest.json').read_text())
         assert manifest['api'] == '2.0'
         for source in (folder / 'app').glob('*.lua'):
@@ -68,7 +80,7 @@ def main():
             assert output.read_bytes()[:4] == b'XTAP' and output.stat().st_size > 256
             verify_icon(output, folder / 'app/icon.png')
     for collection in COLLECTIONS:
-        app = ROOT / collection / 'app'
+        app = project_path(collection) / 'app'
         for source in app.glob('*.lua'):
             if args.linter:
                 run([sys.executable, args.linter.resolve(), source])

@@ -10,12 +10,23 @@ import tempfile
 from PIL import Image,ImageDraw,ImageFont
 from render_nonogram import ROOT,FONT,render
 from render_games import FIXTURES,shot
-from sync_game_ui import GAMES
+from sync_game_ui import GAMES, project_path
 from make_icons import APPS,contact_sheet
 
 
 def git(ref,path):
     return subprocess.check_output(['git','show',ref+':'+path],cwd=ROOT)
+
+
+def baseline_project(ref, name):
+    """Resolve either historical flat layout or the current games layout."""
+    candidates = ['games/' + name, name] if name in GAMES or name == 'games-hub' else [name]
+    for candidate in candidates:
+        result = subprocess.run(['git', 'cat-file', '-e', ref + ':' + candidate + '/app/manifest.json'],
+                                cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if result.returncode == 0:
+            return candidate
+    raise ValueError('No project in baseline: ' + name)
 
 
 def main():
@@ -28,16 +39,17 @@ def main():
     links=[]
     with tempfile.TemporaryDirectory(prefix='xteink-review-baseline-') as temp:
         for i,game in enumerate(GAMES):
-            paths=subprocess.check_output(['git','ls-tree','-r','--name-only',args.baseline_ref,game+'/app'],cwd=ROOT,text=True).splitlines()
+            baseline=baseline_project(args.baseline_ref,game)
+            paths=subprocess.check_output(['git','ls-tree','-r','--name-only',args.baseline_ref,baseline+'/app'],cwd=ROOT,text=True).splitlines()
             for name in paths:
-                target=Path(temp)/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(git(args.baseline_ref,name))
+                target=Path(temp)/game/Path(name).relative_to(baseline);target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(git(args.baseline_ref,name))
             folder=Path(temp)/game
             bitmap=(folder/'app/font_data.lua').exists()
             fixture=None if game=='nonogram' else 'dofile(SOURCE)\non_load(ctx)\nlocal A=__TEST.api\n'+FIXTURES[game][0]
             before=render(folder/'app/index.lua',1,'partial',bitmap=bitmap,game=folder,fixture=fixture)
             after=shot(game,1,'first')
             old=json.loads((folder/'app/manifest.json').read_text())['version']
-            current=json.loads((ROOT/game/'app/manifest.json').read_text())['version']
+            current=json.loads((project_path(game) /'app/manifest.json').read_text())['version']
             compare=Image.new('RGB',(1008,852),'#e9e9e9')
             compare.paste(before.convert('RGB'),(12,38));compare.paste(after.convert('RGB'),(516,38))
             pen=ImageDraw.Draw(compare)
@@ -52,8 +64,8 @@ def main():
     previous={}
     current={}
     for game in APPS:
-        previous[game]=Image.open(BytesIO(git(args.baseline_ref,game+'/app/icon.png'))).copy()
-        current[game]=Image.open(ROOT/game/'app/icon.png').copy()
+        previous[game]=Image.open(BytesIO(git(args.baseline_ref,baseline_project(args.baseline_ref,game)+'/app/icon.png'))).copy()
+        current[game]=Image.open(project_path(game) /'app/icon.png').copy()
     contact_sheet(previous,args.out/'icons-before.png');contact_sheet(current,args.out/'icons-after.png')
     report='# Full game-family visual review\n\n'
     report+='All frames replay actual Lua drawing commands. Current frames use the shipped bitmap glyphs. The four newly imported games had native fonts at the baseline, so their before frames use a labeled host-font stand-in. These are host previews, not reader photographs. All fixtures use fresh mock saves.\n\n'

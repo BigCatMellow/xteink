@@ -1,6 +1,6 @@
 -- Replay the existing gameplay suite with actual bitmap metrics and image bounds.
--- Run inside any active game directory: lua ../tests/run_themed_game.lua
-package.path='app/?.lua;../tests/?.lua;'..package.path
+-- Run inside any active game directory: lua ../../tests/run_themed_game.lua
+package.path='app/?.lua;../../tests/?.lua;'..package.path
 local T=require('game_canvas')
 local native_canvas=T.canvas
 local decoded,released,max_commands,frames=0,0,0,0

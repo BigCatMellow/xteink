@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Render the actual collection menu and hosted games with shipped bitmap glyphs."""
 from PIL import Image, ImageDraw, ImageFont
+from sync_game_ui import project_path
 from render_nonogram import ROOT, FONT, render
 
 
@@ -16,7 +17,7 @@ def main():
     for i, (name, setup) in enumerate(fixtures):
         fixture = 'dofile(SOURCE)\non_load(ctx)\nlocal A=__TEST.api\n' + setup
         check = "if BITMAP then local s=A.state();assert(s.selected==10 and s.engine.api.typefaces() or require('theme').state()) end"
-        shot = render(ROOT/'games-hub/app/index.lua',1,name,bitmap=True,game='games-hub',fixture=fixture,bitmap_check=check)
+        shot = render(project_path('games-hub')/'app/index.lua',1,name,bitmap=True,game='games-hub',fixture=fixture,bitmap_check=check)
         shot.save(folder/(name+'.png'))
         x,y=i%3*504+12,i//3*852+38
         sheet.paste(shot.convert('RGB'),(x,y))

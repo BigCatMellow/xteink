@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Review actual Sudoku Lua/bitmap frames and pixel-check its 3x3 grid."""
 from PIL import Image, ImageDraw, ImageFont
+from sync_game_ui import project_path
 from render_nonogram import ROOT, FONT, render
 
 
@@ -21,7 +22,7 @@ def main():
     shots = {}
     for name, setup in frames.items():
         fixture = 'dofile(SOURCE)\non_load(ctx)\nlocal A=__TEST.api\n'+setup
-        shot = render(ROOT/'sudoku/app/index.lua',1,name,bitmap=True,game='sudoku',fixture=fixture)
+        shot = render(project_path('sudoku')/'app/index.lua',1,name,bitmap=True,game='sudoku',fixture=fixture)
         shot.save(folder/(name+'.png'))
         shots[name]=shot
     # The real raster output must have four solid pixels across each box bar.
@@ -53,7 +54,7 @@ def main():
     if (folder/'icon-before.png').exists():
         icons=Image.new('RGB',(504,190),'#e9e9e9')
         pen=ImageDraw.Draw(icons)
-        for i,(label,source) in enumerate((('Previous',folder/'icon-before.png'),('Updated',ROOT/'sudoku/app/icon.png'))):
+        for i,(label,source) in enumerate((('Previous',folder/'icon-before.png'),('Updated',project_path('sudoku')/'app/icon.png'))):
             icon=Image.open(source).convert('L')
             icons.paste(icon.convert('RGB'),(i*252+18,42))
             small=icon.resize((64,64),Image.Resampling.LANCZOS).point(lambda value: 0 if value<128 else 255)

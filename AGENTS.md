@@ -1,5 +1,11 @@
 # XTEINK repository rules
 
+Game projects, including Games Hub and shelved Paper Golf, live in `games/`.
+Keep registry/release keys stable and use `scripts/sync_game_ui.py`'s
+`project_path()` to resolve source locations. The shell project owns its docs,
+tools and focused tests under `shell/`; use `shell/README.md` as its entry point.
+Shared UI/assets and collection-wide scripts/tests remain at the repo root.
+
 Read [docs/HANDOFF.md](docs/HANDOFF.md) for the saved project state and next
 device check before resuming earlier work. Wallpaper-specific evidence and
 backups are linked there. Do not treat a passing preview as a verified sleep screen.

@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'sudoku/**'
+      - 'games/sudoku/**'
       - '.github/workflows/sudoku.yml'
       - 'shared/game_ui.lua'
       - 'shared/puzzle_store.lua'
@@ -32,27 +32,27 @@ jobs:
       - name: Verify all distinct monochrome launcher icons
         run: python scripts/make_icons.py --check
       - name: Verify generated puzzle solutions
-        run: python sudoku/tests/validate_levels.py
+        run: python games/sudoku/tests/validate_levels.py
       - name: Test gameplay, saving and measured layout
-        run: cd sudoku && lua tests/test_game.lua
+        run: cd games/sudoku && lua tests/test_game.lua
       - name: Verify shared copies and bitmap gameplay layouts
         run: |
           python scripts/sync_game_ui.py --check
           python scripts/sync_game_theme.py --check
-          cd sudoku && lua ../tests/run_themed_game.lua
+          cd games/sudoku && lua ../../tests/run_themed_game.lua
       - name: Get pinned community Licorice packer
         run: |
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
           git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
       - name: Check Lua 5.5 source compatibility
         run: |
-          for source in sudoku/app/*.lua; do
+          for source in games/sudoku/app/*.lua; do
             python /tmp/xtapp-tools/tools/lualint55.py "$source"
           done
       - name: Package installable XTApp
         run: |
           mkdir -p dist
-          python /tmp/xtapp-tools/xtpack.py sudoku/app -o dist/sudoku.xtapp
+          python /tmp/xtapp-tools/xtpack.py games/sudoku/app -o dist/sudoku.xtapp
           python -c "from pathlib import Path; p=Path('dist/sudoku.xtapp'); assert p.read_bytes()[:4]==b'XTAP' and p.stat().st_size>256"
       - name: Verify embedded 1-bit XTAB/XIC icon data
         run: python scripts/verify_package_icons.py dist/sudoku.xtapp

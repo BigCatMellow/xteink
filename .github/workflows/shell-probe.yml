@@ -3,20 +3,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'shell/probe/**'
-      - 'docs/shell/probes/**'
-      - 'scripts/build_shell_probe.py'
-      - 'scripts/shell_probe_capture.py'
-      - 'tests/test_shell_probe*'
+      - 'shell/**'
       - 'shared/game_ui.lua'
       - '.github/workflows/shell-probe.yml'
   pull_request:
     paths:
-      - 'shell/probe/**'
-      - 'docs/shell/probes/**'
-      - 'scripts/build_shell_probe.py'
-      - 'scripts/shell_probe_capture.py'
-      - 'tests/test_shell_probe*'
+      - 'shell/**'
       - 'shared/game_ui.lua'
       - '.github/workflows/shell-probe.yml'
   workflow_dispatch:
@@ -40,11 +32,11 @@ jobs:
           git clone --quiet https://github.com/omer-faruq-xteink/touch-licorice-apps.git /tmp/xtapp-tools
           git -C /tmp/xtapp-tools checkout --quiet 3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d
       - name: Build isolated host probe and validate its package
-        run: python scripts/build_shell_probe.py --packer /tmp/xtapp-tools/xtpack.py --linter /tmp/xtapp-tools/tools/lualint55.py
+        run: python shell/tools/build_probe.py --packer /tmp/xtapp-tools/xtpack.py --linter /tmp/xtapp-tools/tools/lualint55.py
       - name: Check callbacks, save failures and measured layouts
-        run: lua tests/test_shell_probe.lua
+        run: lua shell/tests/test_probe.lua
       - name: Check capture integrity and rejection cases
-        run: python tests/test_shell_probe_capture.py
+        run: python shell/tests/test_capture.py
       - uses: actions/upload-artifact@v4
         with:
           name: shell-probe-host-only

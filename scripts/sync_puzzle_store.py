@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Synchronize the numbered-puzzle store into apps that generate puzzles."""
 import argparse
-from sync_game_ui import ROOT
+from sync_game_ui import ROOT, project_path
 
 APPS = ('word-hunt', 'nonogram', 'sudoku')
 
@@ -12,7 +12,7 @@ def main():
     args = parser.parse_args()
     canonical = (ROOT / 'shared/puzzle_store.lua').read_bytes()
     for app in APPS:
-        target = ROOT / app / 'app/puzzle_store.lua'
+        target = project_path(app) / 'app/puzzle_store.lua'
         if args.check:
             assert target.read_bytes() == canonical, f'{app}: run scripts/sync_puzzle_store.py'
         else:

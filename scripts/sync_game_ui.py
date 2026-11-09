@@ -9,6 +9,13 @@ GAMES = ('line-lift', 'summit-putt', 'link-grid', 'ink-runes',
          'crown-fields', 'ten-pairs', 'quiet-mines', 'sum-cross')
 OTHER_APPS = ('wallpaper-randomizer',)
 COLLECTIONS = ('games-hub',)  # Generated from GAMES; audited by check_games.py.
+SHELVED = ('paper-golf',)
+
+
+def project_path(name, root=ROOT):
+    """Locate sources without changing stable release/game keys."""
+    root = Path(root)
+    return root / 'games' / name if name in GAMES + COLLECTIONS + SHELVED else root / name
 
 
 def main():
@@ -18,7 +25,7 @@ def main():
     canonical = (ROOT / 'shared/game_ui.lua').read_bytes()
     bad = []
     for game in GAMES + OTHER_APPS:
-        target = ROOT / game / 'app/ui.lua'
+        target = project_path(game) / 'app/ui.lua'
         if args.check:
             if not target.exists() or target.read_bytes() != canonical:
                 bad.append(str(target.relative_to(ROOT)))

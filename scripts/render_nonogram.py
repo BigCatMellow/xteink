@@ -9,6 +9,7 @@ import argparse
 from io import BytesIO
 import json
 from pathlib import Path
+from sync_game_ui import project_path
 import subprocess
 
 from PIL import Image, ImageDraw, ImageFont
@@ -17,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
 HARNESS = r'''
-package.path='app/?.lua;../tests/?.lua;'..package.path
+package.path='app/?.lua;'..TEST_ROOT..'/?.lua;'..package.path
 __TEST={}
 local storage={}
 local fonts={}
@@ -95,6 +96,7 @@ def render(source, level, scene, fonts=None, bitmap=False, game='nonogram', fixt
                           for code in range(32, 127))
         tables.append(f'[{size}]={{{glyphs}}}')
     setup = 'METRICS={' + ','.join(tables) + '}\n'
+    setup += f'TEST_ROOT={json.dumps(str(ROOT / "tests"))}\n'
     setup += f'SOURCE={json.dumps(str(source))}\nLEVEL={level}\nSCENE={json.dumps(scene)}\nBITMAP={str(bitmap).lower()}\n'
     program=HARNESS
     if fixture is not None:
@@ -104,7 +106,7 @@ def render(source, level, scene, fonts=None, bitmap=False, game='nonogram', fixt
         program=program.replace("if BITMAP then assert(A.typefaces(),'bitmap fonts unexpectedly fell back') end",
           bitmap_check or "if BITMAP then assert(require('theme').state(),'bitmap theme unexpectedly fell back') end")
     output = subprocess.check_output(['lua', '-'], input=setup + program, text=True,
-                                     cwd=ROOT / game)
+                                     cwd=Path(game) if Path(game).is_absolute() else project_path(game))
     image = Image.new('L', (480, 800), 255)
     draw = ImageDraw.Draw(image)
     for record in output.splitlines():
@@ -145,10 +147,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', type=Path)
     parser.add_argument('--bitmap', action='store_true', help='Use the packaged font glyphs')
-    parser.add_argument('--out', type=Path, default=ROOT / 'nonogram/docs/design')
+    parser.add_argument('--out', type=Path, default=project_path('nonogram') / 'docs/design')
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
-    source = ROOT / 'nonogram/app/index.lua'
+    source = project_path('nonogram') / 'app/index.lua'
     scenes = [('5x5', 1, 'partial'), ('7x7', 5, 'partial'), ('8x8', 9, 'partial'),
               ('generated', 15, 'partial'), ('solved', 9, 'solved'),
               ('help', 1, 'help'), ('wrong', 9, 'wrong')]

@@ -141,7 +141,7 @@ See [before/after](design/sudoku-2026-11-08/before-after.png),
 [design decisions](GAME_DESIGN.md). Source is still local/uncommitted/unpushed.
 
 **Deployed directly on 2026-11-08:** after the user remounted the SD card,
-replaced installed `games/sudoku/app.xtapp` (0.2.0 → 0.3.0) and `gameshub/app.xtapp`
+replaced installed `sudoku/app.xtapp` (0.2.0 → 0.3.0) and `gameshub/app.xtapp`
 (0.1.0 → 0.2.0). The other 12 standalone games were already current. Hub import
 was complete before replacement. All 346 installed files were checksum-checked:
 only those two packages changed; all 326 app-data files and all unrelated apps,

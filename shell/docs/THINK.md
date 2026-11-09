@@ -77,6 +77,18 @@ them with unproven external launching does not remove that dependency. A visuall
 complete home mockup with dead Reading or Settings controls is not a capability
 prototype and should not be described as a functioning shell.
 
+**User constraint, 2026-11-08:** the user wants the shell to load the way PocketOS
+does on Onion, meaning it starts automatically and is updated by card copy. They
+report that their X4 Pro does not allow firmware exposure or flashing: no USB
+read-back and no write. Routes E and F, including an OTA-slot dual boot like
+dinkslate's, are therefore **rejected for this unit**. Do not plan esptool, web
+flasher or update.bin work, and do not try to bypass the lock. Route D stays
+open only through a supported stock setting or documented API. The stock-hosted
+A/B hybrid is now the only route. Its closest analogue is Licorice as Onion and
+our shell app as the PocketOS launcher. Automatic entry depends on DP3: does
+the reader resume into the last open Ink App after sleep or reset? A supported
+default-app setting, through official developer documentation, is the other path.
+
 ## Decision criteria and falsifiers
 
 Use gates before weighted preferences: a beautiful UI cannot compensate for lost

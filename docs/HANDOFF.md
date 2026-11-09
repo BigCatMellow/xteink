@@ -5,8 +5,10 @@
 The separate [shell project index](shell/README.md) owns the new research and
 OS planning work. Follow [current state](shell/STATE.md) and its canonical
 roadmap for startup, native navigation, return paths and USB updates. MAPS_Lean
-methods and helper model/effort assignments are recorded there. This is a
-planning delivery; no shell installation or new physical result is implied.
+methods and helper model/effort assignments are recorded there. The subsequent
+[probe wave](shell/probes/README.md) supplies a frozen contract, separate host
+diagnostic, package builder and capture harness. No shell installation or new
+physical result is implied; see its host receipt and independent review.
 
 ## Complete 17-game rollout — current state
 

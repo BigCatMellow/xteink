@@ -11,12 +11,16 @@ Canonical [roadmap](ROADMAP.md); [device evidence](research/device.md);
 [THINK alternatives](THINK.md); [method research](research/maps-method.md);
 [applied protocols](protocols/INDEX.md).
 
-Current scope: research and planning. Device experiments and shell implementation
-are future tasks. Games Hub provides local evidence for bundled games and a
+Current scope: research and host probe preparation. Device experiments and full
+shell implementation are future tasks. Games Hub provides local evidence for bundled games and a
 shared UI, not arbitrary installed-app launch or automatic cold startup.
 
-Next eligible work after review: P2, define a small probe contract and capture
-harness. Device observations need an accessible reader and recorded conditions.
+P2 now has a frozen [probe contract](probes/CONTRACT.md), and P3 has a small
+isolated host prototype, package builder and capture tool. See the
+[runbook](probes/README.md), [host receipt](probes/HOST-VALIDATION.json) and
+[independent probe review](probes/REVIEW.md).
+Next work is P4 factual device preflight. Device observations need an accessible
+reader, distinct app ID, recovery, matching package and recorded conditions.
 An SD mount alone gives no control of boot, touch input, sleep or screen capture.
 
 Preserve existing IDs, saves, unfinished boards and undo. Reuse shared design
@@ -25,6 +29,13 @@ Independent challenge/review and remaining unknowns are recorded in the owning
 research artifacts. No physical result is claimed by this delivery.
 
 Planning wave R1/R2/T1/P1 is complete. [Independent review](REVIEW.md) passed for
-research/planning: two clarity findings were corrected; P2 must still freeze
-execution contracts before P3/P4 can be READY. The repository-required 17-game
+research/planning: two clarity findings were corrected. That review binds the
+historical planning snapshot, not later code. The repository-required 17-game
 quality check passed under Lua 5.4 after integration; no app source changed.
+
+The subsequent P2/P3 host wave introduces only the separate diagnostic app.
+Its 32 guarded frames pass on Lua 5.1 and 5.4; static Lua 5.5 lint, supported
+package budgets and native icon checks pass. The existing 17-game gate also
+passes. The probe is 4 Lua files / 15,353 XTCO bytes and is not installed.
+Capture integrity never certifies physical acceptance. DP1/DP2 remain blocked
+on the exact navigation contract; no autostart or cold-boot result is claimed.

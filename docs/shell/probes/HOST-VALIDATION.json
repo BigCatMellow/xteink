@@ -1,0 +1,30 @@
+{
+  "contract_id": "xteink-shell-probe-v1",
+  "contract_sha256": "54952881a2c8328666a3210cf188bb91667df9a3bb6a7f4e6e608417bb58288a",
+  "app_id": "xteinkshellprobe",
+  "package_version": "0.1.0",
+  "package_sha256": "3ac52e3682fa261842180a7c2d7aaaac500b6fc1bb82dc6c997fa16ff28e56b2",
+  "source_sha256": {
+    "config.lua": "40c3140a4f66f05e94780a717c1b68a53acfe3ab663530b63e8bc5f6deeb97b1",
+    "icon.png": "686e90a931b69577eb347428315de7d2096cfa6f1ad1979739d76b72219e43a8",
+    "index.lua": "582e80406fec28bb5c4c1be60535908ef419aeaea023b6cb02a936059466c6b5",
+    "manifest.json": "702e1a69942bcf945e8aabf5dfe0132ded42cb2a0248ab7a3f872bc6bf0f8c70",
+    "marker.lua": "a6a8049ff38d0aea80185d6b27e437a4557b5fc046f70265323397dbad639b14",
+    "ui.lua": "da2eb581ca1f701fdad733558acc4aeb18a51ff00b379712b9ac1a1779866357"
+  },
+  "tool_pin": "3d7e6225efc9b18d2b4aeed324a32b2e352d1f0d",
+  "code_files": 4,
+  "xtco_bytes": 15353,
+  "physical_execution": "NOT_RUN",
+  "sd_writes": false,
+  "host_only": true,
+  "evidence_scope": "Local host candidate; encrypted bytes vary on rebuild. This receipt does not certify device execution. Candidate remains in ignored dist; CI builds its own package and matching receipt.",
+  "host_checks": {
+    "lua_5_1": "PASS",
+    "lua_5_4": "PASS",
+    "guarded_frames_per_runtime": 32,
+    "lua_5_5_static_lint": "PASS",
+    "packaged_icon_pixels_verified": 9216,
+    "game_quality_gate_17": "PASS"
+  }
+}

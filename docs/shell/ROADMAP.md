@@ -48,8 +48,12 @@ Source inspection and a host prototype can proceed without those changes.
 | V1 | Independent review and acceptance / reviewer + coordinator | I1 | Revision-bound review and physical acceptance | Correct and re-review material changes |
 | L1 | Release / coordinator | V1 | Immutable package, USB update/rollback evidence and runbook | Restore previous package; retain diagnostic data |
 
-R1/R2/T1/P1 form the planning wave. Later tasks are future work, not claims of
-implementation or completed device experiments. Select one eligible bounded
+R1/R2/T1/P1 completed the initial planning wave. P2 is now frozen in the
+[probe contract](probes/CONTRACT.md); P3 has an isolated host prototype and
+[validation receipt](probes/HOST-VALIDATION.json), subject to its
+[independent review](probes/REVIEW.md). P4 remains NOT_READY pending factual
+device preflight; DP1/DP2 navigation remains NEEDS_RESEARCH. Later tasks are
+future work, not claims of completed device experiments. Select one eligible bounded
 next task, reconcile evidence, then continue. Material contrary evidence can
 reopen a decision without restarting the entire plan.
 
@@ -132,5 +136,7 @@ emulator output alone cannot satisfy reader acceptance.
 
 After each task, reconcile evidence into its owning document and update
 [STATE](STATE.md). Capture ideas in THINK before promotion. Repair stale links
-and contradictory claims through the spiderweb procedure. Next: P2, freeze the
-small probe package before building a broad launcher.
+and contradictory claims through the spiderweb procedure. Next: establish the
+P4 factual preflight and record only eligible DP0/DP3 observations using the
+[probe runbook](probes/README.md). Preserve UNKNOWN for inaccessible or unsupported
+device cases. Broad launcher features still depend on their navigation contracts.

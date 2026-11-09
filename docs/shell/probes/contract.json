@@ -1,0 +1,395 @@
+{
+  "schema_version": 1,
+  "contract_id": "xteink-shell-probe-v1",
+  "probe_id": "DP0-DP3",
+  "app_id": "xteinkshellprobe",
+  "created_on": "2026-11-08",
+  "owner": "coordinator",
+  "purpose": "Freeze a future minimal inventory/manual-lifecycle experiment; current work is host-only.",
+  "authority": {
+    "current": "Host research, contract, capture tooling and prototype preparation only.",
+    "device_execution_enabled_in_this_wave": false,
+    "sd_writes_enabled_in_this_wave": false,
+    "hardware_operations_executed": false,
+    "continuing_authority": "Existing autonomy covers reversible host preparation. Later device execution depends on factual accessibility, inherited scope, collision/recovery checks and a safe procedure; this contract does not invent a repeated user-approval gate.",
+    "forbidden": [
+      "SD mount/card writes",
+      "serial/USB device commands",
+      "firmware/flash/NVS/partition/efuse edits",
+      "cross-app storage access or app replacement",
+      "lockscreen registration or startup-default changes",
+      "guessed navigation routes"
+    ]
+  },
+  "readiness": {
+    "contract": "FROZEN_FOR_HOST_IMPLEMENTATION",
+    "host_prototype": "ELIGIBLE_WITHIN_EXISTING_AUTONOMY",
+    "physical_execution": "NOT_READY",
+    "DP1": "NEEDS_RESEARCH",
+    "DP2": "NEEDS_RESEARCH",
+    "reason": "Exact system.open contract is unavailable; recovery, accessibility and physical preflight have not been established. Device operations are outside this bounded host wave."
+  },
+  "app_identity": {
+    "candidate_id": "xteinkshellprobe",
+    "all_ascii_letters": true,
+    "repo_collision": "NONE_OBSERVED",
+    "checked_scope": "Local xteink source and known upstream probe manifests on 2026-11-08; no live card examined.",
+    "live_card_uniqueness": "UNKNOWN_REQUIRE_PREFLIGHT",
+    "future_version": "0.1.0",
+    "manifest_api": "2.0",
+    "permissions": [],
+    "lockscreen": false,
+    "entry": "index.lua"
+  },
+  "minimal_package": {
+    "code_file_count_max": 4,
+    "xtco_target_bytes_max": 32768,
+    "supported_xtco_bytes_max": 524288,
+    "supported_xtco_files_max": 32,
+    "assets": "No games, personal data, bitmap font pack, network or package installer.",
+    "callbacks": [
+      "on_load",
+      "on_draw",
+      "on_input",
+      "on_leave"
+    ],
+    "native_escape": "Preserve firmware Home pad and its confirmation."
+  },
+  "capture": {
+    "inventory_fields": {
+      "hardware_model": {
+        "type": "string_or_null",
+        "max_length": 64,
+        "note": "Family/model only; strip unique suffixes and IDs."
+      },
+      "firmware_build": {
+        "type": "string_or_null",
+        "max_length": 64
+      },
+      "runtime_api_major": {
+        "type": "integer_or_null",
+        "min": 0,
+        "max": 999
+      },
+      "runtime_api_minor": {
+        "type": "integer_or_null",
+        "min": 0,
+        "max": 999
+      },
+      "lua_version": {
+        "type": "string_or_null",
+        "max_length": 32
+      },
+      "screen_width": {
+        "type": "integer_or_null",
+        "min": 1,
+        "max": 4096
+      },
+      "screen_height": {
+        "type": "integer_or_null",
+        "min": 1,
+        "max": 4096
+      },
+      "system_can_open_type": {
+        "type": "enum_or_null",
+        "values": [
+          "absent",
+          "function",
+          "table",
+          "userdata",
+          "string",
+          "number",
+          "boolean",
+          "other"
+        ]
+      },
+      "system_open_type": {
+        "type": "enum_or_null",
+        "values": [
+          "absent",
+          "function",
+          "table",
+          "userdata",
+          "string",
+          "number",
+          "boolean",
+          "other"
+        ]
+      },
+      "storage_used_bytes": {
+        "type": "integer_or_null",
+        "min": 0,
+        "max": 2147483647
+      },
+      "storage_used_files": {
+        "type": "integer_or_null",
+        "min": 0,
+        "max": 4096
+      },
+      "storage_max_bytes": {
+        "type": "integer_or_null",
+        "min": 0,
+        "max": 2147483647
+      },
+      "storage_max_files": {
+        "type": "integer_or_null",
+        "min": 0,
+        "max": 4096
+      },
+      "gc_count_raw": {
+        "type": "number_or_null",
+        "min": 0,
+        "max": 2147483647,
+        "note": "Record raw numeric counter only; do not assume unit or native-image inclusion."
+      },
+      "gc_count_unit": {
+        "type": "enum_or_null",
+        "values": [
+          "bytes",
+          "kib",
+          "unknown"
+        ],
+        "note": "Use unknown unless the exact API contract establishes units."
+      }
+    },
+    "unknown_value": null,
+    "package_identity_required": [
+      "contract_sha256",
+      "package_sha256",
+      "app_id",
+      "package_version"
+    ],
+    "observation_fields": [
+      "trial_id",
+      "initial_state",
+      "action",
+      "observed_destination",
+      "input_responded",
+      "load_count_before",
+      "load_count_after",
+      "tap_count_before",
+      "tap_count_after",
+      "leave_count_before",
+      "leave_count_after",
+      "marker_preserved",
+      "save_status",
+      "power_semantics",
+      "observed_result",
+      "evidence_refs"
+    ],
+    "destination_enum": [
+      "probe",
+      "stock_home",
+      "ink_app_list",
+      "reader",
+      "settings",
+      "usb_mode",
+      "lockscreen",
+      "other",
+      "unknown"
+    ],
+    "power_semantics_enum": [
+      "not_applicable",
+      "ordinary_sleep_unknown_mode",
+      "deep_sleep_confirmed",
+      "warm_reset_confirmed",
+      "power_button_off_on_unclassified",
+      "cold_boot_confirmed",
+      "unknown"
+    ],
+    "observation_result_enum": [
+      "PENDING",
+      "OBSERVED",
+      "FAILED",
+      "UNKNOWN",
+      "SKIPPED"
+    ],
+    "save_status_enum": [
+      "ok",
+      "failed",
+      "unknown"
+    ],
+    "max_report_bytes": 65536,
+    "max_evidence_files": 24,
+    "max_attachment_bytes": 10485760,
+    "privacy": "Reject fields outside allowlists; no device IDs, MAC/serial, credentials, paths/book titles, save contents, firmware images, arbitrary ctx/log dumps or raw errors.",
+    "physical_pass_inference": false
+  },
+  "marker": {
+    "filename": "shell-probe-marker.json",
+    "max_bytes": 2048,
+    "max_files": 1,
+    "sandbox": "XTApps/xteinkshellprobe/files/",
+    "fields": [
+      "schema_version",
+      "app_id",
+      "selected_trial",
+      "sequence",
+      "load_count",
+      "tap_count",
+      "leave_count",
+      "last_event",
+      "write_status"
+    ],
+    "last_event_enum": [
+      "load",
+      "tap",
+      "leave",
+      "trial_selected",
+      "save"
+    ],
+    "write_status_enum": [
+      "ok",
+      "failed",
+      "unknown"
+    ],
+    "write_trigger": "Explicit operator Save only; callback counters remain in memory until Save. No automatic on_load/on_leave storage write.",
+    "read_failure": "Missing marker is a new sandbox; malformed/read failure is visible and cannot be silently replaced. Disable Save until disposition.",
+    "write_failure": "Preserve last readable marker when possible; display fixed error code, disable further Save and stop. Post-write readback mismatch remains FAILED, never silently retried or cleared.",
+    "retention": "Overwrite one bounded marker with readback; do not create per-event files. No private payload. Persisted leave_count is UNKNOWN unless actually captured."
+  },
+  "trials": [
+    {
+      "id": "dp0_inventory",
+      "probe": "DP0",
+      "question": "Record exact build/runtime surfaces without invoking navigation methods.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_manual_relaunch",
+      "probe": "DP3",
+      "question": "Launch manually, tap once, native Home leave, reopen; marker retained and fresh input works.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_sleep_01",
+      "probe": "DP3",
+      "question": "Normal power-button sleep/wake while probe Home is active; classify semantics as observed.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_sleep_02",
+      "probe": "DP3",
+      "question": "Normal power-button sleep/wake while probe Home is active; classify semantics as observed.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_sleep_03",
+      "probe": "DP3",
+      "question": "Normal power-button sleep/wake while probe Home is active; classify semantics as observed.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_sleep_04",
+      "probe": "DP3",
+      "question": "Normal power-button sleep/wake while probe Home is active; classify semantics as observed.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_sleep_05",
+      "probe": "DP3",
+      "question": "Normal power-button sleep/wake while probe Home is active; classify semantics as observed.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_power_01",
+      "probe": "DP3",
+      "question": "Supported normal power-button off/on; distinguish retained RTC/deep sleep from cold boot.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_power_02",
+      "probe": "DP3",
+      "question": "Supported normal power-button off/on; distinguish retained RTC/deep sleep from cold boot.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_power_03",
+      "probe": "DP3",
+      "question": "Supported normal power-button off/on; distinguish retained RTC/deep sleep from cold boot.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_power_04",
+      "probe": "DP3",
+      "question": "Supported normal power-button off/on; distinguish retained RTC/deep sleep from cold boot.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_power_05",
+      "probe": "DP3",
+      "question": "Supported normal power-button off/on; distinguish retained RTC/deep sleep from cold boot.",
+      "execution": "FUTURE_ONLY",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_warm_reset",
+      "probe": "DP3",
+      "question": "Supported ordinary reset only if documented safe; record destination/state separately.",
+      "execution": "CONDITIONAL",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_cold_boot",
+      "probe": "DP3",
+      "question": "Use an existing safe supported full-power-loss procedure only; otherwise leave UNKNOWN.",
+      "execution": "CONDITIONAL",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    },
+    {
+      "id": "dp3_usb_exit",
+      "probe": "DP3",
+      "question": "Normal USB-mode entry/exit only after backup/quiescence preflight; observe return destination.",
+      "execution": "CONDITIONAL",
+      "initial_status": "PENDING",
+      "repetitions": 1
+    }
+  ],
+  "stop_conditions": [
+    "Native escape unavailable",
+    "unexpected restart/crash or unresponsive input",
+    "failed marker read/write or unexplained counter loss",
+    "unexpected cross-app change",
+    "unknown or unsafe power/reset procedure",
+    "firmware/runtime mismatch requiring contract review",
+    "any request for credentials, firmware dump or undocumented navigation target"
+  ],
+  "successor": [
+    "Parent review and host collector/prototype P3",
+    "Host package/hash/budget/callback/save-failure checks",
+    "Confirm inherited device scope and factual hardware/recovery preflight without inventing repeat approval",
+    "Then eligible portions of P4; record unresolved cold boot as UNKNOWN"
+  ],
+  "claim_limits": [
+    "Tool validation establishes report structure and hashes only.",
+    "Manual launch does not establish autostart.",
+    "Retained e-ink pixels do not establish resumed execution.",
+    "RTC/deep-sleep resume does not establish cold boot.",
+    "Member presence does not establish navigation capability."
+  ]
+}

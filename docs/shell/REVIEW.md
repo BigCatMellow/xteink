@@ -1,5 +1,9 @@
 # Independent planning review
 
+Historical planning snapshot: commit `a2e69a8`. Input hashes below bind that
+planning wave; later probe preparation is reviewed separately under
+[`probes/REVIEW.md`](probes/REVIEW.md). They are not hashes of all future revisions.
+
 Date: 2026-11-08. Reviewer: Astra high challenger, separate from the coordinator
 who authored the integrated roadmap. Scope: documentation correctness, evidence
 boundaries, method traceability and readiness to define the next task. This is

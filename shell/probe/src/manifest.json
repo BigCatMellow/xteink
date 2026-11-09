@@ -1,0 +1,10 @@
+{
+  "app_id": "xteinkshellprobe",
+  "display_name": "Shell Probe",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Manual host-prepared shell inventory and marker diagnostic",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

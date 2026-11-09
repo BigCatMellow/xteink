@@ -1,5 +1,10 @@
 # Initial method application receipt
 
+Historical initial planning receipt at `a2e69a8`. The P2/P3 successor is the
+[probe contract](../probes/CONTRACT.md), with [host review](../probes/REVIEW.md).
+The roadmap and STATE own current eligibility; forward-looking text below
+records the disposition at the initial planning wave.
+
 Date: 2026-11-08. Scope: method research and routing for the
 [card-loaded shell roadmap](../ROADMAP.md). This is evidence, not a second plan.
 

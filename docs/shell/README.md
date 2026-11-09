@@ -15,6 +15,7 @@ that desired experience and needs evidence before it can be promised.
 4. [PLAN: tasks, dependencies, acceptance and model routing](ROADMAP.md).
 5. [Applied MAPS_Lean protocols](protocols/INDEX.md) and [method research](research/maps-method.md).
 6. [Independent planning review](REVIEW.md), including corrected findings and input identities.
+7. [Probe preparation and capture tools](probes/README.md), the executable next research wave.
 
 Device claims belong in research; decisions/task eligibility belong in the
 roadmap; captured alternatives belong in THINK. STATE routes to these owners.

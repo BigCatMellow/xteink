@@ -7,6 +7,17 @@ tools and tests under `shell/`. Start at the root README or
 [layout guide](REPOSITORY_LAYOUT.md). This source-layout change preserves app
 payloads and release identities and requires no SD updates.
 
+## Shell 0.4.0 (Games Hub) — latest, 2026-11-09
+
+The card-loaded shell is now Games Hub 0.4.0: Home (current book shown
+display-only, resume last game), Library, Games, Settings (portrait/landscape)
+in the user's CrossPoint layout. See [shell design](../shell/docs/DESIGN.md).
+The full quality gate passes. Packages are built and archived, but the card was
+not mounted, so nothing has been deployed. 0.4.0 adds API 2.18 and the `reader`
+permission, so the updater skips it with `firmware_install_required`. The user
+installs `Apps/games-hub.xtapp` over the Hub once. Device checks, including
+landscape direction against the base-on-left grip, are listed in the design doc.
+
 ## Shell research and planning
 
 The separate [shell project index](../shell/docs/README.md) owns the new research and

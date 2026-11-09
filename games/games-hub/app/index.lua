@@ -1,21 +1,115 @@
--- Games Hub owns navigation; engines and their save formats come from source games.
+-- Games Hub is the card-loaded shell (shell/docs/DESIGN.md): Home, Library,
+-- Games and Settings around the canonical engines, whose save formats come
+-- from the source games. Reading data is display-only.
 local UI=require('ui')
 local Theme=require('theme')
 local Catalogue=require('catalogue')
-local PER_PAGE=5
+local Shell=require('shell')
 local Namespace=require('namespace')
 local Importer=require('importer')
 local Expected=require('import_expected')
 local C,active,scope,selected=nil,nil,nil,nil
-local page,last,notice,blocked=1,1,nil,false
+local last,notice,blocked=1,nil,false
 local held=false
+local S={screen='home',page=1}
+local orient,pages,back,saved_state='portrait',{},'home',nil
+local SCREENS={home=true,library=true,games=true,settings=true,game=true}
 local function redraw() if C then C:invalidate() end end
 local function inside(x,y,a,b,w,h) return x>=a and y>=b and x<a+w and y<b+h end
-local function save_last()
-  local ok,value,err=pcall(C.storage.write,C.storage,'hub.txt','id='..Catalogue[last].id)
-  if not ok or value==false or (value==nil and err) then notice='Could not remember your last game' end
+local function size()
+  local ok,w,h=pcall(function() return tonumber(C.screen.width),tonumber(C.screen.height) end)
+  if ok and w and h and w>0 and h>0 then return w,h end
+  return 480,800
 end
-local function leave_game()
+local function can_rotate()
+  local ok,f=pcall(function() return C.screen.set_orientation end)
+  return ok and type(f)=='function'
+end
+local function rotate(o) if can_rotate() then pcall(function() C.screen:set_orientation(o) end) end end
+local function written(ok,value,err) return ok and value~=false and not (value==nil and err) end
+local function save_last()
+  if not written(pcall(C.storage.write,C.storage,'hub.txt','id='..Catalogue[last].id)) then
+    notice='Could not remember your last game'
+  end
+end
+local function save_shell(screen)
+  local value='screen='..screen..'\norient='..orient..'\n'
+  if value==saved_state then return end
+  if written(pcall(C.storage.write,C.storage,'shell.txt',value)) then saved_state=value
+  else notice='Could not save your shell settings' end
+end
+local function load_shell()
+  local ok,value=pcall(C.storage.read,C.storage,'shell.txt')
+  if not ok or type(value)~='string' then return 'home' end
+  saved_state=value
+  local o=value:match('orient=(%a+)')
+  if o=='portrait' or o=='landscape' then orient=o end
+  local s=value:match('screen=(%a+)')
+  return SCREENS[s] and s or 'home'
+end
+local function refresh()
+  S.battery,S.charging=nil,nil
+  local ok,b=pcall(function() return C.device:battery() end)
+  if not (ok and type(b)=='table') then ok,b=pcall(function() return C.sys.battery() end) end
+  if ok and type(b)=='table' and tonumber(b.percent) then
+    S.battery=math.max(0,math.min(100,math.floor(tonumber(b.percent)+0.5)));S.charging=b.charging==true
+  end
+  S.reader,S.current,S.streak,S.today,S.books=false,nil,nil,nil,{}
+  local okr,reader=pcall(function() return C.reader end)
+  if not okr or (type(reader)~='table' and type(reader)~='userdata') then return end
+  S.reader=true
+  local okc,cur=pcall(function() return reader:current() end)
+  if okc and type(cur)=='table' and cur.title then
+    S.current={title=tostring(cur.title),author=cur.author and tostring(cur.author) or nil,percent=tonumber(cur.percent) or 0}
+  end
+  local oks,sum=pcall(function() return reader:summary() end)
+  if oks and type(sum)=='table' then
+    S.streak=tonumber(sum.streak_days)
+    local today=tonumber(sum.today_sec)
+    S.today=today and math.floor(today/60) or nil
+  end
+  local okb,books=pcall(function() return reader:books() end)
+  if okb and type(books)=='table' then
+    for _,book in ipairs(books) do
+      if type(book)=='table' and book.title and #S.books<500 then S.books[#S.books+1]=book end
+    end
+  end
+end
+local function items(name)
+  local list={}
+  if name=='library' then
+    for _,book in ipairs(S.books) do
+      local pct=tonumber(book.percent)
+      local state=book.finished and 'Finished' or pct and pct>0 and math.floor(pct+0.5)..'% read' or 'Not started'
+      local author=book.author and tostring(book.author)~='' and tostring(book.author)..' - ' or ''
+      list[#list+1]={id='book',passive=true,title=tostring(book.title),meta=author..state}
+    end
+    S.empty=S.reader and 'Books you open in the reader appear here.' or 'Reading details are unavailable on this firmware.'
+  elseif name=='games' then
+    for n,item in ipairs(Catalogue) do list[#list+1]={id='game',game=n,title=item.name,meta=item.description} end
+    S.empty=nil
+  elseif name=='settings' then
+    if can_rotate() then
+      list[#list+1]={id='orient',title='Screen',meta=orient=='landscape' and 'Landscape - tap for portrait' or 'Portrait - tap for landscape'}
+    else
+      list[#list+1]={id='info',passive=true,title='Screen',meta='Portrait only on this firmware'}
+    end
+    local okf,fw=pcall(function() return C.device.firmware end)
+    local about=#Catalogue..' games'..((okf and fw) and ' - firmware '..tostring(fw) or '')
+    list[#list+1]={id='info',passive=true,title='About',meta=about}
+    S.empty=nil
+  end
+  return list
+end
+local function go(name,nosave)
+  if S.screen~='home' and S.screen~='blocked' then pages[S.screen]=S.page end
+  S.screen=name;notice=nil
+  if name=='home' or name=='library' then refresh() end
+  S.items=items(name)
+  if name=='games' then S.page=math.floor((last-1)/Shell.per_page(size()))+1 else S.page=pages[name] or 1 end
+  if not nosave then save_shell(name) end
+end
+local function leave_game(exiting)
   if not active then return true end
   scope:begin()
   local ok,err=pcall(active.leave)
@@ -25,6 +119,7 @@ local function leave_game()
   end
   active,scope,selected=nil,nil,nil
   UI.header(false);Theme.release()
+  if not exiting then rotate(orient);go(back) end
   return true
 end
 local function launch(n)
@@ -34,19 +129,24 @@ local function launch(n)
   local item=Catalogue[n]
   local ok,engine=pcall(function() return require('game_'..item.id)(rawget(_G,'__TEST') and {} or nil) end)
   if not ok then notice='Could not open '..item.name;return false end
+  -- Engines are laid out for the 480x800 portrait screen.
+  if S.screen~='game' then back=S.screen=='games' and 'games' or 'home' end
+  rotate('portrait')
   scope=Namespace.new(item.id)
   active,selected,last=engine,n,n
   local loaded,err=pcall(engine.load,scope:context(C))
   if not loaded or scope.error then
     pcall(engine.leave);active,scope,selected=nil,nil,nil
+    rotate(orient)
     notice='Could not read '..item.name..'. Your saves are still on the card.'
     return false
   end
-  notice=nil;save_last();return true
+  notice=nil;save_last();save_shell('game');return true
 end
 function on_load(context)
-  C=context;active,scope,selected=nil,nil,nil;page,last=1,1
+  C=context;active,scope,selected=nil,nil,nil;last=1
   notice=nil;blocked=false;held=false;UI.header(false);Theme.release()
+  pages,back,saved_state,orient={},'home',nil,'portrait'
   local allowed={};for _,item in ipairs(Catalogue) do allowed[item.id]=true end
   local ok,result=pcall(Importer.run,C,Expected,allowed)
   if not ok then blocked=true;notice='Progress import needs attention. Reinstall the personal Games Hub package and try again.'
@@ -57,31 +157,20 @@ function on_load(context)
     if id then for n,item in ipairs(Catalogue) do if item.id==id then last=n;break end end
     elseif tonumber(value) and Catalogue[tonumber(value)] then last=tonumber(value) end
   end
-  page=math.floor((last-1)/PER_PAGE)+1
+  local saved=load_shell()
+  rotate(orient)
+  if blocked then S.screen='blocked';S.items={};return end
+  local welcome=notice
+  S.screen='home';go(saved=='game' and 'home' or saved,true)
+  notice=welcome
+  -- The shell reopens where it was left, including an open game.
+  if saved=='game' then back='home';launch(last) end
 end
-local function menu(g)
-  g:clear(0)
-  UI.text(g,C,24,24,'Games Hub','large')
-  UI.text(g,C,24,68,#Catalogue..' games / one update','small')
-  if blocked then
-    UI.paragraph(g,C,24,150,432,350,notice,'medium')
-    UI.button(g,C,24,696,432,72,'Retry import')
-    return
-  end
-  UI.button(g,C,24,112,432,64,'Resume '..Catalogue[last].name)
-  for row=1,PER_PAGE do
-    local n=(page-1)*PER_PAGE+row;local item=Catalogue[n]
-    if item then
-      local y=188+(row-1)*88
-      g:rect(24,y,432,80,{radius=12,line_width=2})
-      UI.text(g,C,44,y+8,item.name,'control',nil,390)
-      UI.text(g,C,44,y+48,item.description,'small',nil,390)
-    end
-  end
-  UI.text(g,C,240,650,'Page '..page..' of '..math.ceil(#Catalogue/PER_PAGE),'small','center',260)
-  UI.button(g,C,24,696,128,72,'Prev')
-  UI.button(g,C,328,696,128,72,'Next')
-  if notice then UI.text(g,C,240,674,notice,'small','center',432) end
+local function shell_draw(g)
+  local W,H=size()
+  if S.items and S.screen~='home' then S.page=math.max(1,math.min(S.page or 1,Shell.pages(#S.items,W,H))) end
+  S.last,S.notice=last,notice
+  Shell.draw(g,C,S,W,H,Shell.targets(S,W,H),Catalogue)
 end
 function on_draw(context,g)
   C=context
@@ -98,7 +187,23 @@ function on_draw(context,g)
       g:rect(24,112,432,76,{fill=true,color=0,radius=12})
       UI.paragraph(g,C,36,122,408,60,notice,'small')
     end
-  else Theme.draw(C,g,menu) end
+  else Theme.draw(C,g,shell_draw) end
+end
+local function act(t)
+  local id=t.id
+  if t.passive or t.disabled then return false end
+  if id=='retry' then on_load(C)
+  elseif id=='resume' then launch(last)
+  elseif id:sub(1,4)=='tab:' then go(id:sub(5))
+  elseif id=='home' then go('home')
+  elseif id=='prev' then S.page=S.page-1
+  elseif id=='next' then S.page=S.page+1
+  elseif id=='game' then launch(t.item.game)
+  elseif id=='orient' then
+    orient=orient=='landscape' and 'portrait' or 'landscape'
+    rotate(orient);S.items=items('settings');save_shell('settings')
+  else return false end
+  return true
 end
 function on_input(context,e)
   C=context
@@ -108,7 +213,7 @@ function on_input(context,e)
       if e.phase=='up' then
         held=false
         if e.gesture=='tap' and inside(e.x or -1,e.y or -1,20,16,44,44) then
-          if leave_game() then notice=nil;page=math.floor((last-1)/PER_PAGE)+1 end
+          leave_game()
           redraw()
         end
         return true
@@ -118,24 +223,23 @@ function on_input(context,e)
   end
   if e.type~='pointer' or e.phase~='up' or e.gesture~='tap' then return false end
   local x,y=e.x or -1,e.y or -1
-  if blocked then
-    if inside(x,y,24,696,432,72) then on_load(C);redraw();return true end
-    return false
+  local W,H=size()
+  for _,t in ipairs(Shell.targets(S,W,H)) do
+    if inside(x,y,t.x,t.y,t.w,t.h) then
+      if act(t) then redraw();return true end
+      return false
+    end
   end
-  if inside(x,y,24,112,432,64) then launch(last)
-  elseif inside(x,y,24,188,432,432) then
-    local row=math.floor((y-188)/88)+1
-    local n=(page-1)*PER_PAGE+row
-    if (y-188)%88<80 and Catalogue[n] then launch(n) else return false end
-  elseif inside(x,y,24,696,128,72) then page=math.max(1,page-1)
-  elseif inside(x,y,328,696,128,72) then page=math.min(math.ceil(#Catalogue/PER_PAGE),page+1)
-  else return false end
-  redraw();return true
+  return false
 end
 function on_leave()
-  local ok=leave_game();Theme.release()
+  local ok=leave_game(true);Theme.release()
   if not ok then error('Game save failed') end
 end
 if rawget(_G,'__TEST') then
-  __TEST.api={per_page=PER_PAGE,launch=launch,state=function() return {page=page,last=last,selected=selected,blocked=blocked,notice=notice,engine=active} end}
+  __TEST.api={launch=launch,go=go,
+    targets=function() local W,H=size();return Shell.targets(S,W,H) end,
+    per_page=function() return Shell.per_page(size()) end,
+    state=function() return {screen=S.screen,page=S.page,last=last,selected=selected,blocked=blocked,
+      notice=notice,engine=active,orient=orient,shell=S} end}
 end

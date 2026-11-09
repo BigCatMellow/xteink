@@ -25,7 +25,7 @@ function T.fonts(scale)
   end
   return fonts
 end
-function T.canvas()
+function T.canvas(width,height)
   local text,buttons,regions,overflows={},{},{},{}
   local function audit(kind,box)
     if kind=='text' then text[#text+1]=box
@@ -46,7 +46,7 @@ function T.canvas()
   function g:verify(label)
     assert(#text>0,label..': no measured text was drawn')
     assert(#overflows==0,label..': paragraph would lose content: '..tostring(overflows[1]))
-    local screen={x=0,y=0,w=480,h=800}
+    local screen={x=0,y=0,w=width or 480,h=height or 800}
     for i,a in ipairs(text) do
       assert(contains(screen,a),label..': off-screen text '..a.s)
       assert(not a.s:find('ERROR',1,true),label..': game entered error screen '..a.s)

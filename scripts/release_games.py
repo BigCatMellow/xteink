@@ -155,6 +155,7 @@ def deploy(card,catalogue,backup):
              'app_data_files_preserved':sum('/files/' in '/'+name for name in before),
              'installed_files_verified':len(expected),'new_games_available_in_hub':missing if hub_current else [],
              'standalone_apps_requiring_initial_registration':missing,
+             'firmware_install_required':[x['app_id'] for x in result['skipped'] if x['reason'].startswith('firmware installation needed')],
              'recovery_installers_verified':len(entries),'flushed':True,'device_launch_verified':False}
     (backup/'delivery.json').write_text(json.dumps(receipt,indent=2)+'\n')
     print(json.dumps(receipt,indent=2))

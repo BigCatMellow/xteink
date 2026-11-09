@@ -88,7 +88,7 @@ if BITMAP then assert(A.typefaces(),'bitmap fonts unexpectedly fell back') end
 '''
 
 
-def render(source, level, scene, fonts=None, bitmap=False, game='nonogram', fixture=None, bitmap_check=None):
+def render(source, level, scene, fonts=None, bitmap=False, game='nonogram', fixture=None, bitmap_check=None, canvas=(480, 800)):
     fonts = fonts or {size: ImageFont.truetype(FONT, size) for size in (20, 24, 30)}
     tables = []
     for size, font in fonts.items():
@@ -107,12 +107,12 @@ def render(source, level, scene, fonts=None, bitmap=False, game='nonogram', fixt
           bitmap_check or "if BITMAP then assert(require('theme').state(),'bitmap theme unexpectedly fell back') end")
     output = subprocess.check_output(['lua', '-'], input=setup + program, text=True,
                                      cwd=Path(game) if Path(game).is_absolute() else project_path(game))
-    image = Image.new('L', (480, 800), 255)
+    image = Image.new('L', canvas, 255)
     draw = ImageDraw.Draw(image)
     for record in output.splitlines():
         kind, *values = record.split('\t')
         if kind == 'clear':
-            draw.rectangle((0, 0, 479, 799), fill=255)
+            draw.rectangle((0, 0, canvas[0]-1, canvas[1]-1), fill=255)
         elif kind == 'text':
             x, y, size = map(float, values[:3])
             label = values[3]

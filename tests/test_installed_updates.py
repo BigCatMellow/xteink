@@ -75,9 +75,14 @@ class Updates(unittest.TestCase):
         source.write_bytes(data)
         self.entries[0].update(bytes=len(data),sha256=U.digest(data))
         self.write_catalogue()
-        with self.assertRaises(ValueError):
-            U.plan(self.card,self.catalogue)
-        self.assertEqual(self.state(),before)
+        # A permission change is never applied directly; it is reported for a
+        # one-time firmware installation while other apps still update.
+        result = U.plan(self.card,self.catalogue)
+        self.assertNotIn('nonogram',[x['app_id'] for x in result['updates']])
+        reasons = {x['app_id']:x['reason'] for x in result['skipped']}
+        self.assertTrue(reasons['nonogram'].startswith('firmware installation needed'))
+        U.apply(result,self.root/'permission-backup')
+        self.assertEqual(self.state()['XTApps/nonogram/app.xtapp'],before['XTApps/nonogram/app.xtapp'])
 
     def test_failure_restores_all_previous_packages(self):
         before = self.state()

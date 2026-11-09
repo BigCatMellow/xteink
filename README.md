@@ -2,7 +2,7 @@
 
 Apps and experiments for the Xteink X4 Pro running XTOS Licorice.
 
-- [Shell / OS project](shell/README.md) — research, roadmap, protocols, diagnostic source, tools and focused tests.
+- [Shell / OS project](shell/README.md) — the card-loaded shell (Games Hub 0.4.0: Home, reading progress, Library, Games, landscape), plus research, roadmap and diagnostics.
 - [Games](games/README.md) — all 17 active games, Games Hub and the shelved Paper Golf source.
 - [Wallpaper Randomizer](wallpaper-randomizer/README.md) — sleep wallpaper utility.
 

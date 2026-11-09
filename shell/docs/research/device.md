@@ -91,6 +91,19 @@ USB mode is also separate: E2 observes a CPU restart into the stock USB mode,
 and only partial USB emulation. It provides neither external boot nor evidence
 that an interactive shell continues executing while a computer owns the card.
 
+**User report, 2026-11-08 (informal, no build or probe record):** with one of
+our games open, an ordinary sleep and wake returned to that game, not to Recent
+or Home. This is the first local evidence for the wake-into-app behavior. It
+makes a manually entered shell persist across everyday sleep, and it confirms
+that the active app is what gets resumed. Engines therefore belong inside the
+shell (route B), not as separately launched apps. We still need to check
+whether the app restarts or the screen merely persists, whether its state comes
+back, and the exact build. Full power-off has not been tried. Upstream guides say
+a long press of the power button powers off and that Settings can change this
+([readme.club](https://www.readme.club/guide/x4pro),
+[manual](https://manuals.plus/xteink/x4-pro-pocket-sized-magnetic-e-reader-manual)).
+Long-press power-off and Reset-button boots stay UNKNOWN until tried.
+
 ## Resource budgets and architectural effects
 
 The local Hub snapshot in [HANDOFF](../../../docs/HANDOFF.md) is **17 engines,

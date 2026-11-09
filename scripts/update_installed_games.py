@@ -98,7 +98,10 @@ def plan(card, catalogue):
             skipped.append({'app_id': appid, 'reason': 'open existing hub first to finish its save import'})
             continue
         if old.get('api') != new.get('api') or old.get('permissions', []) != new.get('permissions', []) or old.get('lockscreen') != new.get('lockscreen'):
-            raise ValueError('Firmware installation needed for changed API/permissions/lockscreen: ' + appid)
+            # The firmware must approve these; never swap the package behind its back.
+            skipped.append({'app_id': appid, 'reason': 'firmware installation needed: API/permissions/lockscreen changed; '
+                            'install the Apps/ recovery installer over the existing app once'})
+            continue
         updates.append({'app_id': appid, 'from': old['version'], 'to': new['version'],
                         'source': str(source), 'target': str(target), 'old_sha256': digest(old_data),
                         'sha256': digest(data), 'preserved_files': tree(folder)})

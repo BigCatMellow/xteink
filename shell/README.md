@@ -4,6 +4,7 @@ Research and host preparation for a custom primary interface loaded from the
 X4 Pro SD card through USB. Licorice remains the host; automatic startup and
 native-app return behavior still need device evidence.
 
+- [Shell design: Games Hub 0.4.0](docs/DESIGN.md) — the shipped shell; source in `games/games-hub/src/`
 - [Project index and research](docs/README.md)
 - [Current state](docs/STATE.md)
 - [OS roadmap and model assignments](docs/ROADMAP.md)

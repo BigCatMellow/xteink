@@ -7,7 +7,7 @@ because utilities and the shell use them too.
 Run all commands below from the repository root.
 
 
-- [Games Hub](games-hub/README.md) — all 17 active games in one installer, with separate progress and a shared game-selection menu. Recommended for updating the collection together.
+- [Games Hub](games-hub/README.md) — the card-loaded shell: Home, reading progress, Library, all 17 games and portrait/landscape, with separate progress. Recommended for updating the collection together.
 - [Paper Golf](paper-golf/README.md) — shelved; excluded from the active collection and SD updates.
 - [Summit Putt](summit-putt/README.md) — card-based golf route puzzles.
 - [Line Lift](line-lift/README.md) — zero-animation crossing logic inspired by Hook.

@@ -1,12 +1,18 @@
 # Games Hub
 
-All 17 active games in one offline XTApp. Install one package to update the
-whole collection. It shares the family Poppins/Inter fonts, rounded controls,
-strong monochrome strokes and each game's existing rules and puzzle generator.
+The card-loaded shell for the X4 Pro and all 17 active games in one offline
+XTApp. Home shows the book you're reading (display-only: title, progress,
+streak, minutes today) and resumes your last game. Library lists your books,
+Games opens any game, and Settings switches between portrait and landscape.
+Games always play in portrait. Design and reasons: [shell design](../../shell/docs/DESIGN.md).
 
-Open a game from the list, or Resume the last game. Tap the nine-dot button at
-the top left of a game to save and return to the list. The reader's Home action
-exits the hub. Games retain separate progress, unfinished boards and undo.
+Tap the nine-dot button at the top left of a game to save and return. The shell
+reopens where you left it, including an open game. The reader's Home action
+exits it. Games keep separate progress, unfinished boards and undo.
+
+**0.4.0 needs one install from All Files** over the existing Hub, because it
+adds the `reader` permission and API 2.18. Saves are kept. After that, card
+updates apply directly again.
 
 ## Install and update
 

@@ -1,6 +1,14 @@
 # Shell current state
 
-Record: current-state routing summary. Owner: coordinator. Updated 2026-11-08.
+Record: current-state routing summary. Owner: coordinator. Updated 2026-11-09.
+
+**Current (2026-11-09):** the user's X4 Pro is locked, so firmware routes are
+rejected. The user reported that sleep, including a long power press, returns
+to the open app. D1 is therefore decided: the shell is a stock-hosted app that
+stays on screen across sleep, with games bundled inside (route B). I1 has
+started as Games Hub 0.4.0. See [shell design](DESIGN.md). Host gate passes. A
+one-time firmware install and the device checks listed there are next. The
+historical notes below predate this decision.
 
 User authorized autonomous research and THINK/PLAN using helpers for a custom
 SD-card shell on X4 Pro. The repo initially contained only a model-routing draft;

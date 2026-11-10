@@ -7,6 +7,15 @@ Xteink. Parent: [index](README.md). Inputs: [device research](research/device.md
 
 ## Objective and DONE
 
+**Current disposition, 2026-11-10:** [Games Hub 0.4.0](DESIGN.md) implements the
+stock-hosted, bundled-games route under the existing `gameshub` identity. The
+user's locked-unit constraint rejects firmware routes; sleep returning to the
+open app is user-reported evidence, not proof of true cold boot. D1 is decided
+for this route and I1 is host-implemented. Device installation and acceptance
+remain pending. This supersedes the older separate-production-app and
+probe-first sequencing below; the isolated probe remains a diagnostic tool.
+Resume from the [closing handoff](../../docs/HANDOFF.md).
+
 Provide a custom primary interface whose code lives on SD and is updated
 through USB, using stock hardware services where practical. Planning DONE:
 sourced capabilities, compared alternatives, executable next tasks, measurable

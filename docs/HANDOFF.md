@@ -1,6 +1,59 @@
 # Project handoff — 2026-11-10
 
+## Closing this chat / resume here
+
+- Handoff ID: `XT-HO-20261110-session-close`; status: **OPEN / ready for the next session**.
+- Repository: `/home/mellow/xteink`, `BigCatMellow/xteink`, branch `main`.
+- Reviewed source state: `d2c3e82` (shell 0.4.0), `2f18e80` (expanded next steps).
+- No uncommitted work was present at this closing check. The previously local
+  locked-unit THINK note was saved by `2c71db3`; do not treat it as lost or pending.
+- Receiving session: read `AGENTS.md`, this handoff, then
+  [shell design](../shell/docs/DESIGN.md) and [current state](../shell/docs/STATE.md).
+  Older roadmap/probe/review records preserve historical evidence; the 0.4.0
+  disposition below supersedes the separate-shell proposal for production.
+- Next real work: stage the archived 0.4.0 candidate when the card is available,
+  perform its one-time permission/API installation, then record the device checks.
+  This closeout establishes no installation, rendering or sleep success.
+- Next session should acknowledge this handoff here, change status to CONTINUED
+  with a durable work/evidence link when work resumes, and close it when the
+  follow-up is completed or superseded. No hidden chat is needed.
+
+### User intent and operating method
+
+The user wants autonomous coordination with helpers, consistent games and an
+SD-card shell using stock Licorice services, without repeated per-game decisions
+or manual updates. Default coordinator/research/PLAN: Sol high; architecture and
+independent challenge: Astra high; bounded implementation: Terra medium, higher
+effort for save/recovery complexity; clerical indexing: Luna medium/low. Use
+available capabilities, record substitutions and retain independent review.
+The probe review records the Astra usage-limit interruption and Sol completion.
+
+[Model routing and roadmap](../shell/docs/ROADMAP.md),
+[MAPS_Lean protocol index](../shell/docs/protocols/INDEX.md),
+[method application](../shell/docs/protocols/APPLICATION.md) and
+[pinned method research](../shell/docs/research/maps-method.md) preserve THINK,
+PLAN, HPOM, spiderweb, emergence/insight and indexing/lifecycle decisions.
+These are applied methods, not a claim that the full MAPS runtime was installed.
+
+Game work retains canonical Poppins/Inter typography, deliberate spacing and
+strong semantic boundaries. [Design reasons](GAME_DESIGN.md),
+[complete rollout](GAME_ROLLOUT_PLAN.md), [visual comparisons](design/full-rollout-2026-11-08/README.md)
+and [update procedure](GAME_UPDATES.md) own those details. Preserve stable IDs,
+generated puzzle seeds, unfinished boards, undo and valid saves. Paper Golf is
+shelved; stock Sudoku/Dictionary and wallpaper remain separate.
+
 ## Repository organization
+
+Closing verification, 2026-11-10: `python3 scripts/check_games.py` passed all
+17 games. All 18 entries in `game-family-latest.json` match both their archived
+package SHA-256 and current app source fingerprints. Closing navigation links
+and whitespace checks passed. No SD write or physical test occurred in this
+closeout; the usual card mount was unavailable at the check.
+
+Exact Hub candidate: [0.4.0 installer](../releases/games-hub-0.4.0.xtapp),
+401,312 bytes, SHA-256
+`4cf571f84b737a8abea416b786c32dc845b1dfe77a7573b7a0bf5fe559aef867`.
+Its [metadata](../releases/games-hub-0.4.0.json) records `device_tested: false`.
 
 Games and Games Hub now live under `games/`; the shell project owns its docs,
 tools and tests under `shell/`. Start at the root README or
@@ -16,7 +69,7 @@ reader yet** — the SD card was not mounted.
 
 - The unit is locked: no firmware dump, flashing, esptool, web flasher or lock
   bypass. The shell is a stock-installed app.
-- Sleep, including a long power press, returns to the open app. So the shell is
+- User reports that sleep, including a long power press, returns to the open app. So the shell is
   opened once and stays on screen; games run inside it.
 - Never publish `dist/games-hub-personal.xtapp`. Paper Golf stays shelved.
   Installers go in `SD:/Apps/`. Preserve saves.
@@ -77,7 +130,7 @@ methods and helper model/effort assignments are recorded there. The subsequent
 diagnostic, package builder and capture harness. No shell installation or new
 physical result is implied; see its host receipt and independent review.
 
-## Complete 17-game rollout — current state
+## Complete 17-game rollout — historical delivery, 2026-11-08
 
 The user requested a complete pass without per-game review/install back-and-forth.
 Fetched and merged upstream `2a6af10`, preserving prior local work in a checkpoint
@@ -93,7 +146,7 @@ the shared UI. Final review corrected Kakuro clue diagonal orientation and
 recentered Ray Vault marks. Target-name chips now preserve the full UMBRELLA label, with a regression. [Rollout plan](GAME_ROLLOUT_PLAN.md),
 [design decisions](GAME_DESIGN.md), [visual review](design/full-rollout-2026-11-08/README.md).
 
-Final current versions:
+Versions at that delivery (Games Hub 0.4.0 above is the current package):
 
 | Game | Version |
 | --- | --- |

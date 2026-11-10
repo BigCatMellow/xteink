@@ -1,4 +1,4 @@
-# Project handoff — 2026-11-08
+# Project handoff — 2026-11-10
 
 ## Repository organization
 
@@ -7,16 +7,65 @@ tools and tests under `shell/`. Start at the root README or
 [layout guide](REPOSITORY_LAYOUT.md). This source-layout change preserves app
 payloads and release identities and requires no SD updates.
 
-## Shell 0.4.0 (Games Hub) — latest, 2026-11-09
+## Shell 0.4.0 (Games Hub) — latest, 2026-11-10
 
-The card-loaded shell is now Games Hub 0.4.0: Home (current book shown
-display-only, resume last game), Library, Games, Settings (portrait/landscape)
-in the user's CrossPoint layout. See [shell design](../shell/docs/DESIGN.md).
-The full quality gate passes. Packages are built and archived, but the card was
-not mounted, so nothing has been deployed. 0.4.0 adds API 2.18 and the `reader`
-permission, so the updater skips it with `firmware_install_required`. The user
-installs `Apps/games-hub.xtapp` over the Hub once. Device checks, including
-landscape direction against the base-on-left grip, are listed in the design doc.
+**Status:** built, tested and pushed (`d2c3e82`); all CI green. **Not on the
+reader yet** — the SD card was not mounted.
+
+### Constraints (do not revisit)
+
+- The unit is locked: no firmware dump, flashing, esptool, web flasher or lock
+  bypass. The shell is a stock-installed app.
+- Sleep, including a long power press, returns to the open app. So the shell is
+  opened once and stays on screen; games run inside it.
+- Never publish `dist/games-hub-personal.xtapp`. Paper Golf stays shelved.
+  Installers go in `SD:/Apps/`. Preserve saves.
+
+### What 0.4.0 is
+
+- Home in the user's CrossPoint layout (`BigCatMellow/crosspoint-reader`
+  `index.html`): current book card (title, author, % read, streak, minutes
+  today, "Continue in the reader") and a resume-last-game card.
+- Bottom tabs: Library (books with progress, display-only), Games (all 17),
+  Settings (Screen portrait/landscape, About).
+- Games force portrait and restore the shell orientation on return.
+- Reopens where left (`shell.txt`: screen + orientation, including an open game).
+- Reading is display-only because `ctx.system.open` has no documented targets.
+- Code: `games/games-hub/src/shell.lua` (screens), `index.lua` (hosting, state,
+  rotation). Decisions: [shell design](../shell/docs/DESIGN.md). Previews:
+  [docs/design/games-hub](design/games-hub/) (host renders, not photos;
+  regenerate with `python3 scripts/render_game_hub.py`).
+- Manifest: version 0.4.0, API 2.18, permission `reader`. 31/32 code files,
+  399,213/524,288 bytes. Hub suite: 292 frames, Lua 5.4 and 5.1.
+- Release: `releases/games-hub-0.4.0.xtapp`,
+  `releases/game-family-20261109-111321.*`. The 17 games are unchanged.
+- Updater change: a changed API/permission/lockscreen now skips that app as
+  `firmware_install_required` instead of aborting the whole update.
+
+### Next steps
+
+1. Mount the card (usually `/media/mellow/4A21-0000`) and run
+   `python3 scripts/release_games.py --card <mount>` (or `--apply-only`). It
+   will skip the Hub as `firmware_install_required`; check that
+   `Apps/games-hub.xtapp` is the 0.4.0 package.
+2. On the reader: All Files → `Apps/games-hub.xtapp` → install over the existing
+   Games Hub (one time, to approve API 2.18 + reading access). Saves are kept.
+3. Device checks:
+   - progress kept after the install, and reading access granted;
+   - which way `landscape` turns versus the user's grip (base of the device on
+     the left) — only `portrait`/`landscape` are known values; if it is upside
+     down, research a flip option;
+   - taps land correctly in landscape;
+   - Home/Library reading data matches the stock reader;
+   - sleep/wake on Home, Library and inside a game; landscape shell ↔ portrait game;
+   - accented titles (fall back to the native font); e-ink refresh of 1px rules.
+4. Record results in `shell/docs/DESIGN.md` (Device checks) and
+   `shell/docs/STATE.md` (I1).
+
+### Open ideas, not started
+
+- Open a book from the shell, if a `system.open` target is ever found.
+- A header clock is deliberately absent (no timed redraw on e-ink).
 
 ## Shell research and planning
 

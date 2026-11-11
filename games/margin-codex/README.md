@@ -4,8 +4,8 @@ A new, original open-ended word/phrase puzzle collection influenced by the **for
 
 ## Current state (2026-11-11)
 
-- [Interactive standalone HTML prototype](prototype/index.html): six authored puzzle pages, 3 progressive hints per page, answer input/checking, explanation, browser-local progress.
-- Browser interaction test completed for all six answers, page navigation, and hints. One 480x800 screenshot reviewed for readable layout.
+- [Interactive standalone HTML prototype](prototype/index.html): sixteen authored puzzle pages, 3 progressive hints per page, answer input/checking, explanation, browser-local progress, and a five-entry paginated book index.
+- Browser interaction test completed for all sixteen answers, all 48 hint reveals, paginated navigation, and local progress restoration. Every clue page was checked for content clipping at 480x800; representative screenshots reviewed. Existing v1 saved progress and unfinished answers remain loadable.
 - **Not yet a native XTOS Licorice XTApp, Games Hub game, or device-tested package.** The HTML is a temporary design/playtest artifact. Do not stage it in `SD:/Apps/` or present it as firmware-compatible.
 - Active game roster, current installers and saved game data remain unchanged.
 
@@ -24,7 +24,7 @@ A new, original open-ended word/phrase puzzle collection influenced by the **for
 
 ## Puzzle content
 
-The first six authored puzzles use number-letter substitution, word indexing, acrostics, alphabet shifting, chronological sorting and Morse signals. They're intentionally short enough to fit the reader. The long-term target is fewer, genuinely clever puzzles rather than dozens of trivial substitutions.
+The first six authored training puzzles use number-letter substitution, word indexing, acrostics, alphabet shifting, chronological sorting and Morse signals. Ten additional pages use compass-path tracing, missing letters, constrained truth statements, prime-date indexing, transitive ordering, central/outer letters, shared-letter intersections, paired-word indexing and row-column coordinates. All fit one reader-sized clue page. Future content should prioritize surprising rule discovery and puzzle originality over quantity or repetitive decoding.
 
 ## Status and next acceptance criteria
 

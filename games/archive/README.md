@@ -16,3 +16,11 @@ The archive is excluded from active discovery, Games Hub, font/theme syncing, ac
 **No SD card or installed app was changed.** Existing `XTApps/` player saves have not been erased. Historical installer packages remain under `releases/`. The former 17-game `game-family-latest.json` is stale for the new active family: generate and verify a fresh 13-game family release before any card deployment; do not use stale `--apply-only`.
 
 To reinstate a game, demonstrate real multi-step deduction or consequential planning, human-test difficulty, keep its original app ID/save compatibility, move it back to active, update all registries/icons/workflows/builds and pass normal automated and physical-device checks. This is a quality-priority decision, not a claim that the archived code was defective.
+
+## Parked design prototypes (not previously in active Hub)
+
+- [Margin Codex](prototypes/margin-codex/ARCHIVED.md): original 16-page browser game. Too many one-step ciphers; needs multi-layer deductions.
+- [Ink Delve](prototypes/ink-delve/ARCHIVED.md): original six-floor browser game. Dice movement currently dominates consequential strategy.
+
+Both original HTML prototypes, documentation and tests are preserved under
+`games/archive/prototypes/`. They are **not** native installable XTEINK games.

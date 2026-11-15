@@ -11,6 +11,9 @@ local Expected=require('import_expected')
 local C,active,scope,selected=nil,nil,nil,nil
 local last,notice,blocked=1,nil,false
 local held=false
+-- Keep the return control inside the existing 72x65 reserved header zone.
+-- The 44px unlabeled dot icon was difficult to discover on real hardware.
+local HUB_X,HUB_Y,HUB_W,HUB_H=8,8,60,54
 local S={screen='home',page=1}
 local orient,pages,back,saved_state='portrait',{},'home',nil
 local SCREENS={home=true,library=true,games=true,settings=true,game=true}
@@ -18,6 +21,7 @@ local SCREENS={home=true,library=true,games=true,settings=true,game=true}
 local LEGACY_IDS={'linelift','summitputt','linkgrid','inkrunes','lanternlogic','rayvault','islandlinks','oddityhunt','wordhunt','nonogram','wordbridge','rectrooms','sudoku','crownfields','tenpairs','quietmines','sumcross'}
 local function redraw() if C then C:invalidate() end end
 local function inside(x,y,a,b,w,h) return x>=a and y>=b and x<a+w and y<b+h end
+local function in_hub(x,y) return inside(x or -1,y or -1,HUB_X,HUB_Y,HUB_W,HUB_H) end
 local function size()
   local ok,w,h=pcall(function() return tonumber(C.screen.width),tonumber(C.screen.height) end)
   if ok and w and h and w>0 and h>0 then return w,h end
@@ -86,7 +90,7 @@ local function items(name)
       local author=book.author and tostring(book.author)~='' and tostring(book.author)..' - ' or ''
       list[#list+1]={id='book',passive=true,title=tostring(book.title),meta=author..state}
     end
-    S.empty=S.reader and 'Books you open in the reader appear here.' or 'Reading details are unavailable on this firmware.'
+    S.empty=S.reader and 'Reading progress only. To read, leave the Hub and open Bookshelf.' or 'Reading details unavailable. Open Bookshelf to read your books.'
   elseif name=='games' then
     for n,item in ipairs(Catalogue) do list[#list+1]={id='game',game=n,title=item.name,meta=item.description} end
     S.empty=nil
@@ -107,6 +111,7 @@ local function go(name,nosave)
   if S.screen~='home' and S.screen~='blocked' then pages[S.screen]=S.page end
   S.screen=name;notice=nil
   if name=='home' or name=='library' then refresh() end
+  if name=='library' then notice='Read books in the stock Bookshelf' end
   S.items=items(name)
   if name=='games' then S.page=math.floor((last-1)/Shell.per_page(size()))+1 else S.page=pages[name] or 1 end
   if not nosave then save_shell(name) end
@@ -120,6 +125,7 @@ local function leave_game(exiting)
     return false
   end
   active,scope,selected=nil,nil,nil
+  held=false
   UI.header(false);Theme.release()
   if not exiting then rotate(orient);go(back) end
   return true
@@ -184,10 +190,9 @@ function on_draw(context,g)
     local ok,err=pcall(active.draw,scope:context(C),UI.game_canvas(g))
     UI.header(false)
     if not ok then UI.error(g,C,'Game',tostring(err)) end
-    g:rect(20,16,44,44,{radius=10,line_width=3})
-    for row=0,2 do for col=0,2 do
-      g:rect(29+col*9,25+row*9,5,5,{fill=true,radius=1})
-    end end
+    -- Explicitly labeled, larger return target. Do not add an extra frame to
+    -- the individual game canvas or shift its board/hitboxes.
+    UI.button(g,C,HUB_X,HUB_Y,HUB_W,HUB_H,'HUB',false,{font='small',radius=8,line_width=3})
     if notice then
       g:rect(24,112,432,76,{fill=true,color=0,radius=12})
       UI.paragraph(g,C,36,122,408,60,notice,'small')
@@ -213,13 +218,21 @@ end
 function on_input(context,e)
   C=context
   if active then
-    if e.type=='pointer' and (held or inside(e.x or -1,e.y or -1,20,16,44,44)) then
+    -- The physical Back key is an alternative if the firmware delivers it to
+    -- an XTApp. Do not consume the release/repeat event as a second action.
+    if e.type=='key' and e.key=='back' and (e.phase=='down' or e.phase==nil) then
+      leave_game();redraw();return true
+    end
+    if e.type=='pointer' and (held or in_hub(e.x,e.y)) then
       if e.phase=='down' then held=true;return true end
       if e.phase=='up' then
         held=false
-        if e.gesture=='tap' and inside(e.x or -1,e.y or -1,20,16,44,44) then
-          leave_game()
-          redraw()
+        -- Some firmware paths omit the gesture field. The coordinates on
+        -- release still identify a tap, but swipes never trigger return.
+        local gesture_ok=e.gesture=='tap' or e.gesture==nil
+        local origin_ok=e.down_x==nil or in_hub(e.down_x,e.down_y)
+        if gesture_ok and origin_ok and in_hub(e.x,e.y) then
+          leave_game();redraw()
         end
         return true
       end

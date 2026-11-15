@@ -135,6 +135,7 @@ for _,bitmap in ipairs({false,true}) do
     tag=tag..' '..o
     -- Library: display-only rows, paged; rows never act and paging stops at the ends.
     assert(press('tab:library'));eq(A.state().screen,'library')
+    assert((A.state().notice or ''):find('Bookshelf',1,true),'book list must explain reading limitation')
     while A.state().page>1 do assert(press('prev')) end
     assert(not press('prev'),'disabled previous acted')
     assert(not press('book'),'display-only book row acted')
@@ -175,6 +176,22 @@ for _,bitmap in ipairs({false,true}) do
      end
     end
     assert(press('home'))
+    -- Real-device recovery: a visible HUB button, hardware Back where exposed,
+    -- and a pointer release without gesture must all return safely.
+    assert(A.launch(index_of_id('nonogram')))
+    draw('labeled HUB return '..tag)
+    assert(on_input(C,{type='pointer',phase='down',x=40,y=35}))
+    assert(on_input(C,{type='pointer',phase='up',gesture='swipe_left',x=40,y=35}))
+    assert(A.state().selected,'swipe inside return zone must not exit')
+    assert(tap(40,35));assert(not A.state().selected)
+    assert(A.launch(index_of_id('sudoku')))
+    assert(on_input(C,{type='pointer',phase='up',x=40,y=35}))
+    assert(not A.state().selected,'gesture-less pointer release returns')
+    assert(A.launch(index_of_id('nonogram')))
+    assert(on_input(C,{type='key',phase='up',key='back'})==false or A.state().selected,'release must not exit')
+    assert(A.state().selected)
+    assert(on_input(C,{type='key',phase='down',key='back'}))
+    assert(not A.state().selected,'hardware Back returns to Hub')
     -- Home resumes the last game and returns to Home.
     assert(press('resume'));eq(A.state().selected,A.state().last);draw('resumed '..tag)
     assert(tap(35,35));eq(A.state().screen,'home');draw('home again '..tag)
@@ -219,7 +236,8 @@ saves['hub.txt']='8';on_load(C);eq(A.state().last,1)
 assert(A.launch(#Catalogue));eq(saves['hub.txt'],'id='..Catalogue[#Catalogue].id)
 on_leave();on_load(C);eq(A.state().last,#Catalogue);on_leave()
 -- Failed saving holds the current engine open; a successful retry can leave.
-on_load(C);assert(A.launch(index_of_id('nonogram')));fail=true;assert(tap(35,35));eq(A.state().selected,index_of_id('nonogram'))
+on_load(C);assert(A.launch(index_of_id('nonogram')));fail=true;assert(on_input(C,{type='key',phase='down',key='back'}))
+eq(A.state().selected,index_of_id('nonogram'),'failed save cannot exit')
 fail=nil;assert(tap(35,35));assert(not A.state().selected)
 -- A read error never becomes an empty board written over a valid record.
 local old=saves['nonogram--nonogram.txt']

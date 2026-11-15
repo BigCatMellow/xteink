@@ -12,7 +12,9 @@ Owner: coordinator. Adopted 2026-11-09. Source: `games/games-hub/src/shell.lua`
 | Games run inside the shell. | A separately launched app would be the one resumed after sleep, not the shell. |
 | Reopens where it was left (`shell.txt`: screen + orientation, including an open game). | If the firmware ever relaunches the app instead of resuming it, the user still lands where they were. |
 | Layout follows the user's CrossPoint X4 Pro preview (`BigCatMellow/crosspoint-reader`, `index.html`, `a93303a`). | User-supplied Home design. |
-| Reading is display-only: current book, percent, streak, minutes today, Library list. | `system.open` has no documented targets, so the shell cannot open a book. The card says "Continue in the reader". Rows have no chevron or frame, so they don't look tappable. |
+| Reading is display-only: current book, percent, streak, minutes today, Library list. | `system.open` has no documented targets, so the shell cannot open a book. The card now explicitly says "Read from Bookshelf" and Library explains
+that the list is read-only. This is an OS API boundary, not a broken book
+parser. Rows have no chevron or frame, so they don't look tappable. |
 | Portrait or landscape (Settings → Screen), via `ctx.screen:set_orientation` on API 2.18. | The user reads in landscape with the device's base on the left. The setting appears only when the firmware exposes rotation. |
 | Games always switch to portrait and back. | All 17 engines are laid out and tested for 480×800. |
 | Book titles use the control face (Poppins Medium); curly quotes, dashes and ellipses become ASCII. | The heading bitmap face lacks punctuation, and a title containing `'` would otherwise drop to the native font. Changing the shared font pack would version every game. |

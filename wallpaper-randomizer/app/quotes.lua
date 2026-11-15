@@ -183,7 +183,8 @@ local function draw_line(g,line,u,v,scale)
 end
 local function wrap(text,cap)
  local out,line={},''
- for word in text:gmatch('%S+') do
+ for token in text:gmatch('%S+') do
+  local word=token
   while #word>cap do
    if #line>0 then out[#out+1]=line;line='' end
    out[#out+1]=word:sub(1,cap)

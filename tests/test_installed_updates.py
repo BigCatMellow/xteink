@@ -31,7 +31,7 @@ class Updates(unittest.TestCase):
         self.catalogue = self.root/'releases/catalogue.json'
         self.catalogue.parent.mkdir()
         self.entries = []
-        for appid in ('nonogram', 'linelift'):
+        for appid in ('nonogram', 'linkgrid'):
             folder = self.card/'XTApps'/appid
             (folder/'files').mkdir(parents=True)
             (folder/'files/save.txt').write_bytes(b'unsubmitted board\x00undo\xff')
@@ -91,7 +91,7 @@ class Updates(unittest.TestCase):
         failed = False
         def fail_second(target,data):
             nonlocal failed
-            if target.parent.name=='linelift' and not failed:
+            if target.parent.name=='linkgrid' and not failed:
                 failed = True
                 raise OSError('simulated disconnect')
             return original(target,data)
@@ -103,7 +103,7 @@ class Updates(unittest.TestCase):
     def test_missing_app_stays_unregistered_and_downgrades_are_skipped(self):
         import shutil
         shutil.rmtree(self.card/'XTApps/nonogram')
-        (self.card/'XTApps/linelift/app.xtapp').write_bytes(package('linelift','0.3.0'))
+        (self.card/'XTApps/linkgrid/app.xtapp').write_bytes(package('linkgrid','0.3.0'))
         result = U.plan(self.card,self.catalogue)
         self.assertEqual(result['updates'],[])
         self.assertEqual(len(result['skipped']),2)
@@ -117,6 +117,14 @@ class Updates(unittest.TestCase):
         self.assertEqual(U.manifest((self.card/'XTApps/nonogram/app.xtapp').read_bytes())['version'],'0.1.0')
         (self.card/'XTApps/nonogram/files/link').symlink_to(self.root/'outside')
         with self.assertRaises(ValueError):
+            U.plan(self.card,self.catalogue)
+
+    def test_archived_app_is_rejected_from_current_catalogue(self):
+        # Retired app ID remains on the physical card if previously installed,
+        # but must never re-enter an active update plan.
+        self.entries[1]['app_id'] = 'linelift'
+        self.write_catalogue()
+        with self.assertRaisesRegex(ValueError, 'Invalid or duplicate catalogue ID'):
             U.plan(self.card,self.catalogue)
 
     def test_collection_catalogue_and_first_import_guard(self):

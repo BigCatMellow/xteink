@@ -1,5 +1,16 @@
 # Project handoff — 2026-11-10
 
+## Subsequent game curation — 2026-11-14 (source only)
+
+Four low-reasoning games were moved intact under `games/archive/`; 13 remain
+active. Games Hub 0.4.1 is a source candidate, not a device-tested installer.
+The last verified 17-game `releases/game-family-latest.json` is preserved but
+stale; rebuild and verify a new 13-game catalogue before using `--apply-only`.
+This change did not touch the physical SD card or saved progress. Original
+17-slot numeric Games Hub resume mapping is retained.
+
+
+
 ## Closing this chat / resume here
 
 - Handoff ID: `XT-HO-20261110-session-close`; status: **OPEN / ready for the next session**.

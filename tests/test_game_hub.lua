@@ -3,6 +3,10 @@ local T=require('game_canvas')
 local Namespace=require('namespace')
 local Importer=require('importer')
 local Catalogue=require('catalogue')
+local function index_of_id(id)
+ for i,item in ipairs(Catalogue) do if item.id==id then return i end end
+ error('Missing game '..id)
+end
 local saves={}
 local fail,readfail,decoded,released=nil,nil,0,0
 local storage={}
@@ -208,24 +212,27 @@ C.reader=nil;saves['shell.txt']=nil
 -- A failed shell-state write is reported without blocking navigation.
 on_load(C);fail=true;assert(press('tab:games'));assert(A.state().notice);draw('shell save failed');fail=nil;assert(press('home'));on_leave()
 -- Legacy numeric resumes remain readable; new resumes use stable game IDs.
-saves['hub.txt']='13';on_load(C);eq(A.state().last,13)
+saves['hub.txt']='13';on_load(C);eq(A.state().last,index_of_id('sudoku'))
+on_leave()
+-- Retired legacy numeric index must not launch a shifted game.
+saves['hub.txt']='8';on_load(C);eq(A.state().last,1)
 assert(A.launch(#Catalogue));eq(saves['hub.txt'],'id='..Catalogue[#Catalogue].id)
 on_leave();on_load(C);eq(A.state().last,#Catalogue);on_leave()
 -- Failed saving holds the current engine open; a successful retry can leave.
-on_load(C);assert(A.launch(10));fail=true;assert(tap(35,35));eq(A.state().selected,10)
+on_load(C);assert(A.launch(index_of_id('nonogram')));fail=true;assert(tap(35,35));eq(A.state().selected,index_of_id('nonogram'))
 fail=nil;assert(tap(35,35));assert(not A.state().selected)
 -- A read error never becomes an empty board written over a valid record.
 local old=saves['nonogram--nonogram.txt']
-readfail='nonogram--nonogram.txt';assert(not A.launch(10));eq(saves[readfail],old);readfail=nil
+readfail='nonogram--nonogram.txt';assert(not A.launch(index_of_id('nonogram')));eq(saves[readfail],old);readfail=nil
 on_leave()
 -- An unfinished picture and its undo stack survive switches and a hub relaunch.
-on_load(C);assert(A.launch(10))
+on_load(C);assert(A.launch(index_of_id('nonogram')))
 local puzzle=A.state().engine.api
 puzzle.paint(1,1)
 local marks=puzzle.state().boards[puzzle.state().level][1]
-assert(tap(35,35));assert(A.launch(13));assert(tap(35,35));assert(A.launch(10))
+assert(tap(35,35));assert(A.launch(index_of_id('sudoku')));assert(tap(35,35));assert(A.launch(index_of_id('nonogram')))
 puzzle=A.state().engine.api;eq(puzzle.state().boards[puzzle.state().level][1],marks)
-assert(puzzle.undo());on_leave();on_load(C);assert(A.launch(10))
+assert(puzzle.undo());on_leave();on_load(C);assert(A.launch(index_of_id('nonogram')))
 eq(A.state().engine.api.state().boards[puzzle.state().level][1],(marks+2)%3)
 on_leave()
 -- Actual hub startup blocks on a missing required seed, and Retry recovers.

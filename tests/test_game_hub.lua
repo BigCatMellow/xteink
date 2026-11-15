@@ -219,7 +219,7 @@ saves['hub.txt']='8';on_load(C);eq(A.state().last,1)
 assert(A.launch(#Catalogue));eq(saves['hub.txt'],'id='..Catalogue[#Catalogue].id)
 on_leave();on_load(C);eq(A.state().last,#Catalogue);on_leave()
 -- Failed saving holds the current engine open; a successful retry can leave.
-on_load(C);assert(A.launch(index_of_id('nonogram')));fail=true;assert(tap(35,35));eq(A.state().selected,10)
+on_load(C);assert(A.launch(index_of_id('nonogram')));fail=true;assert(tap(35,35));eq(A.state().selected,index_of_id('nonogram'))
 fail=nil;assert(tap(35,35));assert(not A.state().selected)
 -- A read error never becomes an empty board written over a valid record.
 local old=saves['nonogram--nonogram.txt']

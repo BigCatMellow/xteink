@@ -1,49 +1,32 @@
-# Xteink games
+# XTEINK games — reasoning-first collection
 
-All 17 active games and Games Hub live here. Paper Golf remains shelved.
-Shared fonts, UI, build scripts and release archives stay at the repo root
-because utilities and the shell use them too.
+The active family has **13 games**, with an emphasis on linked deduction, constraint solving and meaningful planning rather than rote scanning, obvious actions or luck. All games target a 480×800 monochrome e-ink display. This is a design filter, not a guarantee that every current level is difficult.
 
-Run all commands below from the repository root.
+## Active games
 
+- [Sudoku](sudoku/README.md) — intersecting row, column and box constraints
+- [Nonogram](nonogram/README.md) — intersecting row and column run clues
+- [Sum Cross](sum-cross/README.md) — Kakuro's crossing sums
+- [Lantern Logic](lantern-logic/README.md) — uniquely solvable light placement
+- [Quiet Mines](quiet-mines/README.md) — deduction-only Minesweeper
+- [Crown Fields](crown-fields/README.md) — crown-placement region constraints
+- [Rectangle Rooms](rectangle-rooms/README.md) — exact-cover rectangle partitions
+- [Island Links](island-links/README.md) — Hashi connection constraints
+- [Ray Vault](ray-vault/README.md) — deduction from hidden ray outcomes
+- [Ink Runes](ink-runes/README.md) — interacting rune powers and traps
+- [Link Grid](link-grid/README.md) — rotating tiles into one connected network
+- [Summit Putt](summit-putt/README.md) — limited-card terrain route planning
+- [Word Bridge](word-bridge/README.md) — shortest-path word ladders with traps
 
-- [Games Hub](games-hub/README.md) — the card-loaded shell: Home, reading progress, Library, all 17 games and portrait/landscape, with separate progress. Recommended for updating the collection together.
-- [Paper Golf](paper-golf/README.md) — shelved; excluded from the active collection and SD updates.
-- [Summit Putt](summit-putt/README.md) — card-based golf route puzzles.
-- [Line Lift](line-lift/README.md) — zero-animation crossing logic inspired by Hook.
-- [Link Grid](link-grid/README.md) — zero-animation tile-rotation network puzzles.
-- [Ink Runes](ink-runes/README.md) — original cryptic word-deduction puzzles inspired by LOK.
-- [Lantern Logic](lantern-logic/README.md) — classic Akari-style illumination with 16 uniquely solvable boards.
-- [Ray Vault](ray-vault/README.md) — Black Box-style hidden-atom deduction with 12 original stages.
-- [Island Links](island-links/README.md) — Bridges/Hashi-style single/double-line island logic with 12 unique puzzles.
-- [Oddity Hunt](oddity-hunt/README.md) — a no-animation seek-and-find game with 12 crowded shelves and five objects per scene.
-- [Word Hunt](word-hunt/README.md) — 8 classic word searches and 8 Find the Fox letter-grid puzzles.
-- [Nonogram](nonogram/README.md) — 12 original, uniquely solvable hidden-picture logic puzzles.
-- [Sudoku](sudoku/README.md) — generated unique puzzles with notes, undo and saved puzzle history, adapted from the meditation app.
-- [Word Bridge](word-bridge/README.md) — 12 shortest-path four-letter word ladders with deceptive branches.
-- [Rectangle Rooms](rectangle-rooms/README.md) — 12 unique Shikaku-style rectangle-partition puzzles.
-- [Crown Fields](crown-fields/README.md) — 12 original letter-region crown-placement puzzles.
-- [Ten Pairs](ten-pairs/README.md) — 12 original Numberama number-clearing sheets.
-- [Quiet Mines](quiet-mines/README.md) — 12 deductive Minesweeper grids with a known-safe start.
-- [Sum Cross](sum-cross/README.md) — 12 uniquely solvable Kakuro number-crossword grids.
+[Games Hub](games-hub/README.md) hosts the active collection and reading shell.
 
-Word Hunt and Nonogram now continue with offline generated puzzles after their original boards. Nonogram's generated continuation uses abstract patterns. Original levels and existing saves are preserved.
+## Archived and shelved games
 
-## Builds and updates
+- [Archive index](archive/README.md) — Line Lift, Oddity Hunt, Word Hunt and Ten Pairs, including their entire source trees, icons, tests, and reasons.
+- [Paper Golf](paper-golf/README.md) remains **shelved separately** and was not changed.
 
+Archiving source does not uninstall already installed games or erase `XTApps/` save data. Historical installers in `releases/` are preserved. A fresh verified release must replace the old 17-game family catalogue before another Games Hub or SD-card deployment. Do not apply the stale `game-family-latest.json` via `--apply-only`.
 
-Contribution requirements are in [AGENTS.md](../AGENTS.md) and
-[Game quality](../docs/GAME_QUALITY.md). The [game quality gate](../.github/workflows/game-quality.yml)
-checks measured layouts, save/resume, navigation, puzzle solutions and packages
-on pushes and pull requests. Run it locally with `python3 scripts/check_games.py`.
+## Checks and updates
 
-The [complete rollout plan](../docs/GAME_ROLLOUT_PLAN.md) records the per-game review.
-`python3 scripts/release_games.py --card /media/mellow/4A21-0000` runs checks,
-archives the whole family and applies updates to existing installed games and
-Games Hub with backups. New games are immediately available inside the updated
-hub; standalone installers remain optional. See [the release procedure](../docs/GAME_UPDATES.md).
-
-The [Games Hub build](../.github/workflows/games-hub.yml) runs the same quality gate
-and supplies a single `games-hub.xtapp` artifact for the whole active collection.
-
-Each project has its own installable XTApp build workflow: [Paper Golf](../.github/workflows/build.yml), [Summit Putt](../.github/workflows/summit-putt.yml), [Line Lift](../.github/workflows/line-lift.yml), [Link Grid](../.github/workflows/link-grid.yml), [Ink Runes](../.github/workflows/ink-runes.yml), [Lantern Logic](../.github/workflows/lantern-logic.yml), [Ray Vault](../.github/workflows/ray-vault.yml), [Island Links](../.github/workflows/island-links.yml), [Oddity Hunt](../.github/workflows/oddity-hunt.yml), [Word Hunt](../.github/workflows/word-hunt.yml), [Nonogram](../.github/workflows/nonogram.yml), [Word Bridge](../.github/workflows/word-bridge.yml), [Rectangle Rooms](../.github/workflows/rectangle-rooms.yml), [Sudoku](../.github/workflows/sudoku.yml), [Crown Fields](../.github/workflows/crown-fields.yml), [Ten Pairs](../.github/workflows/ten-pairs.yml), [Quiet Mines](../.github/workflows/quiet-mines.yml), [Sum Cross](../.github/workflows/sum-cross.yml), and [Wallpaper Randomizer](../.github/workflows/wallpaper-randomizer.yml).
+See [AGENTS.md](../AGENTS.md), [game quality](../docs/GAME_QUALITY.md), [game design](../docs/GAME_DESIGN.md), and [game updates](../docs/GAME_UPDATES.md). Run `python3 scripts/check_games.py` from the repository root, then the full build and package flow before any card update.

@@ -1,6 +1,10 @@
 # XTEINK repository rules
 
-Game projects, including Games Hub and shelved Paper Golf, live in `games/`.
+Active games, Games Hub, and separately shelved Paper Golf live in `games/`.
+Archived reasoning-light games live in `games/archive/` with original sources,
+IDs, tests, icons, and workflow definitions preserved. Do not accidentally
+restore them to active registries, the Hub, or new release catalogues. Preserve
+installed saves and the original 17-slot numeric Hub resume mapping.
 Keep registry/release keys stable and use `scripts/sync_game_ui.py`'s
 `project_path()` to resolve source locations. The shell project owns its docs,
 tools and focused tests under `shell/`; use `shell/README.md` as its entry point.

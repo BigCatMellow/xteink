@@ -84,15 +84,150 @@ function Q.choose(c,history)
  end
  return {text=list[i].text,author=list[i].author}
 end
+-- Native text has no verified 90-degree orientation in the Licorice canvas.
+-- Draw a compact monoline stroke alphabet in LANDSCAPE coordinates and
+-- map each point back to the native portrait framebuffer. No bitmap decode,
+-- extra layer, opaque panel or edits to the original wallpaper image.
+-- On the submitted wallpapers, the illustration sits on the landscape RIGHT.
+local FONT={
+ A='0,6 0,2 2,0 4,2 4,6|0,4 4,4',
+ B='0,0 0,6 3,6 4,5 4,4 3,3 0,3|0,0 3,0 4,1 4,2 3,3',
+ C='4,1 3,0 1,0 0,1 0,5 1,6 3,6 4,5',
+ D='0,0 0,6 2,6 4,4 4,2 2,0 0,0',
+ E='4,0 0,0 0,6 4,6|0,3 3,3',
+ F='0,6 0,0 4,0|0,3 3,3',
+ G='4,1 3,0 1,0 0,1 0,5 1,6 3,6 4,5 4,3 2,3',
+ H='0,0 0,6|4,0 4,6|0,3 4,3',
+ I='0,0 4,0|2,0 2,6|0,6 4,6',
+ J='0,0 4,0 4,5 3,6 1,6 0,5',
+ K='0,0 0,6|4,0 0,3 4,6',
+ L='0,0 0,6 4,6',
+ M='0,6 0,0 2,3 4,0 4,6',
+ N='0,6 0,0 4,6 4,0',
+ O='1,0 3,0 4,1 4,5 3,6 1,6 0,5 0,1 1,0',
+ P='0,6 0,0 3,0 4,1 4,2 3,3 0,3',
+ Q='1,0 3,0 4,1 4,5 3,6 1,6 0,5 0,1 1,0|2,4 4,7',
+ R='0,6 0,0 3,0 4,1 4,2 3,3 0,3|2,3 4,6',
+ S='4,1 3,0 1,0 0,1 0,2 1,3 3,3 4,4 4,5 3,6 1,6 0,5',
+ T='0,0 4,0|2,0 2,6',
+ U='0,0 0,5 1,6 3,6 4,5 4,0',
+ V='0,0 2,6 4,0',
+ W='0,0 0.8,6 2,3 3.2,6 4,0',
+ X='0,0 4,6|4,0 0,6',
+ Y='0,0 2,3 4,0|2,3 2,6',
+ Z='0,0 4,0 0,6 4,6',
+ ['0']='1,0 3,0 4,1 4,5 3,6 1,6 0,5 0,1 1,0|0,6 4,0',
+ ['1']='1,1 2,0 2,6|0,6 4,6',
+ ['2']='0,1 1,0 3,0 4,1 4,2 0,6 4,6',
+ ['3']='0,0 4,0 2,3 4,3 4,5 3,6 0,6',
+ ['4']='3,6 3,0 0,4 4,4',
+ ['5']='4,0 0,0 0,3 3,3 4,4 4,5 3,6 0,6',
+ ['6']='4,0 1,0 0,2 0,5 1,6 3,6 4,5 4,4 3,3 0,3',
+ ['7']='0,0 4,0 1,6',
+ ['8']='1,0 3,0 4,1 4,2 3,3 1,3 0,2 0,1 1,0|1,3 0,4 0,5 1,6 3,6 4,5 4,4 3,3',
+ ['9']='4,3 1,3 0,2 0,1 1,0 3,0 4,1 4,4 3,6 0,6',
+ ['.']='2,5.5 2,6',
+ [',']='2,5.5 1,7',
+ ['!']='2,0 2,4|2,5.5 2,6',
+ ['?']='0,1 1,0 3,0 4,1 4,2 2,4|2,5.5 2,6',
+ [':']='2,2 2,2.4|2,5.5 2,6',
+ [';']='2,2 2,2.4|2,5 1,7',
+ ['-']='0,3 4,3',
+ ["'"]='2,0 2,1.5',
+ ['"']='1,0 1,1.5|3,0 3,1.5',
+ ['(']='3,0 1,2 1,4 3,6',
+ [')']='1,0 3,2 3,4 1,6',
+ ['&']='4,6 1,2 1,1 2,0 3,1 3,2 0,5 1,6 4,6|0,3 4,1',
+ ['/']='0,6 4,0',
+ ['+']='2,1 2,5|0,3 4,3',
+ ['=']='0,2 4,2|0,4 4,4'
+}
+local COMPILED={}
+for ch,pattern in pairs(FONT) do
+ local glyph={}
+ for stroke in pattern:gmatch('[^|]+') do
+  local pts={}
+  for token in stroke:gmatch('%S+') do
+   local x,y=token:match('([%d%.%-]+),([%d%.%-]+)')
+   if not x then error('Malformed quote glyph') end
+   pts[#pts+1]=tonumber(x)
+   pts[#pts+1]=tonumber(y)
+  end
+  if #pts>=4 then glyph[#glyph+1]=pts end
+ end
+ COMPILED[ch]=glyph
+end
+local function round(x) return math.floor(x+0.5) end
+local function draw_line(g,line,u,v,scale)
+ -- Display is rotated clockwise; therefore landscape (u,v) corresponds
+ -- to native frame (x=v,y=799-u). Render all characters upright when held sideways.
+ local step=6*scale
+ line=line:upper()
+ for i=1,#line do
+  local glyph=COMPILED[line:sub(i,i)] or COMPILED['?']
+  if glyph then
+   for _,stroke in ipairs(glyph) do
+    local pts,thick={},{}
+    for j=1,#stroke,2 do
+     local ux=u+(i-1)*step+stroke[j]*scale
+     local vy=v+stroke[j+1]*scale
+     local x,y=round(vy),round(799-ux)
+     pts[#pts+1]=x;pts[#pts+1]=y
+     thick[#thick+1]=x+1;thick[#thick+1]=y
+    end
+    g:polyline(pts)
+    g:polyline(thick) -- two pixels, clear on the 4-level display
+   end
+  end
+ end
+end
+local function wrap(text,cap)
+ local out,line={},''
+ for word in text:gmatch('%S+') do
+  while #word>cap do
+   if #line>0 then out[#out+1]=line;line='' end
+   out[#out+1]=word:sub(1,cap)
+   word=word:sub(cap+1)
+  end
+  if #line==0 then line=word
+  elseif #line+#word+1<=cap then line=line..' '..word
+  else out[#out+1]=line;line=word end
+ end
+ if #line>0 then out[#out+1]=line end
+ return out
+end
+local function fit(text,preferred,limit)
+ local result,scale
+ for _,s in ipairs({preferred,3.2,3.0,2.8,2.6,2.4,2.2}) do
+  if not scale or s<scale then
+   local lines=wrap(text,math.floor(428/(6*s)))
+   result,scale=lines,s
+   if #lines<=limit then break end
+  end
+ end
+ return result,scale
+end
 function Q.draw(g,c,quote)
- if not quote then return end
- -- Opaque white band, not grayscale/translucent: text stays readable over
- -- photographs and line art on e-ink. Preserve the upper 70% of the image.
- g:rect(14,560,452,212,{fill=true,color=0,radius=10})
- g:rect(14,560,452,212,{line_width=2,radius=10})
- UI.paragraph(g,c,34,582,412,130,'"'..quote.text..'"','small','center')
- if quote.author and quote.author~='' then
-  UI.text(g,c,240,738,'- '..quote.author,'small','center',400)
+ if not quote or not quote.text then return end
+ -- The supplied 480x800 pictures rotate CW into an 800x480 landscape
+ -- view. Their illustrations occupy the right side; preserve them untouched.
+ -- No white/black rectangle: the empty paper is the typography background.
+ local content='"'..quote.text..'"'
+ local lines,scale=fit(content,3.6,8)
+ local author=(quote.author and quote.author~='') and ('- '..quote.author) or ''
+ local author_lines,author_scale={},2.3
+ if author~='' then author_lines,author_scale=fit(author,2.3,2) end
+ local line_height=9*scale
+ local author_height=#author_lines>0 and (#author_lines*9*author_scale+14) or 0
+ local height=#lines*line_height+author_height
+ local top=(480-height)/2
+ for i,line in ipairs(lines) do
+  local width=#line*6*scale
+  draw_line(g,line,50+(428-width)/2,top+(i-1)*line_height,scale)
+ end
+ for i,line in ipairs(author_lines) do
+  local width=#line*6*author_scale
+  draw_line(g,line,50+(428-width)/2,top+#lines*line_height+14+(i-1)*9*author_scale,author_scale)
  end
 end
 return Q

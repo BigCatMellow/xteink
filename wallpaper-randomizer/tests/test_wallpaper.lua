@@ -5,6 +5,7 @@ package.loaded.xth={validate=function(raw)
 end}
 local W=require('wallpaper')
 local P=require('probe')
+local Q=require('quotes')
 local Canvas=dofile('../tests/game_canvas.lua')
 local function entry(path)
   _G.__TEST={}
@@ -19,7 +20,7 @@ local function add(disk,name)
   disk[base..'.jpg']='\255\216'..name..'\255\217'
 end
 local function runtime(disk)
-  local stats={decodes=0,alive=0,peak=0,draws=0,enables=0,disables=0,writes={},intervals={}}
+  local stats={decodes=0,alive=0,peak=0,draws=0,overlays=0,enables=0,disables=0,writes={},intervals={}}
   local c={disk=disk,active=false,confirm='approve',time=2147483647}
   local function list()
     local out={'../bad.xth','sub/bad.xth','has space.xth','legacy.jpg',false,{}}
@@ -30,6 +31,7 @@ local function runtime(disk)
   c.storage={list=list,read=function(_,name) return disk[name] end,
     write=function(_,name,value)
       if name=='rotation.txt' and c.fail_history then return nil,'quota exceeded' end
+      if name=='quotes-mode.txt' and c.fail_quote_write then return nil,'quota exceeded' end
       disk[name]=value;stats.writes[name]=(stats.writes[name] or 0)+1
     end}
   c.lock={reason='first',interval_sec=3600,set_interval=function(_,seconds)
@@ -63,7 +65,13 @@ local function runtime(disk)
   c.layers={create=function() error('sleep must never allocate a PNG compositor layer') end}
   c.after=function() error('sleep must never enqueue strip callbacks') end
   c.fonts=Canvas.fonts();c.invalidate=function() end
-  local g={clear=function() end,text=function() end,line=function() end,rect=function() end,
+  local g={clear=function() end,text=function() end,line=function() end,
+    rect=function(_,x,y,w,h,opts)
+      if x==14 and y==560 and w==452 and opts and opts.fill then
+        assert(stats.draws>0,'quote panel must follow native wallpaper image')
+        stats.overlays=stats.overlays+1
+      end
+    end,
     image=function(_,image,x,y)
       assert(x==0 and y==0);stats.draws=stats.draws+1;stats.last=image.bytes
       if c.fail_draw then return nil,'native draw rejected' end
@@ -106,6 +114,7 @@ for i=1,100 do
   assert(current~=previous,'a new sleep must avoid the previous usable image')
   lock.draw(c,g)
   assert(W.history(c).last==current and W.history(c).sequence==i)
+  assert(W.history(c).quote and W.history(c).quote.text==lock.test.quote().text,'quote must commit atomically with image')
   local saved=disk['rotation.txt']
   local writes=stats.writes['rotation.txt']
   local decoded=stats.decodes
@@ -125,6 +134,7 @@ for _,reason in ipairs({'timer','timer','resume','timer'}) do
   c.lock.reason=reason
   local lock=entry('app/lockscreen.lua');lock.load(c);lock.draw(c,g)
   assert(lock.test.current()==previous and disk['rotation.txt']==saved)
+  assert(lock.test.quote() and lock.test.quote().text==W.history(c).quote.text,'timer must reuse the saved text')
   assert(stats.writes['rotation.txt']==history_writes)
   lock.leave();assert(stats.alive==0)
 end
@@ -170,16 +180,70 @@ empty.disk['rotation.txt']='sequence='..string.rep('9',400)..'\nlast=../../bad.x
 assert(W.history(empty).sequence==0,'malformed huge history counter must be bounded')
 assert(W.history(empty).last==nil,'invalid saved filenames must not reach the file API')
 
+-- Quotes: custom corpus, safe filtering, persistent mode and legacy histories.
+local built=Q.entries(c)
+assert(#built>=12 and built[1].text and built[1].author=='')
+disk['quotes.txt']='# Ignore comments\nThe world is a book. | Someone\nSecond chosen line | Another author\n'
+local custom=Q.entries(c)
+assert(#custom==2 and custom[1].text=='The world is a book.' and custom[2].author=='Another author')
+local chosen=Q.choose(c,{sequence=0})
+assert(chosen.text==custom[1].text or chosen.text==custom[2].text)
+disk['quotes.txt']='# nothing valid\n'..string.rep('X',160)..' | Bad\n'
+assert(#Q.entries(c)>=12,'all-invalid custom list must fall back safely')
+disk['quotes.txt']=nil
+local oldformat=disk['rotation.txt']
+disk['rotation.txt']='sequence=12\nlast=alpha.xth\n'
+assert(W.history(c).last=='alpha.xth' and W.history(c).quote==nil,'legacy history must remain readable')
+c.lock.reason='timer'
+local legacy=entry('app/lockscreen.lua');legacy.load(c)
+assert(legacy.test.quote()==nil,'legacy timer must not invent a quote')
+legacy.draw(c,g);legacy.leave()
+disk['rotation.txt']=oldformat
+
+assert(Q.set_enabled(c,false))
+assert(not Q.enabled(c) and disk['quotes-mode.txt']=='off\n')
+c.lock.reason='first'
+local disabled=entry('app/lockscreen.lua');disabled.load(c);disabled.draw(c,g)
+assert(W.history(c).quote==nil and disabled.test.quote()==nil,'quote toggle must hide overlay')
+local off_history=disk['rotation.txt']
+disabled.leave()
+c.lock.reason='timer'
+local disabledtimer=entry('app/lockscreen.lua');disabledtimer.load(c);disabledtimer.draw(c,g)
+assert(disk['rotation.txt']==off_history and disabledtimer.test.quote()==nil,'timer must not turn quotes back on')
+disabledtimer.leave()
+assert(Q.set_enabled(c,true))
+assert(Q.enabled(c))
+c.fail_quote_write=true;assert(not Q.set_enabled(c,false))
+assert(Q.enabled(c),'failed setting write must not change enabled state')
+c.fail_quote_write=false
+-- The maximum accepted quote and author must fit the reserved panel at both
+-- tested host font width profiles, independently of a JPEG image decoder.
+for _,scale in ipairs({1,1.25}) do
+ local cc={fonts=Canvas.fonts(scale)}
+ local canvas=Canvas.canvas();canvas:reset()
+ Q.draw(canvas,cc,{text='The best journeys are often made of small and surprising moments, each of them worth remembering.',author='A Reader'})
+ canvas:verify('quote overlay '..scale)
+end
+
 -- Main app: preserve enabled state; preview never changes the sleep deck.
 c.lock.reason='first';c.active=true
 local main=entry('app/index.lua');main.load(c)
 assert(c.active and stats.disables==0,'opening the app must preserve enablement')
+assert(main.test.quote_enabled(),'quotes should be enabled by default')
+tap(main,c,120,542)
+assert(not main.test.quote_enabled() and disk['quotes-mode.txt']=='off\n','OFF setting is saved')
+main.leave();main.load(c)
+assert(not main.test.quote_enabled(),'OFF must survive reopening')
+tap(main,c,120,542)
+assert(main.test.quote_enabled() and disk['quotes-mode.txt']=='on\n','ON setting is saved')
 Canvas.check(c,main.draw,'enabled settings')
 local saved=disk['rotation.txt']
-tap(main,c,100,370);assert(main.test.is_preview());main.draw(c,g)
+tap(main,c,100,370);assert(main.test.is_preview());assert(main.test.preview_quote())
+main.draw(c,g)
 local first_preview=stats.last
 tap(main,c,200,200);tap(main,c,100,370);main.draw(c,g)
 assert(stats.last~=first_preview and disk['rotation.txt']==saved)
+assert(stats.overlays>0,'both sleep and preview need an overlay')
 tap(main,c,200,200)
 assert(stats.alive==0)
 tap(main,c,100,290)
@@ -223,4 +287,4 @@ add(ec.disk,'new.xth');tap(main,ec,100,450)
 assert(#main.test.names()==1);Canvas.check(ec,main.draw,'rescanned images')
 tap(main,ec,100,370);assert(main.test.is_preview());main.leave()
 assert(ee.alive==0)
-print('Sleep wallpaper: 100 new sleeps, fixed timer frames, transactional history, failures, controls and measured layouts PASS')
+print('Sleep wallpaper: 100 new sleeps, quote overlays, fixed timer image/quote, transactional history, errors and measured layouts PASS')

@@ -2,6 +2,13 @@ name: Build Wallpaper Randomizer
 on:
   push:
     branches: [main]
+  pull_request:
+    paths:
+      - 'wallpaper-randomizer/**'
+      - '.github/workflows/wallpaper-randomizer.yml'
+      - 'shared/game_ui.lua'
+      - 'scripts/sync_game_ui.py'
+      - 'tests/game_canvas.lua'
     paths:
       - 'wallpaper-randomizer/**'
       - '.github/workflows/wallpaper-randomizer.yml'
@@ -43,6 +50,7 @@ jobs:
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/probe.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/cache.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/wallpaper.lua
+          python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/quotes.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/ui.lua
       - name: Build XTApp
         run: |

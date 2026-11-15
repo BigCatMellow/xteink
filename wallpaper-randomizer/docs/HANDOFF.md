@@ -1,5 +1,29 @@
 # Wallpaper handoff — 2026-11-07
 
+## Landscape orientation correction — 2026-11-15
+
+The user provided four actual 480×800 grayscale wallpaper samples: each
+displays **clockwise rotated into landscape**, putting the illustrated subject
+on the **right** with broad blank white space on the **left**. The earlier
+0.6.0 bottom-of-portrait text band was wrong for this use case; it would
+appear sideways, obscure negative space, and a solid filled g:rect can
+render black (not white) under Licorice.
+
+v0.6.1 draws quote glyphs through small native monochrome polylines with
+landscape-to-native coordinate mapping, in the otherwise empty left field
+when held sideways. No extra image decode, JPEG edits, wide filled panel,
+compositor layer, or loss of per-sleep quote history. Font uses a minimalist
+uppercase monoline stroke alphabet at bounded sizes. Host tests assert
+all stroke coordinates lie within the raw 480x800 frame and that they stay
+in the left area of the rotated landscape image.
+
+**Still needs physical device verification** of polyline text contrast and
+clockwise screen orientation, normal sleep/wake, timer redraw, old saves, and
+user-provided images. Original uploaded wallpaper examples were used only
+for layout inspection; do not add their artwork to the public repo.
+
+
+
 ## Subsequent quote-overlay candidate — 2026-11-14
 
 At the user's request, v0.6.0 introduces **optional quotes over existing

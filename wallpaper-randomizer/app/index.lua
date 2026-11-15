@@ -102,9 +102,9 @@ function on_draw(c,g)
   UI.button(g,C,248,426,208,62,'HOW TO USE')
   UI.button(g,C,24,508,432,66,Quotes.enabled(C) and 'QUOTES: ON' or 'QUOTES: OFF')
   g:line(24,586,456,586)
-  UI.paragraph(g,C,24,604,432,52,'Quotes use a white panel over your images. Edit quotes.txt on the card.','small')
+  UI.paragraph(g,C,24,604,432,52,'Quotes appear upright at left when held sideways. Edit quotes.txt on the card.','small')
   UI.paragraph(g,C,24,676,432,76,status or 'Ready.','small')
-  UI.text(g,C,24,768,'0.6.0','small')
+  UI.text(g,C,24,768,'0.6.1','small')
 end
 function on_input(c,ev)
   C=c or C

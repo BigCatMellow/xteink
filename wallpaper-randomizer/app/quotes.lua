@@ -9,6 +9,14 @@ local Q={}
 local DEFAULT={
  {text='Not all those who wander are lost;',author='J.R.R. Tolkien'},
  {text='The Road goes ever on and on',author='J.R.R. Tolkien'},
+ {text='Courage is found in unlikely places.',author='J.R.R. Tolkien'},
+ {text='Faithless is he that says farewell when the road darkens.',author='J.R.R. Tolkien'},
+ {text='The praise of the praiseworthy is above all rewards.',author='J.R.R. Tolkien'},
+ {text='I will not say: do not weep; for not all tears are an evil.',author='J.R.R. Tolkien'},
+ {text='All we have to decide is what to do with the time that is given us.',author='J.R.R. Tolkien'},
+ {text='May it be a light to you in dark places, when all other lights go out.',author='J.R.R. Tolkien'},
+ {text='Short cuts make long delays.',author='J.R.R. Tolkien'},
+ {text='Yet the deeds will not be less valiant because they are unpraised.',author='J.R.R. Tolkien'},
 }
 local function read(c,name)
  for _,store in ipairs({c.storage or false,c.files or false}) do

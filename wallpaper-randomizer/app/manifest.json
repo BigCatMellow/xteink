@@ -1,9 +1,9 @@
 {
   "app_id": "wallrandom",
   "display_name": "Wallpaper Randomizer",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "author": "BigCatMellow",
-  "description": "Tolkien-authored landscape quotes over rotating monochrome wallpapers",
+  "description": "Ten verified Tolkien-authored landscape quotes over rotating wallpapers",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": [],

@@ -1,5 +1,20 @@
 # Wallpaper handoff — 2026-11-07
 
+## Expanded authentic Tolkien defaults — 2026-11-15
+
+At the user's request to continue, Wallpaper Randomizer 0.6.5 adds eight
+more **book-authenticated Tolkien quotations**, for ten total. Attribution
+and chapter-by-chapter source URLs are in `docs/QUOTE_SOURCES.md`. Film-only
+dialogue, internet misattributions, and invented Tolkien-like lines are
+excluded. Every quote is 118 characters or fewer and uses simple ASCII
+punctuation for the current stroke font. The test suite checks the full
+ten-quote selection cycle, correct author credit and all 480x800 landscape
+layouts, in addition to existing sleep/history and custom-file behavior.
+No wallpaper images, storage files, rotation state or installed app changed.
+Physical reader acceptance remains pending.
+
+
+
 ## Tolkien-authored default quotes only — 2026-11-15
 
 User clarified that wallpaper quotes should be **Tolkien's own words**,

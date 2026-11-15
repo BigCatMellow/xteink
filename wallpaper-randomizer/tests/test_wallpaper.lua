@@ -188,18 +188,22 @@ assert(W.history(empty).last==nil,'invalid saved filenames must not reach the fi
 
 -- Quotes: custom corpus, safe filtering, persistent mode and legacy histories.
 local built=Q.entries(c)
-assert(#built==2,'only the two verified Tolkien-authored quotes may ship')
+assert(#built==10,'expected ten sourced Tolkien quotations')
 local known={}
 for _,q in ipairs(built) do
-  assert(q.author=='J.R.R. Tolkien','no unattributed or invented built-in quote')
-  assert(#q.text>0 and #q.text<=118 and #q.author<=42,'Tolkien quote size must stay bounded')
-  assert(not known[q.text],'no duplicate Tolkien quotes')
+  assert(q.author=='J.R.R. Tolkien','only verified Tolkien-authored default quotes')
+  assert(#q.text>0 and #q.text<=118 and #q.author<=42,'quote lengths stay bounded')
+  assert(not known[q.text],'no duplicate quote text')
   known[q.text]=true
 end
-assert(known['Not all those who wander are lost;'],'missing Riddle of Strider line')
-assert(known['The Road goes ever on and on'],'missing Old Walking Song line')
-assert(not known['The forest remembers what kingdoms forget.'],'remove invented Tolkien-like quotes')
-assert(not known['There is no charm equal to tenderness of heart.'],'remove unrelated literary quotes')
+assert(known['Not all those who wander are lost;'],'original poetry line remains')
+assert(known['The Road goes ever on and on'],'original walking song line remains')
+assert(known['Courage is found in unlikely places.'],'verified Gildor quote present')
+assert(known['Faithless is he that says farewell when the road darkens.'],'verified Gimli quote present')
+assert(known['The praise of the praiseworthy is above all rewards.'],'verified Faramir quote present')
+assert(known['Short cuts make long delays.'],'verified Pippin quote present')
+assert(not known['The forest remembers what kingdoms forget.'],'no invented lines')
+assert(not known['Even the smallest person can change the course of the future.'],'no film-only lines')
 local rotated={}
 for seq=0,#built-1 do
   local q=Q.choose(c,{sequence=seq})
@@ -215,7 +219,7 @@ assert(#custom==2 and custom[1].text=='The world is a book.' and custom[2].autho
 local chosen=Q.choose(c,{sequence=0})
 assert(chosen.text==custom[1].text or chosen.text==custom[2].text)
 disk['quotes.txt']='# nothing valid\n'..string.rep('X',160)..' | Bad\n'
-assert(#Q.entries(c)==2,'all-invalid custom list must fall back to the Tolkien-only set')
+assert(#Q.entries(c)==10,'invalid custom list falls back to ten Tolkien quotes')
 disk['quotes.txt']=nil
 local oldformat=disk['rotation.txt']
 disk['rotation.txt']='sequence=12\nlast=alpha.xth\n'

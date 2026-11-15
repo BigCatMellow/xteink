@@ -2,7 +2,7 @@
 
 **Purpose:** Retain only games with evidence of multi-step deduction, cross-constraint reasoning, or consequential route planning. These are source-level assessments, **not human playtest scores**. A unique solution or a passing test proves correctness, not difficulty.
 
-## Retained: 10 games
+## Retained: 11 games
 
 | Game | Evidence from the actual game/tests | Known difficulty risk | Decision |
 |---|---|---|---|
@@ -15,6 +15,7 @@
 | Island Links (Hashi) | 12 unique noncrossing connected bridge networks with 7–9 islands, including double-bridge constraints. | Sparse 7–9-island layouts may be shallow. | **Keep**, test reasoning beyond corner-island forcing. |
 | Quiet Mines | 12 no-guess 6×6–8×8 fields; an independent local arithmetic solver required 3–10 successive inference sweeps after the safe start. | Opening zero-region reveals roughly 46% of safe squares on average; several boards still short. | **Keep**, create denser high-reasoning layouts. |
 | Ray Vault (Black Box) | 12 6×6 hidden-atom cases with 3–4 atoms; full beam signatures unique and at least three informative probes needed in greedy filtering. | Unlimited probing may eventually trivialize the board; count of probes is not difficulty of inference. | **Keep**, test deliberate probe-choice challenges. |
+| Ten Pairs | 12 original 8-column, 32-digit starting sheets; an independent interval-matching solver verifies a full 16-pair clearing sequence for each. Pair order matters and the ADD mechanic extends the search space. | The solver demonstrates solvability, not difficulty; some pair matches may be routine. Restored at the user's explicit request rather than on a claim of Sudoku-equivalent complexity. | **Keep at user request**, assess challenge through playtesting. |
 | Summit Putt | Ten 7×7 finite-card routing boards, 3–5 shot cards; wrong sequences become dead ends. Level four, for example, has 12 winning action sequences versus thousands of dead-end action sequences under exhaustive action enumeration. | Five-shot ceiling and ten boards limit sustained challenge; brute-force retries are possible. | **Keep provisionally** for consequential planning, review before calling it premium. |
 
 ## Archived in this second pass
@@ -25,7 +26,7 @@
 | Word Bridge | Twelve words per level and 3–7 shortest moves (mean 4.42); ten of twelve boards have one optimal first step. Choices are small and often resolved by short trial-and-error. | Larger intertwined word graph and substantive route planning; preserve 480×800 legibility. |
 | Ink Runes | Twenty puzzles with minimum 1–6 rune moves; for the final seven boards, a simulated uniformly random legal-move strategy wins ~32.5% on average, and 66.7% on level 20. This is a model, **not** a player win rate. | Fewer independent interchangeable moves, stronger cause-and-effect combinations, more multi-stage discoveries, real playtest evidence. |
 
-The earlier archive decisions for Line Lift, Oddity Hunt, Word Hunt and Ten Pairs remain in [the archive](archive/README.md). Margin Codex and Ink Delve are parked HTML prototypes, not native apps. Paper Golf remains separately shelved.
+The earlier archive decisions for Line Lift, Oddity Hunt and Word Hunt remain in [the archive](archive/README.md). Margin Codex and Ink Delve are parked HTML prototypes, not native apps. Paper Golf remains separately shelved. Ten Pairs was reinstated to the active lineup at the user's request without changing gameplay.
 
 ## Acceptance standard for future games
 

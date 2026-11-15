@@ -1,6 +1,6 @@
 # Games Hub
 
-The card-loaded shell for the X4 Pro and 10 active games in one offline
+The card-loaded shell for the X4 Pro and 11 active games in one offline
 XTApp. Home shows the book you're reading (display-only: title, progress,
 streak, minutes today) and resumes your last game. Library shows reading progress for your books but **cannot open or display EPUB pages**;
 Games opens any game, and Settings switches between portrait and landscape.
@@ -12,7 +12,7 @@ touchpad is controlled by Licorice and may leave the entire app instead. The she
 reopens where you left it, including an open game. The reader's Home action
 exits it. Games keep separate progress, unfinished boards and undo.
 
-**0.4.3 is a source-only candidate** with ten games after the stricter
+**0.4.4 is a source-only candidate** with eleven games after the stricter
 reasoning audit; it is not yet a device-tested release. Former games and their
 save formats are preserved in `games/archive/`.
 
@@ -73,7 +73,7 @@ Edit each original game's source, then rebuild. `app/game_*.lua` and the shared
 copies are generated; `src/` owns the hub menu, header adapter, save namespace
 and importer. The builder combines each game's private modules into one module
 and keeps mutable game instances separate. The catalogue records source versions
-and fingerprints. CI rejects stale generated code, verifies all 17 engines
+and fingerprints. CI rejects stale generated code and verifies all 11 active engines
 through the adapter, tests collection navigation/imports and packages the icon.
 
 v0.3.2 includes all 17 revised games, including Crown Fields, Ten Pairs, Quiet

@@ -14,7 +14,6 @@ local held=false
 -- Keep the return control inside the existing 72x65 reserved header zone.
 -- The 44px unlabeled dot icon was difficult to discover on real hardware.
 local HUB_X,HUB_Y,HUB_W,HUB_H=8,8,60,54
-local function in_hub(x,y) return inside(x or -1,y or -1,HUB_X,HUB_Y,HUB_W,HUB_H) end
 local S={screen='home',page=1}
 local orient,pages,back,saved_state='portrait',{},'home',nil
 local SCREENS={home=true,library=true,games=true,settings=true,game=true}
@@ -22,6 +21,7 @@ local SCREENS={home=true,library=true,games=true,settings=true,game=true}
 local LEGACY_IDS={'linelift','summitputt','linkgrid','inkrunes','lanternlogic','rayvault','islandlinks','oddityhunt','wordhunt','nonogram','wordbridge','rectrooms','sudoku','crownfields','tenpairs','quietmines','sumcross'}
 local function redraw() if C then C:invalidate() end end
 local function inside(x,y,a,b,w,h) return x>=a and y>=b and x<a+w and y<b+h end
+local function in_hub(x,y) return inside(x or -1,y or -1,HUB_X,HUB_Y,HUB_W,HUB_H) end
 local function size()
   local ok,w,h=pcall(function() return tonumber(C.screen.width),tonumber(C.screen.height) end)
   if ok and w and h and w>0 and h>0 then return w,h end

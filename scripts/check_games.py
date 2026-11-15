@@ -39,6 +39,7 @@ def main():
     args = parser.parse_args()
     verify_project_layout()
     run([sys.executable, ROOT / 'tests/test_game_discovery.py'])
+    run([sys.executable, ROOT / 'tests/test_reasoning_audit.py'])
     run([sys.executable, ROOT / 'scripts/sync_game_ui.py', '--check'])
     run([sys.executable, ROOT / 'scripts/sync_puzzle_store.py', '--check'])
     run([sys.executable, ROOT / 'scripts/sync_game_theme.py', '--check'])

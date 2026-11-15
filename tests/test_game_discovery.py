@@ -6,7 +6,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from check_games import verify_project_layout
-from sync_game_ui import GAMES, COLLECTIONS, OTHER_APPS, SHELVED
+from sync_game_ui import GAMES, COLLECTIONS, OTHER_APPS, SHELVED, ARCHIVED
 
 
 class Discovery(unittest.TestCase):
@@ -16,6 +16,8 @@ class Discovery(unittest.TestCase):
         self.root = Path(self.temp.name)
         for name in GAMES + COLLECTIONS + SHELVED:
             self.app(Path('games') / name)
+        for name in ARCHIVED:
+            self.app(Path('games/archive') / name)
         for name in OTHER_APPS:
             self.app(Path(name))
 
@@ -45,6 +47,16 @@ class Discovery(unittest.TestCase):
     def test_shelved_game_at_root_is_rejected(self):
         self.app(Path(SHELVED[0]))
         with self.assertRaisesRegex(AssertionError, 'Root app registry mismatch'):
+            verify_project_layout(self.root)
+
+    def test_unregistered_archive_is_rejected(self):
+        self.app(Path('games/archive/unreviewed'))
+        with self.assertRaisesRegex(AssertionError, 'Archive registry mismatch'):
+            verify_project_layout(self.root)
+
+    def test_archived_game_reappearing_active_is_rejected(self):
+        self.app(Path('games') / ARCHIVED[0])
+        with self.assertRaisesRegex(AssertionError, 'Game registry mismatch'):
             verify_project_layout(self.root)
 
     def test_missing_registered_game_is_rejected(self):

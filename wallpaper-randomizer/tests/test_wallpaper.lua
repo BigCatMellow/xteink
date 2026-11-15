@@ -20,7 +20,7 @@ local function add(disk,name)
   disk[base..'.jpg']='\255\216'..name..'\255\217'
 end
 local function runtime(disk)
-  local stats={decodes=0,alive=0,peak=0,draws=0,overlays=0,enables=0,disables=0,writes={},intervals={}}
+  local stats={decodes=0,alive=0,peak=0,draws=0,overlays=0,stroke_commands=0,enables=0,disables=0,writes={},intervals={}}
   local c={disk=disk,active=false,confirm='approve',time=2147483647}
   local function list()
     local out={'../bad.xth','sub/bad.xth','has space.xth','legacy.jpg',false,{}}
@@ -65,11 +65,17 @@ local function runtime(disk)
   c.layers={create=function() error('sleep must never allocate a PNG compositor layer') end}
   c.after=function() error('sleep must never enqueue strip callbacks') end
   c.fonts=Canvas.fonts();c.invalidate=function() end
-  local g={clear=function() end,text=function() end,line=function() end,
-    rect=function(_,x,y,w,h,opts)
-      if x==14 and y==560 and w==452 and opts and opts.fill then
-        assert(stats.draws>0,'quote panel must follow native wallpaper image')
-        stats.overlays=stats.overlays+1
+  local g={clear=function() end,text=function() end,line=function() end,rect=function() end,
+    polyline=function(_,pts)
+      assert(stats.draws>0,'wallpaper must be drawn before the quote')
+      assert(#pts>=4 and #pts%2==0)
+      stats.stroke_commands=stats.stroke_commands+1
+      stats.overlays=stats.overlays+1
+      assert(stats.stroke_commands<500000)
+      for i=1,#pts,2 do
+        local x,y=pts[i],pts[i+1]
+        assert(x>=0 and x<480 and y>=0 and y<800,'rotated quote outside native screen')
+        assert(799-y>=45 and 799-y<=485,'quote must remain in landscape left-side whitespace')
       end
     end,
     image=function(_,image,x,y)
@@ -216,14 +222,30 @@ assert(Q.enabled(c))
 c.fail_quote_write=true;assert(not Q.set_enabled(c,false))
 assert(Q.enabled(c),'failed setting write must not change enabled state')
 c.fail_quote_write=false
--- The maximum accepted quote and author must fit the reserved panel at both
--- tested host font width profiles, independently of a JPEG image decoder.
-for _,scale in ipairs({1,1.25}) do
- local cc={fonts=Canvas.fonts(scale)}
- local canvas=Canvas.canvas();canvas:reset()
- Q.draw(canvas,cc,{text='The best journeys are often made of small and surprising moments, each of them worth remembering.',author='A Reader'})
- canvas:verify('quote overlay '..scale)
+-- The user's original art is upright when the 480x800 JPEG rotates CW
+-- to landscape. Render black strokes directly in the empty LEFT side; never
+-- cover the original drawings with an opaque band or native sideways text.
+local function check_quote_geometry(q,reason)
+  local strokes,top,bottom,minimum,maximum=0,9999,-1,9999,-1
+  local geom={polyline=function(_,pts)
+    strokes=strokes+1
+    for i=1,#pts,2 do
+      local x,y=pts[i],pts[i+1]
+      assert(x>=0 and x<480 and y>=0 and y<800,reason..': outside 480x800')
+      local u=799-y -- landscape x
+      assert(u>=40 and u<500,reason..': overlaps illustration side')
+      minimum=math.min(minimum,u);maximum=math.max(maximum,u)
+      top=math.min(top,x);bottom=math.max(bottom,x)
+    end
+  end}
+  Q.draw(geom,c,q)
+  assert(strokes>10 and strokes<950,reason..': drawing exceeds practical command budget')
+  assert(top>=0 and bottom<480,reason..': landscape vertical bounds')
+  assert(minimum>=40 and maximum<500,reason..': landscape horizontal bounds')
 end
+check_quote_geometry({text='The world is full of wonder if we are willing to see it.',author='A Reader'},'ordinary landscape quote')
+check_quote_geometry({text=string.rep('Every little discovery matters. ',3)..'Keep looking.',author='A very thoughtful author and traveler'},'long quote and author')
+check_quote_geometry({text=string.rep('W',118),author=string.rep('M',42)},'worst-length words')
 
 -- Main app: preserve enabled state; preview never changes the sleep deck.
 c.lock.reason='first';c.active=true

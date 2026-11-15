@@ -1,5 +1,11 @@
 # Applying updates on the mounted SD card
 
+> **Curation note, 2026-11-14:** Four games are now archived, leaving 13
+> active. The old 17-game `releases/game-family-latest.json` is stale and
+> cannot be used for a fresh `--apply-only` run. Build and verify the new
+> family first. Archiving source never erases installed `XTApps/` saves.
+
+
 The user's intended workflow is: **when we put an update on the SD card, apply
 it to the installed game too**. They should not have to tap Install separately
 for every updated game. Games Hub v0.1.0 reduced package count, but its original

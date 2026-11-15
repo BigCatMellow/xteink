@@ -1,6 +1,6 @@
 # Game design contract and change record
 
-This is the design owner for the **17 active games** in
+This is the design owner for the **13 active games** in
 `scripts/sync_game_ui.py`. Use it with [game quality checks](GAME_QUALITY.md).
 The user's approved direction is crisp monochrome graphics, rounder controls,
 stronger lines, welcoming typography and a generous, clearly centered play area.
@@ -310,3 +310,9 @@ startup, repeated edits, touch, sleep/resume, glyph polarity and ghosting checks
 If a physical observation changes a token or an exception, record the firmware,
 affected state, before/after decision and reason here, then add the corresponding
 regression or review fixture at the appropriate shared layer.
+
+## Reasoning-depth curation — 2026-11-14
+
+Line Lift, Oddity Hunt, Word Hunt and Ten Pairs were archived for their current
+weak multi-step reasoning depth. Earlier design notes for them remain historical.
+See `games/archive/README.md` for project-specific reasons and reactivation bars.

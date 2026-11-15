@@ -97,3 +97,11 @@ physical-device compatibility. Pocket Golf remains excluded while shelved.
 
 The workflow adds a check to pull requests. Requiring that check before merge
 also depends on the repository's GitHub branch-protection settings.
+
+## Reasoning-first archive gate (2026-11-14)
+
+Four projects moved intact to `games/archive/`, with rationale and reinstatement
+criteria. The active discovery gate checks the exact archive set. Reactivation
+requires multi-step reasoning or consequential planning, independently checked
+solutions, human difficulty assessment, and all usual save/layout/package/icon,
+Hub and physical checks. Historic packages and source are preserved.

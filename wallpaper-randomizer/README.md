@@ -3,7 +3,7 @@
 Continuing previous work: see the [saved handoff](docs/HANDOFF.md) for the exact
 installer, device evidence, backups and next physical check.
 
-**v0.6.1: a random high-quality wallpaper with an optional quote overlay each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
+**v0.6.2: a random high-quality wallpaper with an optional quote overlay each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
 
 The quality-100 grayscale JPEG renderer worked on X4 Pro Licorice **26110201**: v0.4.6 measured **583 ms** to read/validate/decode an image, including 237 ms native decoding, and the user reported the preview worked well. Physical screen refresh is additional. The new sleep integration and settings have host coverage; the first real sleep/wake check for v0.5.0 is still needed.
 
@@ -18,6 +18,18 @@ It does not paint a black or white panel, edit the wallpaper, allocate
 a second image or change the original XTH/JPEG files. To see an image without
 text, tap **QUOTES: ON** in the app to switch it off. Both modes persist across
 restarts.
+
+**Built-in testing quotes:** v0.6.2 adds eight examples to the existing
+sixteen short original phrases, for 24 quotes in total. Five of the new
+examples include author attribution (Jane Austen, Herman Melville, Alfred
+Tennyson, Arthur Conan Doyle, and Louisa May Alcott), and three are original
+unattributed phrases. They exercise short and multi-line landscape lettering,
+quotation marks and the smaller author line. To test immediately, ensure
+**QUOTES: ON**, then use **Preview Next** repeatedly. No file setup is needed.
+
+**Note:** If you already created `quotes.txt`, it **replaces** the built-in
+list. Temporarily rename that file to test the bundled examples; your custom
+content will not be edited by an app update.
 
 You can customize the quotes while the card is mounted. Create the UTF-8 file
 `SD:/XTApps/wallrandom/files/quotes.txt`. Put one quote per line. Add an

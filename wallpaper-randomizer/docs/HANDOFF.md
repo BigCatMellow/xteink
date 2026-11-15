@@ -1,5 +1,22 @@
 # Wallpaper handoff — 2026-11-07
 
+## Additional built-in test quotes — 2026-11-15
+
+Version 0.6.2 adds eight built-in sample quotes to the sixteen existing
+original statements. Five samples are attributed, verified public-domain
+literary excerpts (Austen, Melville, Tennyson, Doyle, Alcott), and three are
+new uncredited original phrases. This tests optional author names, short
+lines, medium multi-line wraps, and the 0.6.1 landscape polyline renderer.
+The samples display automatically when no custom `quotes.txt` is installed;
+the user's optional file continues to override the bundled collection.
+
+Tests verify corpus integrity, a full deterministic coverage cycle, all 24
+landscape text layouts, existing 100-sleep history behavior, and package
+compatibility. No SD file, original JPEG/XTH, or user save was changed.
+Physical landscape legibility still requires user acceptance.
+
+
+
 ## Landscape orientation correction — 2026-11-15
 
 The user provided four actual 480×800 grayscale wallpaper samples: each

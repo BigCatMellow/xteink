@@ -104,7 +104,7 @@ function on_draw(c,g)
   g:line(24,586,456,586)
   UI.paragraph(g,C,24,604,432,52,'Upright quotes use open white space.','small')
   UI.paragraph(g,C,24,676,432,76,status or 'Ready.','small')
-  UI.text(g,C,24,768,'0.6.1','small')
+  UI.text(g,C,24,768,'0.6.2','small')
 end
 function on_input(c,ev)
   C=c or C

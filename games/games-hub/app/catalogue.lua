@@ -9,5 +9,6 @@ return {
 {id="sudoku",name="Sudoku",version="0.3.2",description="Nine numbers, endless puzzles",source="825435e9f0f330dd34728dad8013d50e917c62a8935dd78a8bb8642e3519aee9"},
 {id="crownfields",name="Crown Fields",version="0.2.0",description="One crown in every region",source="923197ee2b593e238ca9bea1362b7198fd5e4ecd1e7c290b703d0ed082bacfc3"},
 {id="quietmines",name="Quiet Mines",version="0.2.0",description="Deduce every safe square",source="2d851d4781c67a0964872119f063b7577e85dd47a65090ac63d665e850fcaaf7"},
-{id="sumcross",name="Sum Cross",version="0.2.1",description="Solve the crossing sums",source="ffa06f1a218e68b90d0a85479b33feeb976683df8b8ca29b44341b1e2e8e571d"}
+{id="sumcross",name="Sum Cross",version="0.2.1",description="Solve the crossing sums",source="ffa06f1a218e68b90d0a85479b33feeb976683df8b8ca29b44341b1e2e8e571d"},
+{id="tenpairs",name="Ten Pairs",version="0.2.0",description="Pair numbers, clear the sheet",source="838c62e46e652a5e36337a076cc3f2e1c1f82bd4e71a1016eb71e745b4afa1f0"}
 }

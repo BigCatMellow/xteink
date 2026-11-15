@@ -1,6 +1,6 @@
 # Applying updates on the mounted SD card
 
-> **Curation note, 2026-11-14:** Seven games are now archived, leaving 10
+> **Curation note, 2026-11-14:** Six games are now archived, leaving 11
 > active. The old 17-game `releases/game-family-latest.json` is stale and
 > cannot be used for a fresh `--apply-only` run. Build and verify the new
 > family first. Archiving source never erases installed `XTApps/` saves.

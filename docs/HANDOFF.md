@@ -1,5 +1,18 @@
 # Project handoff — 2026-11-10
 
+## Restored Ten Pairs — 2026-11-14 (source-only)
+
+At the user's explicit request, restored Ten Pairs to `games/ten-pairs/` as
+the eleventh active game; all original game source, icon, tests and workflow
+were preserved exactly. Games Hub 0.4.4 source includes Ten Pairs using its
+original stable `tenpairs` app ID and legacy save interpretation. No SD card,
+app installation or saves were modified. The user preference does not imply
+a human-validated difficulty rating. Six games remain archived, two HTML
+prototypes parked, Paper Golf separately shelved. Alternate UI book reading
+remains unresolved under GitHub issue #6.
+
+
+
 ## Physical XTEINK feedback — 2026-11-14
 
 **Reported by user after installing Games Hub on real X4 Pro:** the Hub

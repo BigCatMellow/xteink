@@ -122,7 +122,7 @@ class Updates(unittest.TestCase):
     def test_archived_app_is_rejected_from_current_catalogue(self):
         # Retired app ID remains on the physical card if previously installed,
         # but must never re-enter an active update plan.
-        for archived_id in ('linelift', 'oddityhunt', 'wordhunt', 'tenpairs',
+        for archived_id in ('linelift', 'oddityhunt', 'wordhunt',
                             'linkgrid', 'inkrunes', 'wordbridge'):
             self.entries[1]['app_id'] = archived_id
             self.write_catalogue()

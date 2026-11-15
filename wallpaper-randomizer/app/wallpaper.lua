@@ -54,7 +54,15 @@ function M.history(c)
   if sequence~=sequence or sequence==math.huge then sequence=0 end
   sequence=math.floor(sequence)%100000000
   local last=old:match('last=([^\r\n]+)')
-  return {sequence=sequence,last=usable(last) and last or nil}
+  local quote
+  if old:match('quote_mode=([^\r\n]+)')=='on' then
+    local text=old:match('quote_text=([^\r\n]+)')
+    local author=old:match('quote_author=([^\r\n]*)') or ''
+    if text and #text<=118 and #author<=42 and not text:find('[%c]') and not author:find('[%c]') then
+      quote={text=text,author=author}
+    end
+  end
+  return {sequence=sequence,last=usable(last) and last or nil,quote=quote}
 end
 function M.choose(n,last,seq,tick)
   if n==0 then return nil end
@@ -101,9 +109,16 @@ function M.find(c,names,last,sequence)
   end
   return nil,nil,failure or 'No prepared wallpapers available'
 end
-function M.commit(c,name,history)
+function M.commit(c,name,history,quote)
   if not c.storage then return nil,'App storage unavailable' end
   local text='sequence='..tostring((history.sequence+1)%100000000)..'\nlast='..name..'\n'
+  -- Store the selected quote in the SAME rotation record: an hourly timer
+  -- never gets a mismatched image/quote or a second history transaction.
+  if quote and quote.text then
+    text=text..'quote_mode=on\nquote_text='..quote.text..'\nquote_author='..(quote.author or '')..'\n'
+  else
+    text=text..'quote_mode=off\n'
+  end
   local ok,value,err=pcall(function() return c.storage:write('rotation.txt',text) end)
   if not ok or value==false or (value==nil and err) then return nil,tostring(err or value) end
   if M.read(c,'rotation.txt')~=text then return nil,'Cannot save wallpaper history' end

@@ -1,7 +1,8 @@
 local Wallpaper=require('wallpaper')
 local Probe=require('probe')
 local UI=require('ui')
-local C,names,missing,photo,preview_name,help,active,status,pending
+local Quotes=require('quotes')
+local C,names,missing,photo,preview_name,preview_quote,help,active,status,pending
 local function release()
   if photo then photo:release();photo=nil end
 end
@@ -18,6 +19,8 @@ local function preview()
   local picture,name=Wallpaper.find(C,names,preview_name,0)
   if picture then
     photo=picture;preview_name=name
+    if Quotes.enabled(C) then preview_quote=Quotes.choose(C,{sequence=Wallpaper.history(C).sequence,quote=preview_quote})
+    else preview_quote=nil end
     Probe.timing(C,picture.metrics)
     status=string.format('Preview loaded in %.2f seconds.',picture.metrics.total_ms/1000)
   else
@@ -48,7 +51,7 @@ local function toggle()
   status=active and 'Enabled. Close this app and put the device to sleep.' or 'Approve the reader\'s Set as lock screen prompt.'
 end
 function on_load(c)
-  release();C=c or ctx;help=false;preview_name=nil;pending=false
+  release();C=c or ctx;help=false;preview_name=nil;preview_quote=nil;pending=false
   active=Wallpaper.is_active(C);scan()
 end
 function on_resume(c)
@@ -66,7 +69,13 @@ function on_draw(c,g)
   g:clear(0)
   if photo then
     local ok,value=pcall(function() return photo:draw(g) end)
-    if ok and value then return end
+    if ok and value then
+      if preview_quote then
+        local quoted=pcall(Quotes.draw,g,C,preview_quote)
+        if not quoted then status='Quote preview unavailable; wallpaper is still usable.' end
+      end
+      return
+    end
     release();status='Could not display this image. Rescan and try again.'
     g:clear(0)
   end
@@ -75,7 +84,7 @@ function on_draw(c,g)
     UI.paragraph(g,C,24,108,432,96,'1. In Settings > Display, set Off wallpaper to Default.','small')
     UI.paragraph(g,C,24,218,432,96,'2. Tap Enable, then approve the reader\'s Set as lock screen prompt.','small')
     UI.paragraph(g,C,24,332,432,120,'3. Close this app. Press power briefly to sleep. Wake and sleep again for another image.','small')
-    UI.paragraph(g,C,24,476,432,144,'Firmware can still wake hourly. This does not select a different wallpaper. A full shutdown may behave differently.','small')
+    UI.paragraph(g,C,24,476,432,144,'4. Quotes appear over your wallpapers. Put one quote per line in XTApps/wallrandom/files/quotes.txt. Add | Author if wanted. Quotes stay fixed through timer wakes.','small')
     UI.button(g,C,24,680,432,66,'BACK')
     return
   end
@@ -91,10 +100,11 @@ function on_draw(c,g)
   UI.button(g,C,24,344,432,66,'PREVIEW NEXT')
   UI.button(g,C,24,426,208,62,'RESCAN')
   UI.button(g,C,248,426,208,62,'HOW TO USE')
-  g:line(24,514,456,514)
-  UI.paragraph(g,C,24,534,432,104,'Changes only when you enter sleep. The firmware may wake hourly; the same image stays selected.','small')
-  UI.paragraph(g,C,24,654,432,100,status or 'Ready.','small')
-  UI.text(g,C,24,768,'0.5.0','small')
+  UI.button(g,C,24,508,432,66,Quotes.enabled(C) and 'QUOTES: ON' or 'QUOTES: OFF')
+  g:line(24,586,456,586)
+  UI.paragraph(g,C,24,604,432,52,'Quotes use a white panel over your images. Edit quotes.txt on the card.','small')
+  UI.paragraph(g,C,24,676,432,76,status or 'Ready.','small')
+  UI.text(g,C,24,768,'0.6.0','small')
 end
 function on_input(c,ev)
   C=c or C
@@ -113,11 +123,18 @@ function on_input(c,ev)
   elseif y>=344 and y<410 then preview()
   elseif y>=426 and y<488 then
     if x<232 then scan() elseif x>=248 then help=true else return false end
+  elseif y>=508 and y<574 then
+    local enabled=not Quotes.enabled(C)
+    local ok,why=Quotes.set_enabled(C,enabled)
+    if ok then status=enabled and 'Quotes will appear on the next sleep.' or 'Quotes off. Wallpapers remain unchanged.'
+    else status=why end
   else return false end
   redraw();return true
 end
 function on_leave() release() end
 if rawget(_G,'__TEST') then
   __TEST.main={names=function() return names end,status=function() return status end,
-    is_preview=function() return photo~=nil end}
+    is_preview=function() return photo~=nil end,
+    quote_enabled=function() return Quotes.enabled(C) end,
+    preview_quote=function() return preview_quote end}
 end

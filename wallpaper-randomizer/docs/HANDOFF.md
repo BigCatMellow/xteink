@@ -1,5 +1,24 @@
 # Wallpaper handoff — 2026-11-07
 
+## Subsequent quote-overlay candidate — 2026-11-14
+
+At the user's request, v0.6.0 introduces **optional quotes over existing
+wallpapers**. No original XTH, JPEG, rotation saves or firmware install was
+altered. The new `quotes.lua` draws a white 1-bit band over the existing
+one-image JPEG render; no extra bitmap decode, compositor layer or callback.
+The original quote set works offline; optional `XTApps/wallrandom/files/quotes.txt`
+uses one quote per line, with optional `| Author` attribution. The on/off
+setting persists in `quotes-mode.txt` (default ON). New-sleep image and
+quote snapshot share the same `rotation.txt` history transaction so timer
+redraws reuse both. Older rotation files remain readable.
+
+The existing v0.5.0 physical sleep integration had **no confirmed device
+acceptance**. For v0.6.0, check preview and actual sleep text order, white
+panel contrast, custom quotes, long lines, timer reuse, storage preservation
+and fallback. CI/host checks do not substitute for this hardware test.
+
+
+
 ## Where we stopped
 
 The user asked to save everything to resume later after v0.5.0 was staged. **Code and CI are complete; the next task is the reader's first v0.5.0 sleep/wake test.** No successful sleep-screen result has been reported for this version yet. Do not restart the previous rendering experiments unless that test identifies a failure.

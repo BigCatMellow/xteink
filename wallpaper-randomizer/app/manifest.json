@@ -1,9 +1,9 @@
 {
   "app_id": "wallrandom",
   "display_name": "Wallpaper Randomizer",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": "BigCatMellow",
-  "description": "A random high-quality wallpaper each time you enter sleep, with preview and enable controls.",
+  "description": "Random sleep wallpaper with optional original or custom quotes",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": [],

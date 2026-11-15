@@ -3,9 +3,41 @@
 Continuing previous work: see the [saved handoff](docs/HANDOFF.md) for the exact
 installer, device evidence, backups and next physical check.
 
-**v0.5.0: a random high-quality wallpaper each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
+**v0.6.0: a random high-quality wallpaper with an optional quote overlay each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
 
 The quality-100 grayscale JPEG renderer worked on X4 Pro Licorice **26110201**: v0.4.6 measured **583 ms** to read/validate/decode an image, including 237 ms native decoding, and the user reported the preview worked well. Physical screen refresh is additional. The new sleep integration and settings have host coverage; the first real sleep/wake check for v0.5.0 is still needed.
+
+## Quotes over existing wallpaper
+
+**Quotes: ON** is the default for the new version. The same full-resolution
+JPEG is still drawn first; a white 1-bit panel near the bottom displays a
+short quote and optional attribution. It does not edit the wallpaper, allocate
+a second image or change the original XTH/JPEG files. To see an image without
+text, tap **QUOTES: ON** in the app to switch it off. Both modes persist across
+restarts.
+
+You can customize the quotes while the card is mounted. Create the UTF-8 file
+`SD:/XTApps/wallrandom/files/quotes.txt`. Put one quote per line. Add an
+author after a vertical bar:
+
+```text
+There are always new things to notice. | Your name
+Some roads are worth taking slowly.
+# Lines beginning with # are comments
+```
+
+The app accepts up to 128 nonempty entries and rejects oversized/invalid
+ones. If no usable entries are found, it uses its built-in original quote
+collection. Quotes are selected independently of the photos. A successful
+new sleep stores the **image and actual quote text in the same rotation
+record**; any hourly timer redraw shows the same pair. Previously saved
+image-only rotation records remain valid. A failed quote draw falls back
+to the unmodified wallpaper, not to a blank sleep screen.
+
+The quote overlay also appears during **Preview Next** while enabled, without
+changing actual sleep history. Attribution is optional. The text panel
+intentionally covers the bottom portion of the picture for contrast on e-ink.
+The new overlay still needs physical display testing on the X4 Pro.
 
 ## Install and enable
 
@@ -13,10 +45,11 @@ The quality-100 grayscale JPEG renderer worked on X4 Pro Licorice **26110201**: 
 2. In **Settings → Display**, set **Off wallpaper → Default**.
 3. Open **Ink App → Wallpaper Randomizer**. Check the prepared-image count; the current card has 15.
 4. **Preview Next** displays a prepared wallpaper full-screen. Tap it to return. Repeated previews visit other images without changing sleep history.
-5. Tap **Enable** and approve the reader's **Set as lock screen** prompt. The status should say **Sleep rotation: ON**.
+5. Adjust **QUOTES: ON/OFF** and use **Preview Next** to inspect the overlay. Then tap **Enable** and approve the reader's **Set as lock screen** prompt. The status should say **Sleep rotation: ON**.
 6. Close the app. Press power briefly to enter sleep. Wake and sleep again for another image.
 
-Opening or reopening the app preserves the firmware's enabled setting. **Disable** removes this app as the default sleep screen without deleting images or history. **Rescan** finds newly prepared images. **How to Use** repeats setup instructions on the reader.
+Opening or reopening the app preserves the firmware's enabled setting. The **QUOTES: ON/OFF** switch changes text only and does not disable wallpaper rotation.
+**Disable** removes this app as the default sleep screen without deleting images or history. **Rescan** finds newly prepared images. **How to Use** repeats setup instructions on the reader.
 
 **Firmware limitation:** the host may still wake and redraw an app sleep screen hourly. This app requests 3600 seconds, the longest supported interval, and does not select a different image on timer wakes. It cannot promise zero hourly wakes or battery use. The Notes app's [measurements on the same firmware](https://github.com/omer-faruq-xteink/touch-licorice-apps/blob/main/apps/notes/lockscreen.lua#L134) report that zero and values above 3600 are refused. Sleep-only selection is separate from the host's timer. Full shutdown may behave differently from ordinary sleep.
 

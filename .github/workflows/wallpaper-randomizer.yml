@@ -2,13 +2,13 @@ name: Build Wallpaper Randomizer
 on:
   push:
     branches: [main]
-  pull_request:
     paths:
       - 'wallpaper-randomizer/**'
       - '.github/workflows/wallpaper-randomizer.yml'
       - 'shared/game_ui.lua'
       - 'scripts/sync_game_ui.py'
       - 'tests/game_canvas.lua'
+  pull_request:
     paths:
       - 'wallpaper-randomizer/**'
       - '.github/workflows/wallpaper-randomizer.yml'

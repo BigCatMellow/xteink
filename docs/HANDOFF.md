@@ -1,5 +1,17 @@
 # Project handoff — 2026-11-10
 
+## Wallpaper quote orientation correction — 2026-11-15
+
+Actual sample wallpapers are 480×800 files but are intended to be viewed
+clockwise-rotated into landscape, with artwork occupying the far right.
+The original v0.6.0 portrait bottom-panel quote overlay was incorrect.
+v0.6.1 uses native vector strokes projected into the landscape-left
+negative space, avoiding additional image decoding and opaque panels.
+CI tests native geometry, quote/sleep history and packaging; physical
+reader results remain unverified. Original JPEGs/XTHs and saves unchanged.
+
+
+
 ## Restored Ten Pairs — 2026-11-14 (source-only)
 
 At the user's explicit request, restored Ten Pairs to `games/ten-pairs/` as

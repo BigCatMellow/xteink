@@ -3,15 +3,18 @@
 Continuing previous work: see the [saved handoff](docs/HANDOFF.md) for the exact
 installer, device evidence, backups and next physical check.
 
-**v0.6.0: a random high-quality wallpaper with an optional quote overlay each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
+**v0.6.1: a random high-quality wallpaper with an optional quote overlay each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
 
 The quality-100 grayscale JPEG renderer worked on X4 Pro Licorice **26110201**: v0.4.6 measured **583 ms** to read/validate/decode an image, including 237 ms native decoding, and the user reported the preview worked well. Physical screen refresh is additional. The new sleep integration and settings have host coverage; the first real sleep/wake check for v0.5.0 is still needed.
 
 ## Quotes over existing wallpaper
 
 **Quotes: ON** is the default for the new version. The same full-resolution
-JPEG is still drawn first; a white 1-bit panel near the bottom displays a
-short quote and optional attribution. It does not edit the wallpaper, allocate
+JPEG is still drawn first; upright black monoline quote lettering is drawn
+in the large open space on the **left when the reader is held sideways**, with
+an optional attribution. The 480×800 image data is still portrait-oriented;
+its artwork becomes upright when viewed 90° clockwise in landscape.
+It does not paint a black or white panel, edit the wallpaper, allocate
 a second image or change the original XTH/JPEG files. To see an image without
 text, tap **QUOTES: ON** in the app to switch it off. Both modes persist across
 restarts.
@@ -35,8 +38,11 @@ image-only rotation records remain valid. A failed quote draw falls back
 to the unmodified wallpaper, not to a blank sleep screen.
 
 The quote overlay also appears during **Preview Next** while enabled, without
-changing actual sleep history. Attribution is optional. The text panel
-intentionally covers the bottom portion of the picture for contrast on e-ink.
+changing actual sleep history. Attribution is optional. The quotes are
+uppercased monoline strokes, drawn with the native polyline primitive in the
+negative space; they do not cover the picture. This is the corrected layout for
+the supplied real-world wallpapers, which place their subjects at the far right
+in landscape. Original JPEGs and XTHs are left untouched.
 The new overlay still needs physical display testing on the X4 Pro.
 
 ## Install and enable

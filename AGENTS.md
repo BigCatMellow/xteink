@@ -5,6 +5,8 @@ Archived reasoning-light games live in `games/archive/` with original sources,
 IDs, tests, icons, and workflow definitions preserved. Do not accidentally
 restore them to active registries, the Hub, or new release catalogues. Preserve
 installed saves and the original 17-slot numeric Hub resume mapping.
+Every active game's reasoning-depth evidence and known difficulty gaps must be documented
+in `games/REASONING_AUDIT.md`; solver uniqueness alone does not establish challenge.
 Keep registry/release keys stable and use `scripts/sync_game_ui.py`'s
 `project_path()` to resolve source locations. The shell project owns its docs,
 tools and focused tests under `shell/`; use `shell/README.md` as its entry point.

@@ -105,3 +105,13 @@ criteria. The active discovery gate checks the exact archive set. Reactivation
 requires multi-step reasoning or consequential planning, independently checked
 solutions, human difficulty assessment, and all usual save/layout/package/icon,
 Hub and physical checks. Historic packages and source are preserved.
+
+## Puzzle challenge safeguard — 2026-11-14
+
+Before a new game can enter the active family, document its reasoning mechanic,
+board-level evidence, and limits in `games/REASONING_AUDIT.md`.
+The audit-coverage regression checks that every active game has an assessment.
+This is **not** proof of enjoyment or human-rated difficulty. Uniqueness,
+shortest paths and successful packaging alone do not meet the challenge bar.
+Re-admitting an archived title requires a redesigned level set and explicit
+retrospective about the previously shallow mechanics.

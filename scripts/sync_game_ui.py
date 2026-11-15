@@ -4,13 +4,13 @@ import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-GAMES = ('summit-putt', 'link-grid', 'ink-runes',
-         'lantern-logic', 'ray-vault', 'island-links', 'nonogram', 'word-bridge', 'rectangle-rooms', 'sudoku',
+GAMES = ('summit-putt', 'lantern-logic', 'ray-vault', 'island-links', 'nonogram', 'rectangle-rooms', 'sudoku',
          'crown-fields', 'quiet-mines', 'sum-cross')
 OTHER_APPS = ('wallpaper-randomizer',)
 COLLECTIONS = ('games-hub',)  # Generated from GAMES; audited by check_games.py.
 SHELVED = ('paper-golf',)
-ARCHIVED = ('line-lift', 'oddity-hunt', 'word-hunt', 'ten-pairs')  # Retired, not released.
+ARCHIVED = ('line-lift', 'oddity-hunt', 'word-hunt', 'ten-pairs',
+            'link-grid', 'ink-runes', 'word-bridge')  # Retired, not released.
 
 
 def project_path(name, root=ROOT):

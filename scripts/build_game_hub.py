@@ -12,7 +12,7 @@ HUB = project_path('games-hub')
 SHARED = {'ui_core': 'game_ui', 'theme': 'game_theme', 'game_style': 'game_style',
           'typefaces': 'typefaces', 'font_data': 'font_data', 'font_license': 'font_license',
           'puzzle_store': 'puzzle_store'}
-DESCRIPTIONS = {'summit-putt': 'A little mountain golf', 'link-grid': 'Connect every tile', 'ink-runes': 'Discover the hidden runes', 'lantern-logic': 'Light up a logic puzzle', 'ray-vault': 'Guide the beam home', 'island-links': 'Bridge a quiet archipelago', 'nonogram': 'Reveal a picture in ink', 'word-bridge': 'Change a word, one letter', 'rectangle-rooms': 'Divide the board into rooms', 'sudoku': 'Nine numbers, endless puzzles', 'crown-fields': 'One crown in every region', 'quiet-mines': 'Deduce every safe square', 'sum-cross': 'Solve the crossing sums'}
+DESCRIPTIONS = {'summit-putt': 'A little mountain golf', 'lantern-logic': 'Light up a logic puzzle', 'ray-vault': 'Guide the beam home', 'island-links': 'Bridge a quiet archipelago', 'nonogram': 'Reveal a picture in ink', 'rectangle-rooms': 'Divide the board into rooms', 'sudoku': 'Nine numbers, endless puzzles', 'crown-fields': 'One crown in every region', 'quiet-mines': 'Deduce every safe square', 'sum-cross': 'Solve the crossing sums'}
 
 
 def outputs():

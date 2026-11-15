@@ -9,7 +9,11 @@ These are complete game projects **moved, not deleted**. Their original app IDs,
 | [word-hunt](word-hunt/ARCHIVED.md) | Word searches and locating one FOX sequence mainly test line scanning, not inference. | Use interdependent word constraints with a verified deduction path. |
 | [ten-pairs](ten-pairs/ARCHIVED.md) | Play predominantly repeats matching equal numbers or numbers summing to ten; current puzzles show limited strategic depth. | Design meaningful tradeoffs and constraint-rich sheets; prove difficulty through playtesting. |
 
-**13 games remain active. Four are archived. Paper Golf remains separately shelved.**
+| [link-grid](link-grid/ARCHIVED.md) | All 20 levels collapse under simple local pipe-end constraint propagation, in 1–3 passes; larger boards mostly add the same forced rotations. | Require nonlocal branching or dependencies with meaningful multi-step deductions, not just more tiles. |
+| [ink-runes](ink-runes/ARCHIVED.md) | Most puzzles use just 1–6 rune moves; simple random-move simulation wins some advanced boards too often, including 66.7% for level 20. | More interacting rule discovery, fewer interchangeable moves and stronger constraints verified by player trials. |
+| [word-bridge](word-bridge/ARCHIVED.md) | Each board is a 12-word set with shortest paths of 3–7 moves; ten of twelve have only one optimal first step. The small bank encourages rapid trial and error. | Larger, nontrivial interlocked word networks needing sustained strategic deduction beyond 4–5 moves. |
+
+**10 games remain active. Seven are archived. Paper Golf remains separately shelved.**
 
 The archive is excluded from active discovery, Games Hub, font/theme syncing, active build workflows, and new family releases. Each archived project retains an SVG `icon.svg` and a disabled original `build-workflow.yml`.
 

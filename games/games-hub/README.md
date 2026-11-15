@@ -1,6 +1,6 @@
 # Games Hub
 
-The card-loaded shell for the X4 Pro and all 17 active games in one offline
+The card-loaded shell for the X4 Pro and 10 active games in one offline
 XTApp. Home shows the book you're reading (display-only: title, progress,
 streak, minutes today) and resumes your last game. Library lists your books,
 Games opens any game, and Settings switches between portrait and landscape.
@@ -9,6 +9,10 @@ Games always play in portrait. Design and reasons: [shell design](../../shell/do
 Tap the nine-dot button at the top left of a game to save and return. The shell
 reopens where you left it, including an open game. The reader's Home action
 exits it. Games keep separate progress, unfinished boards and undo.
+
+**0.4.2 is a source-only candidate** with ten games after the stricter
+reasoning audit; it is not yet a device-tested release. Former games and their
+save formats are preserved in `games/archive/`.
 
 **0.4.0 needs one install from All Files** over the existing Hub, because it
 adds the `reader` permission and API 2.18. Saves are kept. After that, card

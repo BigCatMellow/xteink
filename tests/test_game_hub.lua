@@ -80,9 +80,9 @@ local function draw(label)
  on_draw(C,g);g:verify(label)
  local selected=A.state().selected
  if selected then
-  local minimum={linelift=440,summitputt=420,linkgrid=440,inkrunes=440,lanternlogic=440,rayvault=430,
-   islandlinks=410,oddityhunt=440,wordhunt=410,nonogram=336,wordbridge=440,rectrooms=440,sudoku=468,
-   crownfields=440,tenpairs=440,quietmines=440,sumcross=395}
+  local minimum={summitputt=420,lanternlogic=440,rayvault=430,
+   islandlinks=410,nonogram=336,rectrooms=440,sudoku=468,
+   crownfields=440,quietmines=440,sumcross=395}
   local id=Catalogue[selected].id
   assert(W==480 and H==800,id..': engines must run on the portrait screen')
   assert(observed[1] and observed[1].w>=assert(minimum[id]),id..': play area regressed to a cramped layout')

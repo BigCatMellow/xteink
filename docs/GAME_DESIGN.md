@@ -1,6 +1,6 @@
 # Game design contract and change record
 
-This is the design owner for the **13 active games** in
+This is the design owner for the **10 active games** in
 `scripts/sync_game_ui.py`. Use it with [game quality checks](GAME_QUALITY.md).
 The user's approved direction is crisp monochrome graphics, rounder controls,
 stronger lines, welcoming typography and a generous, clearly centered play area.
@@ -316,3 +316,11 @@ regression or review fixture at the appropriate shared layer.
 Line Lift, Oddity Hunt, Word Hunt and Ten Pairs were archived for their current
 weak multi-step reasoning depth. Earlier design notes for them remain historical.
 See `games/archive/README.md` for project-specific reasons and reactivation bars.
+
+## Second reasoning-depth audit (2026-11-14)
+
+A deeper authored-level review moved Link Grid, Ink Runes and Word Bridge to
+`games/archive/`. The current active collection has ten games. Solver
+uniqueness proves correctness, not human difficulty. See
+`games/REASONING_AUDIT.md` for source evidence, retention rationale, and
+known challenge limitations. Original content and user saves are preserved.

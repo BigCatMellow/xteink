@@ -2,7 +2,7 @@
 
 **Purpose:** Retain only games with evidence of multi-step deduction, cross-constraint reasoning, or consequential route planning. These are source-level assessments, **not human playtest scores**. A unique solution or a passing test proves correctness, not difficulty.
 
-## Retained: ten games
+## Retained: 10 games
 
 | Game | Evidence from the actual game/tests | Known difficulty risk | Decision |
 |---|---|---|---|

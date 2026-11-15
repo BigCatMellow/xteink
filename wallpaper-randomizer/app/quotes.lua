@@ -3,32 +3,10 @@
 -- Keep bounded layout and source parsing safe on 32-bit Licorice Lua.
 local UI=require('ui')
 local Q={}
--- Tolkien's two credited lines are brief quotations from The Fellowship
--- of the Ring. All other phrases are new, unattributed fantasy-themed text.
--- Do not attribute invented phrases to Tolkien or his characters.
+-- Only confirmed, short J.R.R. Tolkien excerpts belong in the built-in
+-- quote rotation. Do not mix in Tolkien-like invented writing or quotes from
+-- film adaptations. Optional quotes.txt remains a user-controlled override.
 local DEFAULT={
- {text='The longest road is lighter beside a friend.',author=''},
- {text='A quiet heart may carry the bravest purpose.',author=''},
- {text='The forest remembers what kingdoms forget.',author=''},
- {text='Some journeys begin with a door left open.',author=''},
- {text='No sword is stronger than a promise kept.',author=''},
- {text='Brave hearts can be found in the smallest homes.',author=''},
- {text='When the mountain seems endless, take one more step.',author=''},
- {text='Hope travels farther than any banner.',author=''},
- {text='Old trees keep counsel with the wind.',author=''},
- {text='An honest companion is treasure enough.',author=''},
- {text='Keep a little song for the darkest mile.',author=''},
- {text='Some victories are won by refusing to turn away.',author=''},
- {text='Home is worth the trouble of the road.',author=''},
- {text='No shadow is so old that dawn cannot find it.',author=''},
- {text='Even the smallest door may open onto wonder.',author=''},
- {text='A good meal and a warm fire can mend the spirit.',author=''},
- {text='Leave room in your pack for something unexpected.',author=''},
- {text='The stars watch over wanderers and kings alike.',author=''},
- {text='Not every hero knows the name of courage.',author=''},
- {text='The world is wide, but kindness makes a place in it.',author=''},
- {text='A good hearth is worth every league of road.',author=''},
- {text='Even a small candle can defy a great darkness.',author=''},
  {text='Not all those who wander are lost;',author='J.R.R. Tolkien'},
  {text='The Road goes ever on and on',author='J.R.R. Tolkien'},
 }

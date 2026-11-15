@@ -188,23 +188,18 @@ assert(W.history(empty).last==nil,'invalid saved filenames must not reach the fi
 
 -- Quotes: custom corpus, safe filtering, persistent mode and legacy histories.
 local built=Q.entries(c)
-assert(#built==24,'expected twenty-four Middle-earth-themed defaults')
-local credited=0
+assert(#built==2,'only the two verified Tolkien-authored quotes may ship')
 local known={}
 for _,q in ipairs(built) do
-  assert(#q.text>0 and #q.text<=118 and #q.author<=42,'theme quote size must stay bounded')
-  assert(not known[q.text],'each built-in quote must be distinct')
+  assert(q.author=='J.R.R. Tolkien','no unattributed or invented built-in quote')
+  assert(#q.text>0 and #q.text<=118 and #q.author<=42,'Tolkien quote size must stay bounded')
+  assert(not known[q.text],'no duplicate Tolkien quotes')
   known[q.text]=true
-  if q.author~='' then
-    assert(q.author=='J.R.R. Tolkien','original writing must never be misattributed')
-    credited=credited+1
-  end
 end
-assert(credited==2,'two short genuine Tolkien excerpts; the rest are original')
-assert(known['Not all those who wander are lost;'],'missing the Riddle of Strider excerpt')
-assert(known['The Road goes ever on and on'],'missing the Old Walking Song excerpt')
-assert(known['A good hearth is worth every league of road.'],'missing original themed default')
-assert(not known['There is no charm equal to tenderness of heart.'],'old unrelated samples must be gone')
+assert(known['Not all those who wander are lost;'],'missing Riddle of Strider line')
+assert(known['The Road goes ever on and on'],'missing Old Walking Song line')
+assert(not known['The forest remembers what kingdoms forget.'],'remove invented Tolkien-like quotes')
+assert(not known['There is no charm equal to tenderness of heart.'],'remove unrelated literary quotes')
 local rotated={}
 for seq=0,#built-1 do
   local q=Q.choose(c,{sequence=seq})
@@ -220,7 +215,7 @@ assert(#custom==2 and custom[1].text=='The world is a book.' and custom[2].autho
 local chosen=Q.choose(c,{sequence=0})
 assert(chosen.text==custom[1].text or chosen.text==custom[2].text)
 disk['quotes.txt']='# nothing valid\n'..string.rep('X',160)..' | Bad\n'
-assert(#Q.entries(c)>=12,'all-invalid custom list must fall back safely')
+assert(#Q.entries(c)==2,'all-invalid custom list must fall back to the Tolkien-only set')
 disk['quotes.txt']=nil
 local oldformat=disk['rotation.txt']
 disk['rotation.txt']='sequence=12\nlast=alpha.xth\n'

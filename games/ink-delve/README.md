@@ -21,7 +21,10 @@ An original, offline, turn-based solo dungeon drawn as a one-page 9×9 grid. Ins
 - Short status message and printed legend; no timed redraws.
 - Physical page button behavior remains to be designed for the native package.
 
-## Browser verification
+## Verification
+
+Run the checked-in map regression with `python3 games/ink-delve/tests/check_maps.py` from the repository root. The browser interaction/playthrough check also ran locally with Chromium and Playwright, but is not yet part of repository CI.
+
 
 - Parsed all six authored maps and confirmed every open cell, key, exit and interactive tile is reachable from the start.
 - Tested roll 1–3, blocked movement not consuming the roll, focus spending on precise movement, and local saved-run restoration into a fresh page context.

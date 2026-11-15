@@ -2,17 +2,25 @@
 
 The card-loaded shell for the X4 Pro and 10 active games in one offline
 XTApp. Home shows the book you're reading (display-only: title, progress,
-streak, minutes today) and resumes your last game. Library lists your books,
+streak, minutes today) and resumes your last game. Library shows reading progress for your books but **cannot open or display EPUB pages**;
 Games opens any game, and Settings switches between portrait and landscape.
 Games always play in portrait. Design and reasons: [shell design](../../shell/docs/DESIGN.md).
 
-Tap the nine-dot button at the top left of a game to save and return. The shell
+Tap the clearly labeled **HUB** button in the top-left of any game to save and return.
+The firmware's Back key is also handled if it reaches the app. The Home
+touchpad is controlled by Licorice and may leave the entire app instead. The shell
 reopens where you left it, including an open game. The reader's Home action
 exits it. Games keep separate progress, unfinished boards and undo.
 
-**0.4.2 is a source-only candidate** with ten games after the stricter
+**0.4.3 is a source-only candidate** with ten games after the stricter
 reasoning audit; it is not yet a device-tested release. Former games and their
 save formats are preserved in `games/archive/`.
+
+Reader API 2.18 exposes reading metadata and progress only. The Hub cannot
+open your existing books with any verified stock firmware API; to read,
+use the **Bookshelf** outside Games Hub (device Home pad → Leave app).
+Library entries are non-interactive deliberately, and now explain this
+instead of offering a misleading “Continue” label.
 
 **0.4.0 needs one install from All Files** over the existing Hub, because it
 adds the `reader` permission and API 2.18. Saves are kept. After that, card

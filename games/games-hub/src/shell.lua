@@ -185,7 +185,7 @@ local function reading(g,c,S,t)
   if author~='' then y=lines(g,c,x,y,w,author,'small',1) end
   local bottom=t.y+t.h-20
   local hint_y=bottom-UI.height(c,'small')
-  UI.text(g,c,x,hint_y,'Continue in the reader','small',nil,w)
+  UI.text(g,c,x,hint_y,'Read from Bookshelf','small',nil,w)
   local bar_y=hint_y-22
   frame(g,x,bar_y,w,10)
   local pct=math.max(0,math.min(100,math.floor((tonumber(book.percent) or 0)+0.5)))

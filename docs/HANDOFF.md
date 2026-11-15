@@ -1,5 +1,24 @@
 # Project handoff — 2026-11-10
 
+## Physical XTEINK feedback — 2026-11-14
+
+**Reported by user after installing Games Hub on real X4 Pro:** the Hub
+opened, but books did not open and in-game return to Hub did not work.
+Source audit confirms the books were always deliberately display-only:
+the permissioned `ctx.reader` API supplies metadata/reading progress, not
+verified EPUB text or a stock Bookshelf launch target. We must not claim
+that the Hub reads books or can launch them.
+
+Games Hub 0.4.3 candidate enlarges the 44px unlabeled nine-dot control into
+a visible 60×54px HUB return target, adds a Back-key fallback if the host
+delivers it, and accepts gesture-less tap-up events. Save failure continues to
+block leaving rather than discard progress; book screens explain the limitation.
+These are source/host-test fixes **not yet verified on the reader**. Do not
+overwrite SD files or delete installed apps/saves. The latest active family is
+ten games and the historic 17-game release catalogue remains stale.
+
+
+
 ## Second reasoning audit — 2026-11-14 (source-only)
 
 A deeper authored-board review archived Link Grid, Ink Runes and Word Bridge

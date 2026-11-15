@@ -1,5 +1,17 @@
 # Project handoff — 2026-11-10
 
+## Second reasoning audit — 2026-11-14 (source-only)
+
+A deeper authored-board review archived Link Grid, Ink Runes and Word Bridge
+in addition to the four games previously archived, leaving ten active.
+The 0.4.2 Games Hub source candidate still requires CI/package checks and
+physical device verification; no SD files or installed saves were changed.
+The previous 17-game family catalogue remains a historical recovery artifact,
+not a valid new `--apply-only` release. Preserve the original 17-slot numeric
+last-game resume migration.
+
+
+
 ## Subsequent game curation — 2026-11-14 (source only)
 
 Four low-reasoning games were moved intact under `games/archive/`; 13 remain

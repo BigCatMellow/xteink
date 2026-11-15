@@ -41,7 +41,7 @@ function Q.entries(c)
  local list={}
  if raw and #raw<=16384 then
   for record in (raw..'\n'):gmatch('(.-)\n') do
-   local line=record:gsub('\r
+   local line=record:gsub('\r$','')
    if not line:match('^%s*#') then
     local body,author=line:match('^(.-)%s*|%s*(.-)%s*$')
     body=clean(body or line)

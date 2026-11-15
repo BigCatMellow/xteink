@@ -3,7 +3,7 @@
 Continuing previous work: see the [saved handoff](docs/HANDOFF.md) for the exact
 installer, device evidence, backups and next physical check.
 
-**v0.6.4: a random high-quality wallpaper with an optional quote overlay each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
+**v0.6.5: a random high-quality wallpaper with an optional quote overlay each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
 
 The quality-100 grayscale JPEG renderer worked on X4 Pro Licorice **26110201**: v0.4.6 measured **583 ms** to read/validate/decode an image, including 237 ms native decoding, and the user reported the preview worked well. Physical screen refresh is additional. The new sleep integration and settings have host coverage; the first real sleep/wake check for v0.5.0 is still needed.
 
@@ -19,18 +19,16 @@ a second image or change the original XTH/JPEG files. To see an image without
 text, tap **QUOTES: ON** in the app to switch it off. Both modes persist across
 restarts.
 
-**Tolkien-only built-in quotes:** The default rotation now contains
-only two short, authentic Tolkien lines, both credited to **J.R.R. Tolkien**.
-The 22 Tolkien-inspired original lines from v0.6.3 are no longer included;
-neither are quotations by other authors or from film-only dialogue.
+**Tolkien-only built-in quotes:** The default rotation contains ten short,
+book-verified lines from J.R.R. Tolkien, all credited to the author. There
+are no invented Tolkien-style phrases or film-only lines. The six prose
+quotations and two short proverbs added in 0.6.5 build on the two existing
+poetry excerpts. Sources, speakers and chapters are recorded in
+[quote sources](docs/QUOTE_SOURCES.md).
 
-- "Not all those who wander are lost;" — J.R.R. Tolkien
-- "The Road goes ever on and on" — J.R.R. Tolkien
-
-These two lines rotate with your existing wallpapers when **QUOTES: ON**.
-The restricted collection is intentionally small until further Tolkien
-quotations can be verified; it is not padded with invented lines. The author
-line and landscape layout remain tested for both.
+The ten lines rotate with your existing wallpapers when **QUOTES: ON**.
+The landscape placement and smaller attribution remain unchanged. With a
+custom `quotes.txt`, your file still replaces the built-in set.
 
 **Note:** If you already created `quotes.txt`, it **replaces** the built-in
 list. Temporarily rename that file to test the bundled examples; your custom

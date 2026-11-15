@@ -1,5 +1,23 @@
 # Wallpaper handoff — 2026-11-07
 
+## Tolkien-authored default quotes only — 2026-11-15
+
+User clarified that wallpaper quotes should be **Tolkien's own words**,
+not newly composed lines in a Lord of the Rings style. Version 0.6.4
+removes all 22 invented Middle-earth-themed defaults from v0.6.3,
+retaining only two previously used short authentic Tolkien excerpts.
+Both are credited to J.R.R. Tolkien. We intentionally avoid expanding
+the set with unattributed, invented or film-only dialogue. The trade-off
+is a small rotating set until more authentic excerpts are checked.
+
+The custom `quotes.txt` override, quote toggle, landscape orientation,
+saved image+quote sleep history, and all original JPEG/XTH files remain
+unchanged. Tests explicitly reject the old invented lines, verify the
+two Tolkien defaults and their layout, and preserve invalid-file fallback.
+Host CI does not prove physical screen quality; no SD card was changed.
+
+
+
 ## Middle-earth-only built-in quotes — 2026-11-15
 
 At the user's request, the default Wallpaper Randomizer quote collection

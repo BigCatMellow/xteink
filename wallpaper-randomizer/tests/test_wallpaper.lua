@@ -189,6 +189,27 @@ assert(W.history(empty).last==nil,'invalid saved filenames must not reach the fi
 -- Quotes: custom corpus, safe filtering, persistent mode and legacy histories.
 local built=Q.entries(c)
 assert(#built>=12 and built[1].text and built[1].author=='')
+assert(#built==24,'expected sixteen original quotes plus eight new demo quotes')
+local credited=0
+local known={}
+for _,q in ipairs(built) do
+  assert(#q.text>0 and #q.text<=118 and #q.author<=42,'demo quote size must stay bounded')
+  assert(not known[q.text],'each built-in quote must be distinct')
+  known[q.text]=true
+  if q.author~='' then credited=credited+1 end
+end
+assert(credited==5,'five attributed examples must exercise the author line')
+assert(known["It is not down in any map; true places never are."],
+       'the literary quote must be available without installing quotes.txt')
+local rotated={}
+for seq=0,#built-1 do
+  local q=Q.choose(c,{sequence=seq})
+  rotated[q.text]=true
+end
+local count=0
+for _ in pairs(rotated) do count=count+1 end
+assert(count==#built,'successive demo sequences must be capable of reaching all default quotes')
+
 disk['quotes.txt']='# Ignore comments\nThe world is a book. | Someone\nSecond chosen line | Another author\n'
 local custom=Q.entries(c)
 assert(#custom==2 and custom[1].text=='The world is a book.' and custom[2].author=='Another author')
@@ -246,6 +267,9 @@ end
 check_quote_geometry({text='The world is full of wonder if we are willing to see it.',author='A Reader'},'ordinary landscape quote')
 check_quote_geometry({text=string.rep('Every little discovery matters. ',3)..'Keep looking.',author='A very thoughtful author and traveler'},'long quote and author')
 check_quote_geometry({text=string.rep('W',118),author=string.rep('M',42)},'worst-length words')
+for _,q in ipairs(built) do
+  check_quote_geometry(q,'built-in quote geometry: '..q.text)
+end
 
 -- Main app: preserve enabled state; preview never changes the sleep deck.
 c.lock.reason='first';c.active=true

@@ -1,9 +1,9 @@
 {
   "app_id": "wallrandom",
   "display_name": "Wallpaper Randomizer",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "author": "BigCatMellow",
-  "description": "Landscape-aware quotes in the whitespace beside rotating wallpapers",
+  "description": "Landscape wallpaper quotes with built-in literary samples and optional custom text",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": [],

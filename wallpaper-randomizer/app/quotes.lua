@@ -21,6 +21,18 @@ local DEFAULT={
  'You can travel far without going quickly.',
  'A quiet moment can still change your direction.'
 }
+-- Short public-domain literary excerpts and original text for testing both
+-- quote-only and quote-plus-author layout in landscape; no file is needed.
+local SAMPLE_QUOTES={
+ {text='There is no charm equal to tenderness of heart.',author='Jane Austen'},
+ {text='It is not down in any map; true places never are.',author='Herman Melville'},
+ {text='To strive, to seek, to find, and not to yield.',author='Alfred Tennyson'},
+ {text='The world is full of obvious things which nobody by any chance ever observes.',author='Arthur Conan Doyle'},
+ {text='I\'m not afraid of storms, for I\'m learning how to sail my ship.',author='Louisa May Alcott'},
+ {text='Even a quiet page can open a vast world.',author=''},
+ {text='Take the long way if it teaches you something.',author=''},
+ {text='Look closer. There is always more to notice.',author=''},
+}
 local function read(c,name)
  for _,store in ipairs({c.storage or false,c.files or false}) do
   if store then
@@ -55,6 +67,7 @@ function Q.entries(c)
  end
  if #list>0 then return list end
  for _,text in ipairs(DEFAULT) do list[#list+1]={text=text,author=''} end
+ for _,item in ipairs(SAMPLE_QUOTES) do list[#list+1]={text=item.text,author=item.author} end
  return list
 end
 function Q.enabled(c)

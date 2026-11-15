@@ -188,19 +188,23 @@ assert(W.history(empty).last==nil,'invalid saved filenames must not reach the fi
 
 -- Quotes: custom corpus, safe filtering, persistent mode and legacy histories.
 local built=Q.entries(c)
-assert(#built>=12 and built[1].text and built[1].author=='')
-assert(#built==24,'expected sixteen original quotes plus eight new demo quotes')
+assert(#built==24,'expected twenty-four Middle-earth-themed defaults')
 local credited=0
 local known={}
 for _,q in ipairs(built) do
-  assert(#q.text>0 and #q.text<=118 and #q.author<=42,'demo quote size must stay bounded')
+  assert(#q.text>0 and #q.text<=118 and #q.author<=42,'theme quote size must stay bounded')
   assert(not known[q.text],'each built-in quote must be distinct')
   known[q.text]=true
-  if q.author~='' then credited=credited+1 end
+  if q.author~='' then
+    assert(q.author=='J.R.R. Tolkien','original writing must never be misattributed')
+    credited=credited+1
+  end
 end
-assert(credited==5,'five attributed examples must exercise the author line')
-assert(known["It is not down in any map; true places never are."],
-       'the literary quote must be available without installing quotes.txt')
+assert(credited==2,'two short genuine Tolkien excerpts; the rest are original')
+assert(known['Not all those who wander are lost;'],'missing the Riddle of Strider excerpt')
+assert(known['The Road goes ever on and on'],'missing the Old Walking Song excerpt')
+assert(known['A good hearth is worth every league of road.'],'missing original themed default')
+assert(not known['There is no charm equal to tenderness of heart.'],'old unrelated samples must be gone')
 local rotated={}
 for seq=0,#built-1 do
   local q=Q.choose(c,{sequence=seq})

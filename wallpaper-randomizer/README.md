@@ -3,7 +3,7 @@
 Continuing previous work: see the [saved handoff](docs/HANDOFF.md) for the exact
 installer, device evidence, backups and next physical check.
 
-**v0.6.2: a random high-quality wallpaper with an optional quote overlay each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
+**v0.6.3: a random high-quality wallpaper with an optional quote overlay each time you enter sleep**, with Enable/Disable, Preview Next, Rescan and Help controls. A wallpaper stays selected throughout that sleep, including firmware timer wakes. With at least two usable images, consecutive sleeps avoid an immediate repeat.
 
 The quality-100 grayscale JPEG renderer worked on X4 Pro Licorice **26110201**: v0.4.6 measured **583 ms** to read/validate/decode an image, including 237 ms native decoding, and the user reported the preview worked well. Physical screen refresh is additional. The new sleep integration and settings have host coverage; the first real sleep/wake check for v0.5.0 is still needed.
 
@@ -19,13 +19,25 @@ a second image or change the original XTH/JPEG files. To see an image without
 text, tap **QUOTES: ON** in the app to switch it off. Both modes persist across
 restarts.
 
-**Built-in testing quotes:** v0.6.2 adds eight examples to the existing
-sixteen short original phrases, for 24 quotes in total. Five of the new
-examples include author attribution (Jane Austen, Herman Melville, Alfred
-Tennyson, Arthur Conan Doyle, and Louisa May Alcott), and three are original
-unattributed phrases. They exercise short and multi-line landscape lettering,
-quotation marks and the smaller author line. To test immediately, ensure
-**QUOTES: ON**, then use **Preview Next** repeatedly. No file setup is needed.
+**Middle-earth-themed quote collection:** The 24 built-in quotes now
+all fit the atmosphere of *The Lord of the Rings*: roads, the comforts of home,
+companionship, courage, old forests, and hope in dark places. Two are short
+authentic excerpts from Tolkien's *The Fellowship of the Ring*, credited to
+**J.R.R. Tolkien**. The other 22 are **original lines written for this app**,
+not quotations by Tolkien or his characters. The collection replaces the
+earlier generic life-advice and unrelated literary samples.
+
+Examples of the built-in collection:
+
+- "Not all those who wander are lost;" — J.R.R. Tolkien
+- "The Road goes ever on and on" — J.R.R. Tolkien
+- "A good hearth is worth every league of road." — Original
+- "The forest remembers what kingdoms forget." — Original
+- "An honest companion is treasure enough." — Original
+
+Use **QUOTES: ON** and **Preview Next** to see them upright in the blank left
+side of your landscape wallpapers. Short and longer examples, plus the author
+line, remain covered by the layout tests. No separate quote file is needed.
 
 **Note:** If you already created `quotes.txt`, it **replaces** the built-in
 list. Temporarily rename that file to test the bundled examples; your custom
@@ -36,8 +48,8 @@ You can customize the quotes while the card is mounted. Create the UTF-8 file
 author after a vertical bar:
 
 ```text
-There are always new things to notice. | Your name
-Some roads are worth taking slowly.
+A good hearth is worth every league of road.
+The forest remembers what kingdoms forget.
 # Lines beginning with # are comments
 ```
 

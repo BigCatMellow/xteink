@@ -1,5 +1,22 @@
 # Wallpaper handoff — 2026-11-07
 
+## Middle-earth-only built-in quotes — 2026-11-15
+
+At the user's request, the default Wallpaper Randomizer quote collection
+now contains only Lord of the Rings-themed wording: 22 newly composed
+unattributed lines about journeys, friendship, home, and hope, plus two
+short authentic excerpts attributed to J.R.R. Tolkien. Version 0.6.3
+replaces the 16 generic original notes and the 8 unrelated literary test
+quotes in v0.6.2. The original lines must never be presented as Tolkien
+quotations. No app renderer, 480x800 quote geometry, sleep lifecycle,
+rotation/save format, or user-provided `quotes.txt` was changed.
+
+Tests enforce default count, correct attribution, all-quote landscape bounds,
+custom-file precedence, quote-on/off persistence and rotation. Verify
+the physical screen separately; installer is not deployed to the SD card.
+
+
+
 ## Additional built-in test quotes — 2026-11-15
 
 Version 0.6.2 adds eight built-in sample quotes to the sixteen existing

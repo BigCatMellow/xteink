@@ -3,35 +3,34 @@
 -- Keep bounded layout and source parsing safe on 32-bit Licorice Lua.
 local UI=require('ui')
 local Q={}
+-- Tolkien's two credited lines are brief quotations from The Fellowship
+-- of the Ring. All other phrases are new, unattributed fantasy-themed text.
+-- Do not attribute invented phrases to Tolkien or his characters.
 local DEFAULT={
- 'A little attention can make an ordinary day extraordinary.',
- 'The best discoveries begin with a better question.',
- 'Not every meaningful journey needs a destination.',
- 'Wonder is a habit worth practicing.',
- 'There is more to notice than there is time to see.',
- 'An open mind has room for another possibility.',
- 'The world rewards those who keep looking closely.',
- 'Some of the finest adventures happen slowly.',
- 'What we understand today was once unfamiliar.',
- 'A small beginning can hold a large story.',
- 'Knowledge grows one honest question at a time.',
- 'Good questions are worth keeping close.',
- 'The details are where the larger world begins.',
- 'Curiosity makes room for another chapter.',
- 'You can travel far without going quickly.',
- 'A quiet moment can still change your direction.'
-}
--- Short public-domain literary excerpts and original text for testing both
--- quote-only and quote-plus-author layout in landscape; no file is needed.
-local SAMPLE_QUOTES={
- {text='There is no charm equal to tenderness of heart.',author='Jane Austen'},
- {text='It is not down in any map; true places never are.',author='Herman Melville'},
- {text='To strive, to seek, to find, and not to yield.',author='Alfred Tennyson'},
- {text='The world is full of obvious things which nobody by any chance ever observes.',author='Arthur Conan Doyle'},
- {text='I\'m not afraid of storms, for I\'m learning how to sail my ship.',author='Louisa May Alcott'},
- {text='Even a quiet page can open a vast world.',author=''},
- {text='Take the long way if it teaches you something.',author=''},
- {text='Look closer. There is always more to notice.',author=''},
+ {text='The longest road is lighter beside a friend.',author=''},
+ {text='A quiet heart may carry the bravest purpose.',author=''},
+ {text='The forest remembers what kingdoms forget.',author=''},
+ {text='Some journeys begin with a door left open.',author=''},
+ {text='No sword is stronger than a promise kept.',author=''},
+ {text='Brave hearts can be found in the smallest homes.',author=''},
+ {text='When the mountain seems endless, take one more step.',author=''},
+ {text='Hope travels farther than any banner.',author=''},
+ {text='Old trees keep counsel with the wind.',author=''},
+ {text='An honest companion is treasure enough.',author=''},
+ {text='Keep a little song for the darkest mile.',author=''},
+ {text='Some victories are won by refusing to turn away.',author=''},
+ {text='Home is worth the trouble of the road.',author=''},
+ {text='No shadow is so old that dawn cannot find it.',author=''},
+ {text='Even the smallest door may open onto wonder.',author=''},
+ {text='A good meal and a warm fire can mend the spirit.',author=''},
+ {text='Leave room in your pack for something unexpected.',author=''},
+ {text='The stars watch over wanderers and kings alike.',author=''},
+ {text='Not every hero knows the name of courage.',author=''},
+ {text='The world is wide, but kindness makes a place in it.',author=''},
+ {text='A good hearth is worth every league of road.',author=''},
+ {text='Even a small candle can defy a great darkness.',author=''},
+ {text='Not all those who wander are lost;',author='J.R.R. Tolkien'},
+ {text='The Road goes ever on and on',author='J.R.R. Tolkien'},
 }
 local function read(c,name)
  for _,store in ipairs({c.storage or false,c.files or false}) do
@@ -66,8 +65,7 @@ function Q.entries(c)
   end
  end
  if #list>0 then return list end
- for _,text in ipairs(DEFAULT) do list[#list+1]={text=text,author=''} end
- for _,item in ipairs(SAMPLE_QUOTES) do list[#list+1]={text=item.text,author=item.author} end
+ for _,item in ipairs(DEFAULT) do list[#list+1]={text=item.text,author=item.author} end
  return list
 end
 function Q.enabled(c)

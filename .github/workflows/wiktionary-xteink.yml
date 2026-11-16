@@ -1,0 +1,45 @@
+name: Build English Wiktionary for XTEINK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "dictionary/**"
+    paths:
+      - "dictionaries/**"
+      - ".github/workflows/wiktionary-xteink.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Validate and package English Wiktionary
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Test dictionary builder
+        run: python3 -m unittest discover -s dictionaries -p 'test_*.py' -v
+
+      - name: Download three matching Wiktionary StarDict assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/source
+          for ext in ifo idx dict.dz; do
+            curl --fail --location --retry 4 --retry-delay 2 --silent --show-error               "https://github.com/itsthisjustin/sd-plugins/releases/download/dictionaries/english.${ext}"               --output "dist/source/english.${ext}"
+          done
+
+      - name: Verify source; decompress; validate all offsets; build ZIP
+        run: python3 dictionaries/build_wiktionary.py --source dist/source --output dist/wiktionary-en-xteink.zip
+
+      - name: Upload ready-to-install ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: wiktionary-en-xteink
+          path: dist/wiktionary-en-xteink.zip
+          if-no-files-found: error
+          retention-days: 30

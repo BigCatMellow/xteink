@@ -25,6 +25,35 @@ Use crisp lines, understandable symbols, consistent spacing and readable type.
 E-ink does not excuse weak presentation. Color or grayscale must not be the
 only explanation of a state; avoid gratuitous refreshes and animations.
 
+## Screen-occupancy review
+
+For every **new active game** and every **material layout redesign**, assess
+the full usable 480×800 canvas in addition to font/overlap correctness.
+Follow [the screen-space efficiency contract](GAME_DESIGN.md#screen-space-efficiency-gameplay-first-2026-11-17).
+
+- Render actual shipped-bitmap-font frames for first/empty, in-progress,
+  densest or largest level, selected/hint/error, solved, and Help where
+  applicable; check both standard and enlarged measurement profiles.
+- Record the primary playable-content bounds **including clues**, controls
+  and touch targets. Locate the largest blank horizontal/vertical bands;
+  an unexplained contiguous ~48px-or-more vertical gap between functional
+  regions requires a correction or an explicit reason in the design record.
+  This is a review threshold, **not** a pass/fail pixel-coverage percentage.
+- Check that the board/scene/choices receive the largest practicable area,
+  that duplicated permanent instructions are removed or moved into Help,
+  and that controls and status sit near the gameplay they support.
+- Reclaim space by rearranging content before reducing font sizes or touch
+  targets. Do not stretch square grids, truncate essential clue text, pack
+  overlapping controls, add decorative filler, or hide important state.
+- Compare before/after previews for revisions and visually inspect them;
+  geometry-only assertions and passing text-collision tests do **not**
+  establish good use of screen space.
+- When geometry changes, add tests that exercise the **same derived bounds**
+  for painting and touch hitboxes across board sizes and game states, as
+  well as the existing save/progress regression suite. Document deliberate
+  aspect-ratio or accessibility exceptions rather than silently skipping
+  this review.
+
 ## Required regressions
 
 Every active app must have a distinct 96×96, 1-bit `app/icon.png`, rendered from

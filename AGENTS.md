@@ -28,6 +28,14 @@ contract, per-game exceptions, change reasons and required visual evidence.
 - Keep drawing geometry and touch hitboxes synchronized. Reserve explicit board,
   header, status and control space within 480×800. Verify every level, help and
   solved screen with distinct font sizes and enlarged glyph-width metrics.
+- Design for **purposeful full-screen use** on the 480×800 reader. Give the
+  puzzle/clues the largest *usable* play region, collapse repetitive header
+  and instruction text, and keep controls close to gameplay. Do not leave
+  unexplained empty bands merely because a phone-style layout has fixed rows.
+  Do not distort square boards, reduce touch targets, or add decorative filler.
+  Follow the screen-space contract in `docs/GAME_DESIGN.md` and the required
+  visual review in `docs/GAME_QUALITY.md` before adding or substantially
+  redesigning a game.
 - Preserve valid saves, app IDs, unlocked progress, unfinished boards and undo
   history through update, relaunch and level visits. Only explicit reset clears
   a board. A correct but unsubmitted answer is a valid in-progress save.

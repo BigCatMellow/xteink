@@ -90,6 +90,70 @@ exclusion. The adapter must not move or resize a control without a matching
 input change. Keep essential rules available, and reserve space for status and
 controls before enlarging a board.
 
+### Screen-space efficiency: gameplay first (2026-11-17)
+
+**Design the whole 480×800 surface, not a small app panel surrounded by phone-style
+chrome.** The user's XTEINK reference apps devote nearly all useful space to
+the puzzle and its interactions. Our visual standard is **zero unexplained
+waste**, not 100% ink coverage: white space is justified when it separates
+information, supports touch accuracy, or preserves legibility. Do not fill
+unused pixels with decorative boxes, redundant labels, or oversized headers.
+
+Required design decisions for **new games and substantial layout revisions**:
+
+1. **Allocate pixels before drawing.** Sketch the actual screen regions
+   (game/level/help, playable board **including clues**, feedback, action
+   controls, required margins). Identify the largest feasible continuous
+   interactive region *after* reserving readable status and reliable controls.
+   Maximize playable width first on grids; size cells from available geometry
+   instead of copying fixed offsets from another game.
+2. **Make the game the visual priority.** Use a compact title/level/status
+   area; merge metadata where possible. Remove persistent rule instructions
+   and repeated legends after their teaching purpose is served. Put full
+   rules in Help, with brief contextual cues only when needed. Keep the
+   board, words, scenes, choices, clues, and notes visibly larger than chrome.
+3. **Put controls where they serve the play surface.** Position high-frequency
+   controls close to the puzzle or in the immediately adjacent available
+   band. A single concise status/feedback line should replace stacked
+   passive captions where possible. Keep intentional tap targets large,
+   measured, distinct and fully inside the viewport.
+4. **Account for aspect ratio, not just raw occupancy.** Square games must
+   stay square, including their clue gutters. Do **not** stretch tiles,
+   shrink readability, or fake visual density. When the board already uses
+   almost all 480px of width, assign the remaining height to genuinely
+   useful actions, selected-item details, notes, relevant clue lists, or
+   progress; if none improves play, justified clear space is preferable to
+   ornament. Scroll-free content should remain understandable in one view.
+5. **Respond to real content and screen states.** A 5×5 and 8×8 puzzle,
+   empty and populated number sheets, menus, solved boards, selected objects,
+   errors, and Help may need different bounded geometry. Recompute drawing
+   **and hitboxes from the same layout**. Preserve keyboard/page-button
+   behavior and game progress; never turn a density improvement into
+   overlapping labels or smaller targets.
+6. **Treat every large blank band as a design decision.** A contiguous
+   approximately **48px or larger** unexplained vertical gap between
+   functional areas is a review trigger, **not** an automatic failure
+   threshold. Either reclaim it for gameplay/controls or document why it
+   improves comprehension or touch safety. Smaller gaps also deserve
+   review when they accumulate across multiple fixed rows.
+
+The accepted **Sudoku** improvement is a useful concrete precedent:
+414×414 at (33,164) became 468×468 at (6,108), an approximately 28% increase
+in play area by removing redundant chrome—not by changing puzzle rules.
+It is **not** a universal board-size target: Nonogram must center the full
+clue-plus-grid composition; number sheets use responsive row height; narrative
+and object-search games need larger readable content rather than forced square
+grids. Honor the per-game exceptions below.
+
+**Visual acceptance evidence:** use shipped bitmap fonts to inspect at least
+first/empty, typical in-progress, dense or advanced, solved/error, and Help
+screens at the actual 480×800 size. Record the board/clue bounding box, action
+target bounds, the largest unused bands and any intentional exceptions in
+the design review. Compare before/after captures for an existing game. The
+review is not complete merely because elements fit without collision.
+Hardware legibility, e-ink refresh and touch accuracy still require device
+checks.
+
 ### Nonogram centering
 
 Center the **complete clue + board composition**, not the board alone while
@@ -324,3 +388,16 @@ A deeper authored-level review moved Link Grid, Ink Runes and Word Bridge to
 uniqueness proves correctness, not human difficulty. See
 `games/REASONING_AUDIT.md` for source evidence, retention rationale, and
 known challenge limitations. Original content and user saves are preserved.
+
+## Design decision — 2026-11-17 / screen-space feedback
+
+The user compared our game screens with XTEINK community games and identified
+unused screen real estate as a material quality gap. Adopted **purposeful
+full-screen density** as the standard for future work: minimize fixed chrome,
+use adaptive gameplay geometry, position actions adjacent to play, and review
+empty bands rather than accepting a fit-only layout. Preserve the established
+Poppins/Inter theme, strong rule-bearing lines, measured text/touch targets,
+aspect ratios, saves and per-game exceptions. The 2026-11-08 Sudoku expansion
+is the documented precedent; this decision does not claim a new family-wide
+layout pass or device verification.
+

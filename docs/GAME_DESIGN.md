@@ -401,3 +401,13 @@ aspect ratios, saves and per-game exceptions. The 2026-11-08 Sudoku expansion
 is the documented precedent; this decision does not claim a new family-wide
 layout pass or device verification.
 
+
+## Sudoku pilot — 2026-11-17 / screen-space acceptance
+
+Sudoku already uses 468px of the 480px width with no unexplained 48px
+vertical blank band. The pilot therefore keeps its square board unchanged
+and reclaims stacked heading/status spacing for 60px-tall keypad and
+Notes/Undo/Erase controls instead of 52px (15.4% more numeric touch area).
+See [Sudoku pilot evidence](design/sudoku-screen-space-2026-11-17/README.md).
+Normal/enlarged UI measurements and host bitmap before/after rendering are
+required; physical reader acceptance remains pending.

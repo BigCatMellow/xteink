@@ -54,6 +54,11 @@ Follow [the screen-space efficiency contract](GAME_DESIGN.md#screen-space-effici
   aspect-ratio or accessibility exceptions rather than silently skipping
   this review.
 
+The Sudoku density pilot provides a reusable measured-band review helper in
+`tests/screen_space.lua`, and a bitmap before/after reviewer in
+`scripts/render_sudoku_pilot.py`. These are a first application of the
+requirements, not a blanket assertion that all other games meet them.
+
 ## Required regressions
 
 Every active app must have a distinct 96×96, 1-bit `app/icon.png`, rendered from

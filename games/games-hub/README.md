@@ -12,9 +12,10 @@ touchpad is controlled by Licorice and may leave the entire app instead. The she
 reopens where you left it, including an open game. The reader's Home action
 exits it. Games keep separate progress, unfinished boards and undo.
 
-**0.4.4 is a source-only candidate** with eleven games after the stricter
+**0.4.5 is a source-only candidate** with eleven games after the stricter
 reasoning audit; it is not yet a device-tested release. Former games and their
-save formats are preserved in `games/archive/`.
+save formats are preserved in `games/archive/`. Sudoku now has a space-efficient
+60px number keypad; the 468px board and saved progress are unchanged.
 
 Reader API 2.18 exposes reading metadata and progress only. The Hub cannot
 open your existing books with any verified stock firmware API; to read,

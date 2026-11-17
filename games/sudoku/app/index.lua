@@ -10,11 +10,11 @@ local HELP,MENU=false,false
 local CHOICE=2
 local KEY_MS=-1000
 -- One geometry contract for drawing and taps. Values are device pixels.
-local BOARD={x=6,y=108,cell=52,size=468}
+local BOARD={x=6,y=100,cell=52,size=468}
 local CONTROLS={new={242,12,76,48},check={326,12,90,48},help={424,12,48,48},
-  notes={8,626,132,52},undo={8,682,132,52},erase={8,738,132,52}}
+  notes={8,604,132,60},undo={8,668,132,60},erase={8,732,132,60}}
 local function digit_box(n)
-  return 156+(n-1)%3*106,626+math.floor((n-1)/3)*56,98,52
+  return 156+(n-1)%3*106,604+math.floor((n-1)/3)*64,98,60
 end
 local function copy(a) local b={};for i,v in ipairs(a) do b[i]=v end;return b end
 local function zeros() local a={};for i=1,81 do a[i]=0 end;return a end
@@ -212,9 +212,9 @@ local function draw(g)
     control(g,'new','NEW');control(g,'check',S.submitted and 'DONE' or 'CHECK')
   end
   control(g,'help',(HELP or MENU) and 'X' or '?')
-  text(g,16,74,'Puzzle '..S.level,'small',nil,260)
+  text(g,16,68,'Puzzle '..S.level,'small',nil,260)
   local difficulty=NAMES[S.difficulty]:sub(1,1)..NAMES[S.difficulty]:sub(2):lower()
-  text(g,402,74,difficulty,'small','center',124)
+  text(g,402,68,difficulty,'small','center',124)
   if HELP then draw_help(g);return end
   if MENU then draw_menu(g);return end
   local bx,by,cell,size=BOARD.x,BOARD.y,BOARD.cell,BOARD.size
@@ -242,7 +242,7 @@ local function draw(g)
     for n=1,9 do if has(S.notes[S.selected],n) then values[#values+1]=n end end
     status='NOTES: '..table.concat(values,' ')
   end
-  text(g,240,590,status or (S.submitted and 'Solved' or 'Left '..remaining..' / Clashes '..clashes),'small','center',448)
+  text(g,240,575,status or (S.submitted and 'Solved' or 'Left '..remaining..' / Clashes '..clashes),'small','center',448)
   control(g,'notes','NOTES',S.noteMode)
   control(g,'undo','UNDO');control(g,'erase','ERASE')
   for n=1,9 do

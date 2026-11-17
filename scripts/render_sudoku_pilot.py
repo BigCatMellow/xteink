@@ -90,6 +90,14 @@ def main():
         for i, scene in enumerate(SCENES):
             first = capture(baseline, scene)
             last = capture(APP, scene)
+            if scene in {"first", "notes", "feedback", "solved"}:
+                # Independent pixel check: game-board ink may move as a whole,
+                # but may not be resized, reflowed, or redrawn differently.
+                old_board = first.crop((6, 108, 474, 576))
+                new_board = last.crop((6, 100, 474, 568))
+                assert old_board.tobytes() == new_board.tobytes(), (
+                    f"{scene}: board pixels changed during a keypad-only pilot"
+                )
             first.save(args.out / f"{scene}-before.png")
             last.save(args.out / f"{scene}-after.png")
             top = i * 844

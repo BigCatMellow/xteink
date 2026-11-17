@@ -121,6 +121,33 @@ select(blank)
 local dx,dy,dw,dh=A.digit_box(5)
 assert(on_input(ctx,{type='pointer',phase='up',gesture='tap',x=dx+dw/2,y=dy+dh/2}))
 eq(s.board[blank],5)
+
+-- Actual measured regions/touch positions (normal and enlarged font profiles).
+do
+ local reports=require('screen_space').occupancy(ctx,on_draw,'sudoku gameplay screen')
+ for _,r in ipairs(reports) do
+  eq(#r.regions,1,'one Sudoku puzzle region')
+  local board=r.regions[1]
+  eq(board.x,6);eq(board.y,100);eq(board.w,468);eq(board.h,468)
+  assert(r.largest_gap.pixels<48,'unused band between screen elements '..r.largest_gap.pixels)
+  eq(#r.number_keys,9,'all nine numeric buttons must be visible')
+  for _,b in ipairs(r.number_keys) do
+   eq(b.w,98);eq(b.h,60)
+   assert(b.x>=0 and b.x+b.w<=480 and b.y>=0 and b.y+b.h<=800,'off-screen number key')
+  end
+ end
+ for _,name in ipairs({'notes','undo','erase'}) do
+  local b=A.controls[name];eq(b[4],60,'tall adjacent button')
+ end
+ for n=1,9 do
+  local x,y,w,h=A.digit_box(n)
+  eq(y,604+math.floor((n-1)/3)*64,'adaptive keypad row')
+  eq(w,98);eq(h,60)
+ end
+ local _,y,_,h=A.digit_box(9)
+ eq(y+h,792,'reserve eight pixels at bottom')
+end
+
 -- Device-photo regression: inspect filled geometry, independent of line_width.
 do
  local g=require('game_canvas').canvas()

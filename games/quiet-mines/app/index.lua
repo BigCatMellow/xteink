@@ -173,9 +173,12 @@ local function restore()
   for k,v in data:gmatch('([%w_]+)=([^\n]*)') do f[k]=v end
   local lvl,u=tonumber(f.level),tonumber(f.unlocked)
   if f.version~='1' or (f.mode~='OPEN' and f.mode~='FLAG') or
-     not lvl or lvl~=math.floor(lvl) or lvl<1 or lvl>TOTAL or
-     not u or u~=math.floor(u) or u<lvl or u>TOTAL then return false end
-  local r={level=lvl,unlocked=u,mode=f.mode,marks={},failed={},history={}}
+     not lvl or lvl~=math.floor(lvl) or lvl<1 or lvl>MAX or
+     not u or u~=math.floor(u) or u<lvl or u>MAX then return false end
+  local difficulty=tonumber(f.difficulty or '2')
+  if not difficulty or not Generator.settings[difficulty] then return false end
+  local r={level=lvl,unlocked=u,mode=f.mode,difficulty=difficulty,
+    marks={},failed={},history={}}
   -- Version 1 saves had twelve levels. Append new fields without resetting
   -- completed and unfinished boards, flags, mode, or per-field undo.
   local legacy=f.B13==nil
@@ -201,14 +204,47 @@ local function restore()
     end
     r.marks[i]=t;r.failed[i]=failed=='1';r.history[i]=hist
   end
-  S=r;HELP=false;HINTED=0;MSG=nil;return true
+  S=r
+  if lvl>TOTAL and not load_field(lvl) then
+    error('Cannot load saved generated field; progress has not been overwritten')
+  end
+  HELP=false;HINTED=0;MSG=nil;return true
 end
 local function visit(n)
-  if not S or n<1 or n>TOTAL or n>S.unlocked then return false end
-  S.level=n;MSG=nil;HELP=false;HINTED=0;save();return true
+  if not S or n<1 or n>MAX or n>S.unlocked or n~=math.floor(n) then return false end
+  if not save() then return true end
+  local old=S.level
+  if n>TOTAL and n~=old and not load_field(n) then
+    MSG='Could not load saved field';return true
+  end
+  if old>TOTAL and n~=old then
+    S.marks[old]=nil;S.failed[old]=nil;S.history[old]=nil
+  end
+  S.level=n;MSG=nil;HELP=false;HINTED=0
+  save();return true
 end
 local function next_level()return S and visit(S.level+1) or false end
 local function prev()return S and visit(S.level-1) or false end
+local function new_game()
+  if not S or S.unlocked>=MAX then return false end
+  if not save() then return true end
+  local old=S.level
+  local number=S.unlocked+1
+  if not new_field(number,S.difficulty) then
+    MSG='No verified field found - retry New';return true
+  end
+  if old>TOTAL then
+    S.marks[old]=nil;S.failed[old]=nil;S.history[old]=nil
+  end
+  S.level=number;S.unlocked=number;S.mode='OPEN'
+  HELP=false;HINTED=0;MSG='New random field: open S'
+  save();return true
+end
+local function cycle_difficulty()
+  S.difficulty=S.difficulty%3+1
+  MSG=({'Easy','Normal','Hard'})[S.difficulty]..' for next New'
+  save();return true
+end
 local function record()
   local hist=S.history[S.level]
   if #hist>=10 then table.remove(hist,1) end
@@ -320,7 +356,7 @@ local function apply(i)
   end
   MSG='Area revealed'
   if solved(n,tiles) then
-    S.unlocked=math.min(TOTAL,math.max(S.unlocked,n+1))
+    S.unlocked=math.min(MAX,math.max(S.unlocked,n+1))
     MSG='FIELD CLEARED!'
   end
   save();return true
@@ -356,7 +392,7 @@ local function draw_help(g)
   UI.paragraph(g,C,28,230,424,110,
     'Open safe squares. Numbers tell how many mines touch that square, including diagonals.', 'medium')
   UI.paragraph(g,C,28,358,424,111,
-    'Begin at S: each level has a logical, no-guess route from that square. FLAG marks suspected mines.', 'medium')
+    'Open S first on a random field. Every accepted field has a no-guess route. FLAG marks mines.', 'medium')
   UI.paragraph(g,C,28,488,424,115,
     'Opening a mine loses that field. RESET restarts. All numbers appear at once; no animation.', 'medium')
   button(g,75,706,330,69,'BACK TO FIELD')
@@ -365,9 +401,10 @@ local function render(g)
   g:clear(0)
   text(g,23,15,'QUIET MINES','large',nil,320)
   button(g,416,12,48,48,HELP and 'X' or '?')
-  if S.level<TOTAL and S.level<S.unlocked then button(g,308,12,101,46,'NEXT') end
+  button(g,308,12,101,46,'New')
   local b=board(S.level)
-  text(g,23,76,'FIELD '..S.level..'/'..TOTAL..'   MINES '..b.total,'medium',nil,438)
+  text(g,23,76,'FIELD '..S.level..'   MINES '..b.total,'medium',nil,320)
+  button(g,348,76,116,40,({'Easy','Normal','Hard'})[S.difficulty])
   if HELP then draw_help(g);return end
   local bx,by,cell=geometry()
   UI.region(bx,by,cell*b.n,cell*b.n)
@@ -423,7 +460,8 @@ local function tap(x,y)
     if hit(x,y,75,706,330,69) then HELP=false;return true end
     return false
   end
-  if hit(x,y,308,12,101,46) then return next_level() end
+  if hit(x,y,308,12,101,46) then return new_game() end
+  if hit(x,y,348,76,116,40) then return cycle_difficulty() end
   if hit(x,y,8,710,85,66) then return prev() end
   if hit(x,y,102,710,85,66) then return mode() end
   if hit(x,y,196,710,85,66) then return hint() end
@@ -476,6 +514,7 @@ if rawget(_G,'__TEST') then __TEST.api={
  levels=LEVELS,board=board,neighbors=neighbors,nearby=nearby,
  state=function()return S end,apply=apply,mode=mode,undo=undo,
  restart=restart,visit=visit,next=next_level,prev=prev,
+ new=new_game,difficulty=cycle_difficulty,
  solved=solved,geometry=geometry,tap=tap,hint=hint,infer_hint=infer_hint,
  hinted=function()return HINTED end
 } end

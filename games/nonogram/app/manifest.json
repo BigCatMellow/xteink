@@ -1,9 +1,9 @@
 {
   "app_id": "nonogram",
   "display_name": "Nonogram",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "author": "BigCatMellow",
-  "description": "Original uniquely solvable nonogram picture puzzles for XTEINK X4 Pro",
+  "description": "Picture and logic-only nonograms: deduction hints, larger grids and preserved progress",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": []

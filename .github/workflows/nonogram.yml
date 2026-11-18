@@ -16,6 +16,13 @@ on:
       - 'assets/fonts/game-ui/**'
       - 'scripts/sync_game_theme.py'
       - 'scripts/make_game_fonts.py'
+  pull_request:
+    paths:
+      - 'games/nonogram/**'
+      - 'shared/game_ui.lua'
+      - 'shared/puzzle_store.lua'
+      - 'scripts/render_nonogram.py'
+      - '.github/workflows/nonogram.yml'
   workflow_dispatch:
 permissions:
   contents: read

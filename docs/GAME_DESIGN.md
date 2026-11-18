@@ -411,3 +411,12 @@ Notes/Undo/Erase controls instead of 52px (15.4% more numeric touch area).
 See [Sudoku pilot evidence](design/sudoku-screen-space-2026-11-17/README.md).
 Normal/enlarged UI measurements and host bitmap before/after rendering are
 required; physical reader acceptance remains pending.
+
+## Sudoku Meditation parity — 2026-11-17
+
+Strong Sudoku-only grid strokes (2px minor, 5px box and frame) replace thin
+rules. The selected row and column receive static outlines, selected 3x3 box
+gets brackets, and matching numbers get underlines. Tiny pencil numerals,
+note lock, multi selection, five difficulty controls and settings use the
+existing 468px board and 60px keypad geometry. Existing saves remain
+compatible. See [feature matrix](design/sudoku-meditation-2026-11-17/FEATURE_PARITY.md).

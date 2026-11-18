@@ -8,13 +8,17 @@ installation when using the updated hub. Never uninstall to update.
 
 Presentation follows the [shared game design contract](../../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
 
-Offline, static monochrome Sudoku for XTOS Licorice. The seeded generation, uniqueness checks, notes and undo are adapted from the Sudoku in [BigCatMellow/meditation](https://github.com/BigCatMellow/meditation/blob/main/index.html). The interface is rewritten for the reader's 480×800 portrait touch screen; it has no animation or network requirement.
+Offline XTEINK Sudoku 0.4.0 adapts the features of [Meditation Sudoku](https://github.com/BigCatMellow/meditation/blob/main/index.html) to the 480x800 1-bit screen. The board stays 468x468, while the keypad retains large 60px targets.
 
-Tap a square, then a number. **Bold numbers are fixed clues**; a corner X marks a row, column or box clash. The 468px board has solid 3×3 box boundaries and fine cell lines. A three-column number pad sits beside **Notes**, **Undo** and **Erase**. Notes toggles pencil marks; a dot identifies a square with notes. Select it to read its candidates below the board and see their outlined number buttons. Entering a value cleans that number from peer notes. Undo restores values and notes together (32 moves per puzzle); Erase clears the selected editable square.
+**Selection highlighting:** Selecting a square draws static 2px row/column guide outlines and brackets its 3x3 box. Matching numbers get a short underline. The minor grid rules are now 2px; the major box rules and frame are 5px. Outlines, selected cells, and buttons are heavier without obscuring numbers.
 
-**CHECK** reports incorrect entries or confirms completion. Correct-but-unsubmitted grids remain saved and editable. Completed grids remain read-only until an explicit reset. **NEW** opens a menu with Easy, Medium and Hard, START NEW, previous/next saved puzzles, and RESET THIS PUZZLE. Starting another puzzle preserves unfinished ones and their undo histories. Physical page keys also revisit generated puzzles; merely opening the menu never replaces a board.
+**Notes:** Each pencil mark is a miniature seven-segment number in its own 3x3 slot. When NOTES is on, tap a filled digit to lock it, then tap empty squares to add/remove that number. NEW > MULTI allows multiple square selection for notes/erase; NEW > CLEAR NOTES clears all candidates and is undoable. AUTO CLEAN, HIGHLIGHT, CONFLICTS, and MULTI can be toggled in NEW. Settings and note caps are saved. There are up to 100 undo snapshots per puzzle.
 
-Difficulty changes the target clue count (45, 36 or 30), not a guaranteed human technique rating. The generator shuffles a valid completed grid and removes givens only when an exact solver confirms one solution. A bounded solver rejects removals it cannot verify in time. A contradiction is never counted as a solved board. The supply is procedural, with numbers up to 999,999,999; finite boards may eventually repeat.
+**Difficulty:** Beginner, Easy, Medium, Hard and Expert offer new v2 rotationally symmetric puzzles targeting 45, 38, 32, 26 and 22 clues respectively. The XTEINK generator uniquely solves each accepted puzzle, but does not yet reproduce Meditation's browser-only human-technique classifier or ten-attempt retries. Legacy v1 Easy/Medium/Hard puzzles are never regenerated using the new profile.
+
+**Interaction:** CHECK marks incorrect entries with static corner crosses rather than animations; double-tap erases editable entries. Existing page-key history, pencil notes, correct-but-unsubmitted status, saved solutions and app identifiers remain preserved. The visual controls replace browser colors and keyboard shortcuts.
+
+See [Meditiation feature parity matrix](../../docs/design/sudoku-meditation-2026-11-17/FEATURE_PARITY.md) for source-derived evidence and limitations.
 
 Seeds are stable across relaunches. Numbered saves use 64 archive files plus an index to avoid the firmware's 512-file limit. History grows with play and remains subject to the device's storage quota. Failed saves are reported and block navigation away from the current puzzle.
 

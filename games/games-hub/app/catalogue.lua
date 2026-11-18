@@ -6,7 +6,7 @@ return {
 {id="islandlinks",name="Island Links",version="0.4.0",description="Bridge a quiet archipelago",source="b86f32e6b66ac512e409976c422e16ab90e7784832612233ceb9708eae97263d"},
 {id="nonogram",name="Nonogram",version="0.6.0",description="Reveal a picture in ink",source="923240061e16a78e9984765de1d3374b08988d5d0bd244d35274de0cf49340d6"},
 {id="rectrooms",name="Rectangle Rooms",version="0.3.0",description="Divide the board into rooms",source="c440acfc9415a0feadacbae9d7bc502ab7dd1a9e15a5b393f4d873dd62fd84d9"},
-{id="sudoku",name="Sudoku",version="0.3.3",description="Nine numbers, endless puzzles",source="97b988695363b126e310a015ea996e460d934438dc9d7ad937699e3ccbbe52e9"},
+{id="sudoku",name="Sudoku",version="0.4.0",description="Nine numbers, endless puzzles",source="b2bd9a81d95574a5937cd06a1c2da19ff1842fa7195054b12e129be9df9e8d4b"},
 {id="crownfields",name="Crown Fields",version="0.2.0",description="One crown in every region",source="923197ee2b593e238ca9bea1362b7198fd5e4ecd1e7c290b703d0ed082bacfc3"},
 {id="quietmines",name="Quiet Mines",version="0.2.0",description="Deduce every safe square",source="2d851d4781c67a0964872119f063b7577e85dd47a65090ac63d665e850fcaaf7"},
 {id="sumcross",name="Sum Cross",version="0.2.1",description="Solve the crossing sums",source="ffa06f1a218e68b90d0a85479b33feeb976683df8b8ca29b44341b1e2e8e571d"},

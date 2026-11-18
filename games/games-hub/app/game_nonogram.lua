@@ -730,7 +730,7 @@ local function help_screen(g)
   UI.paragraph(g,D or C,24,484,432,116,
     'Hint uses the clues to find a certain move, without seeing the picture. Undo and Reset keep your progress.', 'body')
   UI.paragraph(g,D or C,24,614,432,72,
-    'Every new puzzle is generated and solvable from the clues. Older saved games stay available.', 'small')
+    'New puzzles are generated; old saves still work.', 'small')
   button(g,'back','Back to puzzle',true)
 end
 local function tick(g,x,y)

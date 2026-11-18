@@ -162,7 +162,7 @@ local function start()
     S.failed[i]=false;S.history[i]={}
   end
   assert(new_field(S.level,S.difficulty),'Could not generate a no-guess field')
-  HELP=false;HINTED=0;MSG='New random field: open S'
+  HELP=false;HINTED=0;MSG=nil
   save()
 end
 local function restore()
@@ -241,7 +241,7 @@ local function new_game()
     S.marks[old]=nil;S.failed[old]=nil;S.history[old]=nil
   end
   S.level=number;S.unlocked=number;S.mode='OPEN'
-  HELP=false;HINTED=0;MSG='New random field: open S'
+  HELP=false;HINTED=0;MSG=nil
   save();return true
 end
 local function cycle_difficulty()

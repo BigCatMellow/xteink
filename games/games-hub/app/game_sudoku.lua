@@ -504,7 +504,7 @@ local function draw_help(g)
   UI.paragraph(g,C,26,158,428,85,
     'Fill each row, column and 3 by 3 box with digits 1 to 9. No repeats.', 'medium')
   UI.paragraph(g,C,26,259,428,107,
-    'Tap a square. Light shading shows its row and column; the selected cell has a bold outline.', 'medium')
+    'Light shading marks the row and column. A bold frame marks the selected cell.', 'medium')
   UI.paragraph(g,C,26,387,428,137,
     'NOTES: tap a filled number to lock it, then tap empty squares to mark that number.', 'medium')
   UI.paragraph(g,C,26,546,428,132,

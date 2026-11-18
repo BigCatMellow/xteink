@@ -140,8 +140,8 @@ for(let y=0;y<n;y++){const value=rowCl[y].join(' ');const w=Math.max(30,value.le
 if(selected>=0){
 const r=Math.floor(selected/n),c=selected%n;
 const wash=(x,y,w,h)=>{const layer=el('div',x,y,w,h,'guides');
-layer.style.backgroundImage='radial-gradient(circle at 5px 5px, #111 0 1px, transparent 1.1px)';
-layer.style.backgroundSize='12px 12px';layer.style.opacity='.7'};
+layer.style.backgroundImage='radial-gradient(circle at 4px 4px, #444 0 .5px, transparent .75px)';
+layer.style.backgroundSize='9px 9px';layer.style.opacity='.45'};
 wash(bx+3,by+r*cell+3,n*cell-6,cell-6);
 wash(bx+c*cell+3,by+3,cell-6,n*cell-6);
 }

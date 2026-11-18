@@ -546,3 +546,47 @@ bounded (Sudoku selection approximately 300 extra 2px stipple dots; Mines
 maximum 288 1px bevel strokes for a 12×12 field); physical ghosting and actual
 refresh latency must still be checked on the X4 Pro. The small additional
 padding around control silhouettes is purely painted, not tappable.
+
+
+## Approved portrait mockups, direct code implementation — 2026-11-18
+
+**Authority:** the three portrait 480×800 device mockups the user approved
+(November 18, after rejecting the earlier preview layout). This supersedes
+the preceding light-touch "playschool portrait cleanup" where the actual
+screen hierarchy differs. "One for one" means match the *screen layout
+geometry and visual hierarchy* at device resolution, not that a 1-bit XTOS
+canvas can reproduce the photographic case, grayscale bevels, anti-aliasing,
+or paper texture from an AI-rendered image.
+
+### Native 480×800 coordinate specification
+
+| Part | Sudoku v0.6.0 | Minesweeper v0.6.0 | Nonogram v1.0.0 |
+| --- | --- | --- | --- |
+| Header | Sudoku at (22,22); New/Check/? at y18; Puzzle 1/Medium at y78 | Minesweeper (22,21); New/? at y18; mine/safe totals at y96 | Nonogram (22,21); New/? at y18; no second header/tool row |
+| Board | 9×9, **441×441** at **(19,126)**; **49px** cells; 5px 3×3 boundaries | n×n, **440px** maximum at **(20,152)** for 10×10; 44px cells; 8×8/12×12 centered in same region | Row and column clues + n×n square board centered within the **488px** region starting y102; cell cap 37px at 10×10 where all clues fit |
+| Selection or state | Light 1-bit stipple on selected row + column; **one bold active square** | Connected 2px grid, no double-box tiles; unobtrusive one-pixel cell relief; all random fields retained | 2px grid, subtle staggered stipple selection, one outlined square; row/column numbers have priority over size |
+| Progress/status | "Left n / Clashes m", y583 | "Safe n / target" and "Mines flags / total" at y612 | "Rows n / size" and "Cols n / size" at y608; mode text at y658 |
+| Primary controls | Notes/Undo/Erase + 3×3 numeric keys, y620/680/740, height53 | Prev/Flag/Hint/Undo/Reset across y701, height62 | Prev/Undo/Reset/Check across y704, height62 |
+
+The mockup intentionally **omits permanent administrative chrome**. In this
+native implementation Minesweeper difficulty is changed in the **? / Help**
+screen; Nonogram's **Fill/X** and **Hint** actions live in Help (with a
+tap on the footer mode text as a shortcut). This preserves all functionality
+while matching the approved idle frame. The **New** action always creates a
+procedurally generated board in all three games. Save IDs, legacy pictures,
+mine layouts, hint logic, no-guess guarantees and undo are unchanged.
+
+Button borders remain rounded, with measured Poppins/Inter bitmap text.
+The subtle photographic shadow is approximated by two small offset 1-bit
+rectangles (2px bottom/right) rather than a gray alpha shadow; sparse stipple
+approximates the reference's gray selection wash. Do not replace these
+with image backgrounds: display geometry, labels and hitboxes must remain
+live and responsive to screen state. The device is *actually* 480×800; do
+not implement the bezel photograph or photographic optical distortion.
+
+**Verification:** host layout tests assert board size, hit geometry,
+selected-cell structure, message bounds, flags and restored histories;
+full Games Hub bundling and installer builds still required. The host
+raster cannot prove anti-aliasing, ghosting, gray levels or refresh speed on
+the physical X4 Pro. A device-photo side-by-side at 480×800 is the final
+acceptance evidence for "identical" appearance.

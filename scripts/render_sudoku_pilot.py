@@ -76,9 +76,9 @@ local zero={}
 for i=1,81 do zero[i]=0 end
 local data=table.concat({'version=1','difficulty=2',
  'board='..table.concat(p.given),'notes='..table.concat(zero,','),
- 'history=','selected=0','noteMode=0','submitted=0'},'\\n')
+ 'history=','selected=0','noteMode=0','submitted=0'},'\n')
 Store.put(ctx.storage,'sudoku',1,data)
-Store.write(ctx.storage,'sudoku.txt','version=1\\nlevel=1\\nunlocked=1')
+Store.write(ctx.storage,'sudoku.txt','version=1\nlevel=1\nunlocked=1')
 on_load(ctx)
 """ + SCENES[scene]
     return render(source, 1, scene, bitmap=True, game="sudoku", fixture=fixture)

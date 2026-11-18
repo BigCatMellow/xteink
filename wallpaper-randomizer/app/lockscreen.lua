@@ -5,6 +5,7 @@ local Quotes=require('quotes')
 local C,picture,picked,history,status,committed,reuse,quote
 local function release()
   if picture then picture:release();picture=nil end
+  Quotes.release()
 end
 function on_load(c)
   release();C=c or ctx;picked=nil;committed=false;status=nil;quote=nil

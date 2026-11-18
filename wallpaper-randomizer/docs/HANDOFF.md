@@ -1,5 +1,32 @@
 # Wallpaper handoff — 2026-11-07
 
+## Semibold sans quotes — 2026-11-18 (0.7.2)
+
+User asked for "a slightly heavy Inter": 0.7.2 uses Inter 600 (quote 30 px) and
+500 (author 22 px) instead of 0.7.1's 700/600. Nothing else changed.
+
+## Bold sans quotes — 2026-11-18 (0.7.1)
+
+User found 0.7.0's EB Garamond thin and hard to read and asked for the
+system's default font. The stock firmware's UI typeface is undocumented and
+the locked unit cannot be read back, and native text cannot be rotated, so
+0.7.1 bakes the repo's Inter at weight 700 (quote 30 px, author 22 px 600)
+instead. Same pipeline as 0.7.0 below. If the user later identifies the
+system font (e.g. from a photo), only `tools/make_quote_font.py` changes.
+
+## Real typeface for quotes — 2026-11-18 (0.7.0)
+
+User report on 0.6.5: every space in a quote showed as `?` (the stroke
+alphabet had no space glyph, so it fell back to `?`), and the lettering looked
+poor. 0.7.0 fixes the fallback's spaces and replaces the default renderer with
+EB Garamond glyphs (quote 34 px semibold, author 24 px) baked to pre-rotated
+1-bit PNGs by `tools/make_quote_font.py` (`--check` runs in CI). Lua decodes
+only the glyphs a quote uses, caches them until `Quotes.release()` on leave, and
+draws one `g:image` per glyph (well under the ~1024-command budget). Host
+preview matched the old landscape mapping (native x=v, y=799-u). Installed on
+the card 2026-11-18; **not yet seen on the physical sleep screen** — check
+glyph crispness, white glyph boxes over textured paper, and sleep-time latency.
+
 ## Expanded authentic Tolkien defaults — 2026-11-15
 
 At the user's request to continue, Wallpaper Randomizer 0.6.5 adds eight

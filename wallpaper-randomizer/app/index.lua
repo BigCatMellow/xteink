@@ -5,6 +5,7 @@ local Quotes=require('quotes')
 local C,names,missing,photo,preview_name,preview_quote,help,active,status,pending
 local function release()
   if photo then photo:release();photo=nil end
+  Quotes.release()
 end
 local function redraw() if C then pcall(function() C:invalidate() end) end end
 local function scan()

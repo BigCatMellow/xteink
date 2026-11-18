@@ -10,7 +10,7 @@ The quality-100 grayscale JPEG renderer worked on X4 Pro Licorice **26110201**: 
 ## Quotes over existing wallpaper
 
 **Quotes: ON** is the default for the new version. The same full-resolution
-JPEG is still drawn first; upright black monoline quote lettering is drawn
+JPEG is still drawn first; upright black Inter SemiBold quote lettering is drawn
 in the large open space on the **left when the reader is held sideways**, with
 an optional attribution. The 480×800 image data is still portrait-oriented;
 its artwork becomes upright when viewed 90° clockwise in landscape.
@@ -53,9 +53,12 @@ image-only rotation records remain valid. A failed quote draw falls back
 to the unmodified wallpaper, not to a blank sleep screen.
 
 The quote overlay also appears during **Preview Next** while enabled, without
-changing actual sleep history. Attribution is optional. The quotes are
-uppercased monoline strokes, drawn with the native polyline primitive in the
-negative space; they do not cover the picture. This is the corrected layout for
+changing actual sleep history. Attribution is optional. The quotes are set in
+Inter SemiBold (the game family's SIL OFL Inter, `../assets/fonts/game-ui/`), baked by `tools/make_quote_font.py`
+into pre-rotated 1-bit PNG glyphs (`app/quote_font.lua`) because the canvas
+cannot rotate text; straight quotes become curly ones. If glyph decoding fails,
+or a pathological quote cannot fit, the older monoline stroke alphabet is the
+fallback. Lettering sits in the negative space; it does not cover the picture. This is the corrected layout for
 the supplied real-world wallpapers, which place their subjects at the far right
 in landscape. Original JPEGs and XTHs are left untouched.
 The new overlay still needs physical display testing on the X4 Pro.

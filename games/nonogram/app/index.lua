@@ -274,7 +274,7 @@ local function next_level() return S and visit(S.level+1) or false end
 local function new_puzzle()
   if not S or S.unlocked>=MAX then return false end
   if not save() then return true end
-  local number=S.unlocked+1
+  local number=math.max(TOTAL,S.unlocked)+1
   load_generated(S,number)
   if S.level>TOTAL then
     S.boards[S.level]=nil;S.history[S.level]=nil;S.submitted[S.level]=nil

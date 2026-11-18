@@ -25,6 +25,31 @@ eq(s.level,13);eq(s.unlocked,13)
 assert(not A.prev(),'PREV must not expose any historical prebuilt pictures')
 eq(s.level,13,'generated puzzle is still active')
 assert(A.shape(13).n>=7,'first fresh Nonogram must be generated')
+-- Row/column selection uses a light stipple under the marks and exactly
+-- one selected-cell frame, not double-width crosshair rails.
+do
+  local bx,by,cell=A.geometry()
+  local n=A.shape(13).n
+  assert(A.paint(1,1))
+  local g=require('game_canvas').canvas()
+  local old=g.rect
+  local dots,selection,rails=0,false,0
+  function g:rect(x,y,w,h,o)
+    if o and o.fill and w==2 and h==2 then dots=dots+1 end
+    if x==bx+4 and y==by+4 and w==cell-8 and h==cell-8
+       and not(o and o.fill) then selection=true end
+    if not(o and o.fill) and
+       ((w==n*cell and h==cell) or (w==cell and h==n*cell)) then
+      rails=rails+1
+    end
+    return old(self,x,y,w,h,o)
+  end
+  g:reset();on_draw(ctx,g);g:verify('Nonogram light focus and clean grid')
+  assert(dots>=20 and dots<300,'sparse stipple is bounded')
+  assert(selection,'the selected cell needs a single strong border')
+  eq(rails,0,'no full-axis outline rails')
+  assert(A.reset())
+end
 assert(A.visit(1));s.unlocked=1
 eq(#A.legacy_pictures,12)
 assert(store['nonogram.txt']:find('version=2',1,true))

@@ -164,11 +164,11 @@ do
   return false
  end
  for _,i in ipairs({3,6}) do
-  assert(bar(grid.x+i*52-2,grid.y,4,468),'missing solid vertical 3x3 separator')
-  assert(bar(grid.x,grid.y+i*52-2,468,4),'missing solid horizontal 3x3 separator')
+  assert(bar(grid.x+i*52-2,grid.y,5,468),'missing solid vertical 3x3 separator')
+  assert(bar(grid.x,grid.y+i*52-2,468,5),'missing solid horizontal 3x3 separator')
  end
- assert(bar(grid.x,grid.y,4,468) and bar(grid.x+464,grid.y,4,468),'outer frame must be solid')
- assert(bar(grid.x+52,grid.y,1,468),'fine cell grid must remain lighter')
+ assert(bar(grid.x,grid.y,5,468) and bar(grid.x+463,grid.y,5,468),'outer frame must be solid')
+ assert(bar(grid.x+51,grid.y,2,468),'interior lines must be 2px')
  for n=1,9 do
   local x,y,w,h=A.digit_box(n)
   assert(w>=48 and h>=48,'comfortable number-key touch target')
@@ -182,6 +182,101 @@ do
   assert(A.tap(x,y));eq(s.selected,i,'all 81 expanded cell touch targets')
  end
 end
+
+-- Meditation interface parity: row/column/box guides, mini notes and settings.
+do
+  A.reset();s=A.state()
+  assert(s.highlight and s.autoClean and s.showConflicts,'default enabled options')
+  local firstBlank,secondBlank,numbered=nil,nil,nil
+  for i=1,81 do
+    if A.puzzle().given[i]==0 then
+      firstBlank=firstBlank or i
+      if firstBlank and i~=firstBlank then
+        for _,peer in ipairs(Generator.peers[firstBlank]) do
+          if peer==i then secondBlank=i;break end
+        end
+      end
+    elseif not numbered then numbered=i end
+    if firstBlank and secondBlank and numbered then break end
+  end
+  assert(firstBlank and secondBlank and numbered)
+  select(firstBlank)
+  local geometry=A.guides(firstBlank)
+  eq(geometry.row,math.floor((firstBlank-1)/9))
+  eq(geometry.col,(firstBlank-1)%9)
+  local g=require('game_canvas').canvas()
+  local outlines,lines={},{0}
+  local original=g.rect
+  function g:rect(x,y,w,h,options)
+    if not(options and options.fill) then outlines[#outlines+1]={x=x,y=y,w=w,h=h} end
+    return original(self,x,y,w,h,options)
+  end
+  g:reset();on_draw(ctx,g);g:verify('selection guides and 2px cell rules')
+  local function hasRect(x,y,w,h)
+    for _,q in ipairs(outlines) do
+      if q.x==x and q.y==y and q.w==w and q.h==h then return true end
+    end
+    return false
+  end
+  assert(hasRect(6,100+geometry.row*52,468,52),'row guide missing')
+  assert(hasRect(6+geometry.col*52,100,52,468),'column guide missing')
+  -- Pencil digits are drawn inside the cells as monochrome segments,
+  -- not represented solely by a dot or a status caption.
+  assert(tap_control('notes'))
+  select(firstBlank)
+  assert(A.put(1));assert(A.put(2));assert(A.put(3))
+  local ink=0
+  local brush=require('game_canvas').canvas()
+  local origLine=brush.line
+  function brush:line(...) ink=ink+1;return origLine(self,...) end
+  brush:reset();on_draw(ctx,brush);brush:verify('pencil glyphs inside board')
+  assert(ink>=8,'pencil digits should use visible vector strokes')
+  select(numbered)
+  eq(s.locked,A.puzzle().given[numbered],'tapping a filled digit locks the note')
+  eq(s.selected,0,'lock mode separates the number from a cell')
+  select(secondBlank)
+  assert(s.notes[secondBlank]>0,'locked number writes note directly by tapping a cell')
+  eq(A.note_total(),4)
+  assert(A.clear_notes())
+  eq(A.note_total(),0)
+  assert(A.undo(),'clear-all pencil marks is undoable')
+  eq(A.note_total(),4)
+  -- The menu has the same Meditation preference toggles, persisted in v1 saves.
+  assert(tap_control('notes'));assert(not s.noteMode)
+  assert(tap_control('new'))
+  assert(A.tap(128,431));assert(not s.autoClean,'autoclean toggle')
+  assert(A.tap(352,431));assert(not s.highlight,'highlight toggle')
+  assert(A.tap(128,487));assert(not s.showConflicts,'conflict toggle')
+  assert(A.tap(352,487));assert(s.multiMode,'touch multi-select toggle')
+  assert(A.tap(240,740))
+  s=reload()
+  assert(not s.autoClean and not s.highlight and not s.showConflicts and s.multiMode,
+    'save and reload all Meditation settings')
+  assert(A.tap(6+((firstBlank-1)%9)*52+26,100+math.floor((firstBlank-1)/9)*52+26))
+  assert(A.tap(6+((secondBlank-1)%9)*52+26,100+math.floor((secondBlank-1)/9)*52+26))
+  assert(s.multi[firstBlank] and s.multi[secondBlank],'multi-select contains both squares')
+  assert(tap_control('notes'))
+  assert(A.put(5))
+  assert(math.floor(s.notes[firstBlank]/16)%2==1 and
+      math.floor(s.notes[secondBlank]/16)%2==1,'multi-select applies notes to both')
+  assert(tap_control('notes'))
+  -- Legacy puzzle saves with no new options still reload against v1 seeds.
+  local Store=require('puzzle_store')
+  local classic=Generator.generate(1,2)
+  local zero={}
+  for i=1,81 do zero[i]=0 end
+  Store.put(ctx.storage,'sudoku',1,table.concat({
+    'version=1','difficulty=2','board='..table.concat(classic.given),
+    'notes='..table.concat(zero,','),'history=','selected=0',
+    'noteMode=0','submitted=0'
+  },'\n'))
+  Store.write(ctx.storage,'sudoku.txt','version=1\nlevel=1\nunlocked='..s.unlocked)
+  on_load(ctx);s=A.state()
+  eq(s.generation,1,'legacy seed keeps its original version')
+  eq(table.concat(s.board),table.concat(classic.given),'legacy puzzle remains unchanged')
+  assert(s.autoClean and s.highlight and s.showConflicts,'legacy preferences default ON')
+end
+
 -- Maximum displayed puzzle number and error counter have bounded text.
 assert(A.new(3));s=A.state();s.level=999999999;s.unlocked=999999999
 measured(ctx,on_draw,'sudoku maximum number')

@@ -300,8 +300,8 @@ do
 end
 
 store['nonogram.txt']='version=1\nlevel=500\nunlocked=800\n'
-on_load(ctx)
-eq(A.state().level,1,'malformed saves reset')
+on_load(ctx);s=A.state()
+eq(s.level,13,'malformed saves restart at a generated puzzle')
 assert(type(on_tick)=='nil','no background animation')
 assert(A.visit(13))
 local oldSignature=table.concat(A.shape(13).rows)

@@ -35,7 +35,7 @@ do
   local old=g.rect
   local dots,rectangles=0,{}
   function g:rect(x,y,w,h,o)
-    if o and o.fill and w==2 and h==2 then dots=dots+1 end
+    if o and o.fill and w==1 and h==1 then dots=dots+1 end
     if not(o and o.fill) then
       rectangles[#rectangles+1]={x=x,y=y,w=w,h=h}
     end
@@ -52,7 +52,7 @@ do
       rails=rails+1
     end
   end
-  assert(dots>=20 and dots<300,'sparse stipple is bounded')
+  assert(dots>=80 and dots<500,'fine stipple is bounded')
   assert(selection,'the selected cell needs a single strong border')
   eq(rails,0,'no full-axis outline rails')
   assert(A.reset())

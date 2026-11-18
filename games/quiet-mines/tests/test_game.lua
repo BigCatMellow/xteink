@@ -17,6 +17,31 @@ assert(not A.prev(),'PREV must not lead to fixed historical fields')
 eq(S.level,25,'first generated field remains selected')
 local firstGenerated=A.board(25)
 assert(firstGenerated.n==10 and firstGenerated.total==18)
+-- Playschool portrait style: a single grid, no inner rectangle per tile.
+-- A tiny right/bottom bevel differentiates unopened tiles at low ink cost.
+do
+  local x,y,cell=A.geometry()
+  local g=require('game_canvas').canvas()
+  local old=g.rect
+  local nested=0
+  local bevelBottom,bevelRight=false,false
+  function g:rect(px,py,w,h,opt)
+    if px==x+4 and py==y+4 and w==cell-8 and h==cell-8 and
+       not (opt and opt.fill) then nested=nested+1 end
+    if opt and opt.fill then
+      if px==x+3 and py==y+cell-4 and w==cell-6 and h==1 then
+        bevelBottom=true
+      end
+      if px==x+cell-4 and py==y+3 and w==1 and h==cell-6 then
+        bevelRight=true
+      end
+    end
+    return old(self,px,py,w,h,opt)
+  end
+  g:reset();on_draw(ctx,g);g:verify('Mines clean unopened grid')
+  assert(nested==0,'per-tile inset squares must not return')
+  assert(bevelBottom and bevelRight,'hidden tiles retain subtle 1-bit depth')
+end
 assert(not firstGenerated.mines[1]);eq(A.nearby(firstGenerated,1),0)
 local function signature(level)
   local b=A.board(level)

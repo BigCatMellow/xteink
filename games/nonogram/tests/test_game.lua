@@ -252,7 +252,7 @@ eq(redraws,before)
 
 -- New XTEINK Nonogram interface: fill/X switches, clue-only hint and selection.
 assert(A.visit(1));A.reset()
-local p=A.shape(1),Gen=require('generator')
+local p,Gen=A.shape(1),require('generator')
 local emptyMarks=s.boards[1]
 local forced,logical=Gen.deduce(p.rowClues,p.colClues,emptyMarks)
 assert(forced and logical and not logical.contradiction,'a clue-only deduction should exist')

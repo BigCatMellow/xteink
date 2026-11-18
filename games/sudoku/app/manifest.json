@@ -1,9 +1,9 @@
 {
   "app_id": "sudoku",
   "display_name": "Sudoku",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "author": "BigCatMellow",
-  "description": "Endless offline Sudoku with unique puzzles, pencil notes and saved undo",
+  "description": "Meditation-style Sudoku: five difficulties, pencil marks, guide lines and offline saves",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": []

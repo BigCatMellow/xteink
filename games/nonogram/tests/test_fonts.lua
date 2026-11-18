@@ -35,12 +35,17 @@ local function frame(label)
   local text=nil
   _G.__LAYOUT=function(kind,box) audit(kind,box);if kind=='text' then text=box end end
   local commands,images,native=0,0,0
+  local nativeLabels={}
   for _,method in ipairs({'clear','rect','line','circle'}) do
     local old=g[method]
     g[method]=function(self,... ) commands=commands+1;return old(self,...) end
   end
   local old_text=g.text
-  function g:text(... ) native=native+1;commands=commands+1;return old_text(self,...) end
+  function g:text(x,y,s,opt)
+    native=native+1;commands=commands+1
+    nativeLabels[#nativeLabels+1]=s
+    return old_text(self,x,y,s,opt)
+  end
   function g:image(im,x,y,options)
     assert(not im.released,'released glyph reused')
     assert(options==nil,'runtime glyph images must not be cropped or rescaled')
@@ -52,7 +57,7 @@ local function frame(label)
   on_draw(ctx,g)
   g:verify(label)
   assert(A.typefaces(),label..': expected bitmap renderer')
-  assert(native==0,label..': known game labels unexpectedly fell back to native text')
+  assert(native==0,label..': known labels fell back: '..table.concat(nativeLabels,' | '))
   max_commands=math.max(max_commands,commands);max_images=math.max(max_images,images)
 end
 

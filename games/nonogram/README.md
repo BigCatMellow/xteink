@@ -94,3 +94,18 @@ The twelve original pictures, app ID, historic levels, unfinished marks,
 submitted states and saved undo history are unchanged. Correct-but-
 unsubmitted boards remain saved. Host renders and CI are not physical
 device acceptance. See the full design/logic review in docs/DESIGN.md.
+
+## Browser preview for matching device puzzle numbers
+
+Open [the interactive browser preview](preview.html) without an XTEINK device.
+Type a puzzle number and press **Go** to reproduce the actual puzzle board:
+levels 1–12 are the original picture puzzles, and new, unvisited levels 13+
+use the v2 Lua generator's deterministic seeds. Use the size picker to jump to
+representative board sizes, or **Next puzzle** to move sequentially.
+
+The preview has the same clue-driven Fill/X/Hint controls, but uses browser
+rendering, not the reader's exact bitmap font metrics. Existing v1 generated
+saves retain their historic answers and may not match the v2 preview. CI runs
+`node tests/verify_nonogram_browser_preview.mjs` with Lua 5.4 to compare
+46 exact boards and deduction-pass counts; the browser preview is not a
+replacement for physical-device tests.

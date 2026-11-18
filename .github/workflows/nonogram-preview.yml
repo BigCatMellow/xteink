@@ -4,12 +4,14 @@ on:
     paths:
       - 'games/nonogram/**'
       - 'scripts/render_nonogram.py'
+      - 'tests/verify_nonogram_browser_preview.mjs'
       - '.github/workflows/nonogram-preview.yml'
   push:
     branches: [main]
     paths:
       - 'games/nonogram/**'
       - 'scripts/render_nonogram.py'
+      - 'tests/verify_nonogram_browser_preview.mjs'
       - '.github/workflows/nonogram-preview.yml'
   workflow_dispatch:
 permissions:
@@ -29,6 +31,8 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y lua5.4
           python -m pip install Pillow==10.2.0
+      - name: Verify browser preview exactly matches device Lua puzzles
+        run: node tests/verify_nonogram_browser_preview.mjs
       - name: Render actual Lua frames and original/new comparison
         run: |
           git show f7e6e1f75d23ea7064a156fe09ecfa039bff0fac:games/nonogram/app/index.lua > /tmp/nonogram-before.lua

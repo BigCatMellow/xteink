@@ -456,3 +456,25 @@ save history and original field indices remain stable. The authoring
 quality gate separately verifies old direct-deduction fields and new
 subset-deduction boards. Successful host geometry and packaged bitmap
 renders do not establish physical acceptance.
+
+## Procedural-puzzle default — 2026-11-18
+
+The user's requirement is new playable puzzles generated at the time of
+play for Sudoku, Nonogram and Quiet Mines, rather than fixed starting
+campaigns. The Meditation repository contains the Sudoku generator; the
+user-provided Minesweeper HTML contains seeded random placement and
+deduction-based candidate filtering. Nonogram already had a v2 generator.
+
+New sessions use fresh numeric seeds and preserve those seeds (or the
+exact Mines layout) alongside puzzle marks. Historic authored boards
+remain available only to protect installed saves. The standard for Mines
+and Nonogram is no guessing under the documented deduction engine;
+Sudoku requires one exact solution but has not been certified against
+the Meditation human-technique difficulty classifier.
+
+New game creation must not silently replace an unfinished saved stage,
+and a failed generation attempt must not publish an unverified field.
+One 480×800 e-ink frame is drawn per interaction; no animation,
+background regeneration, color clues or new permissions are required.
+Host-run solver, save, geometry, font and Games Hub checks are necessary
+but still do not establish physical latency or touchscreen accuracy.

@@ -19,6 +19,10 @@ FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
 HARNESS = r'''
 package.path='app/?.lua;'..TEST_ROOT..'/?.lua;'..package.path
+-- Baseline renders load a historical index.lua requiring its former module
+-- name. Keep that compatibility alias in the host renderer only; no active
+-- game package exposes pictures.lua.
+package.preload['pictures']=function() return require('legacy_pictures') end
 __TEST={}
 local storage={}
 local fonts={}

@@ -478,3 +478,32 @@ One 480×800 e-ink frame is drawn per interaction; no animation,
 background regeneration, color clues or new permissions are required.
 Host-run solver, save, geometry, font and Games Hub checks are necessary
 but still do not establish physical latency or touchscreen accuracy.
+
+
+### Reference generator review: Logic Picross ZIP
+
+The supplied `picross-nonogram-generator(3)(1).zip` is a useful
+procedural-generation reference. Its `app.js` creates a hidden pixel
+pattern before deriving row and column clues, then checks solution
+uniqueness using a bounded search and verifies logic solvability
+with legal line-pattern intersection. It applies density, shape and
+difficulty filters, and offers blob, symmetric, icon-like and noisy
+candidate styles. These are separate tasks; random pixels and
+solvable clues by themselves are not enough to establish quality.
+
+The XTEINK Nonogram already implements a bounded line-pattern
+constraint propagator on 7×7–10×10 boards, a direct constructive
+no-guess proof, and randomized stored seeds for fresh sessions.
+It deliberately retains its existing v2 picture generator and
+its fallback only when the latter is *also* checked by propagation.
+The ZIP's last-resort fallback is **not** a substitute for the
+full uniqueness and human-logic checks: it returns a constructed
+pattern after the strict generation attempts and does not rerun
+the bounded uniqueness counter on that last branch.
+
+The ZIP's 15×15–25×25 profiles, optional speculative contradiction
+probing, animation, timer, and browser persistence are not part of
+this 480×800 native-device update. Visual shape styles and better
+human technique/difficulty scoring are possible follow-ons, but
+must be verified against clue gutter size and physical touch
+targets, not treated as silently completed in this change.

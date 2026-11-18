@@ -7,24 +7,10 @@
 *{box-sizing:border-box}body{margin:0;background:#eeeae4;color:#161616;font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif}.wrap{margin:0 auto;max-width:950px;padding:20px 12px 35px}.head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 16px}.head h1{font-size:18px;letter-spacing:-.03em;margin:0}.head p{font-size:12px;color:#605c57;margin:4px 0 0}.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}select,.tools button,.tools input{height:38px;padding:0 12px;font:600 13px Inter,system-ui,sans-serif;color:#242424;border:1px solid #b5b2a9;border-radius:9px;background:#fff;cursor:pointer}.tools input{width:95px}.shell{display:flex;flex-direction:column;align-items:center}.frame{padding:9px;background:#292929;border-radius:17px;box-shadow:0 11px 29px #0003}.viewport{position:relative;overflow:hidden;background:#fff;border-radius:7px}#screen{position:absolute;width:480px;height:800px;background:#fff;transform-origin:top left;color:#111;user-select:none;touch-action:manipulation}.text{position:absolute;font-weight:500;font-size:20px;line-height:1.13;pointer-events:none;white-space:nowrap}.text.title{font-weight:750;font-size:30px}.text.clue{font-weight:650;font-size:20px;line-height:1}.text.clue.big{font-size:24px}.text.done{text-decoration:line-through;text-decoration-thickness:2px}.appbtn{position:absolute;display:flex;align-items:center;justify-content:center;border:3px solid #111;border-radius:12px;background:#fff;color:#111;font-size:21px;font-weight:650;cursor:pointer;padding:0;touch-action:manipulation}.appbtn.primary{border-width:4px}.appbtn.tiny{font-size:18px}.appbtn.active{outline:3px solid #111;outline-offset:-9px}.appbtn:active{background:#eee}.cell{position:absolute;border:0;background:transparent;padding:0;cursor:pointer;touch-action:manipulation}.filled{position:absolute;background:#111;border-radius:3px;pointer-events:none}.cross{position:absolute;pointer-events:none}.guides{pointer-events:none;position:absolute}.board{position:absolute}.foot{margin:12px auto 0;max-width:530px;text-align:center;font-size:12px;line-height:1.5;color:#67645f}.foot strong{color:#292929}.proof{margin:9px auto;font-size:12px;color:#555}a{color:#333}@media(max-width:580px){.wrap{padding-top:12px}.tools{width:100%}}
 </style>
 </head>
-<body><div class="wrap"><div class="head"><div><h1>Nonogram — XTEINK preview</h1><p>480 × 800 · Interactive monochrome mockup · No device required</p></div><div class="tools"><select id="sizeSelect" aria-label="Puzzle size"><option value="5">Picture 5×5</option><option value="7">Logic 7×7</option><option value="8" selected>Logic 8×8</option><option value="10">Logic 10×10</option></select><label for="levelInput">Seed</label><input id="levelInput" type="number" min="1" max="999999999" value="13" inputmode="numeric" aria-label="Device generator seed"><button id="goBtn">Go</button><button id="newBtn">Random puzzle</button></div></div><div class="shell"><div class="frame"><div class="viewport" id="viewport"><main id="screen" aria-label="Interactive Nonogram"></main></div></div><div class="foot"><strong>Enter a generator seed, or create a random puzzle.</strong> The 12 historical picture boards remain available using seeds 1–12. Seeds 13 onward reproduce the device's logic generator; saved seed records preserve those boards after restarting. Fonts and touch rendering still approximate the physical reader.</div><div class="proof" id="proof"></div></div></div>
+<body><div class="wrap"><div class="head"><div><h1>Nonogram — XTEINK preview</h1><p>480 × 800 · Interactive monochrome mockup · No device required</p></div><div class="tools"><select id="sizeSelect" aria-label="Puzzle size"><option value="7">Logic 7×7</option><option value="8" selected>Logic 8×8</option><option value="10">Logic 10×10</option></select><label for="levelInput">Seed</label><input id="levelInput" type="number" min="13" max="999999999" value="13" inputmode="numeric" aria-label="Device generator seed"><button id="goBtn">Go</button><button id="newBtn">Random puzzle</button></div></div><div class="shell"><div class="frame"><div class="viewport" id="viewport"><main id="screen" aria-label="Interactive Nonogram"></main></div></div><div class="foot"><strong>Enter a generator seed, or create a random puzzle.</strong> Only generated puzzles appear in this preview. Enter a seed from 13 onward to reproduce the same board; saved device seeds preserve existing games. Fonts and touch rendering still approximate the physical reader.</div><div class="proof" id="proof"></div></div></div>
 <script>
 'use strict';
 const screen=document.querySelector('#screen'),viewport=document.querySelector('#viewport'),picker=document.querySelector('#sizeSelect');
-const pictures=[
-['.#.#.','#####','#####','.###.','..#..'],
-['..#..','.###.','#####','..#..','..#..'],
-['..#..','.##..','#####','.##..','..#..'],
-['#...#','#...#','#####','.###.','.###.'],
-['...#...','..###..','..###..','..###..','.#####.','#..#..#','##...##'],
-['##...##','#######','##.#.##','#######','.#####.','..###..','..#.#..'],
-['...#...','..##...','.###...','#####..','...#...','#######','.#####.'],
-['...#...','..###..','.#####.','..###..','...#...','..###..','..#.#..'],
-['##....##','###..###','.######.','..####..','..####..','.######.','###..###','##....##'],
-['..####..','.######.','..####..','..####..','..####..','.######.','..####..','...##...'],
-['..####..','.######.','########','########','########','#.##.##.','#..#..#.','........'],
-['....#...','...##...','.####...','.####...','########','.######.','..####..','........']
-];
 let n=8,seed=13,rows=[],board=[],history=[],selected=-1,mode='fill',message='',hintIndex=-1,solved=false,rounds=0,previousSeeds=[];
 const counts=items=>{const out=[];let run=0;for(const val of items){if(val){run++}else if(run){out.push(run);run=0}}if(run)out.push(run);return out.length?out:[0]};
 const rc=()=>rows.map(r=>counts([...r].map(c=>c==='#')));
@@ -70,7 +56,6 @@ function luaRng(seed) {
   return bound => { state=state*16807 % 2147483647; return state%bound+1; };
 }
 function generateDevice(number) {
-  if (number<=12) return {rows:pictures[number-1],passes:0,authored:true};
   const sizes=[8,10,7,10];
   const size=sizes[(number-13)%4];
   n=size;
@@ -99,8 +84,8 @@ function generateDevice(number) {
   return {rows:Array.from({length:size},(_,y)=>'#'.repeat(size-y)+'.'.repeat(y)),passes:1};
 }
 function loadLevel(number) {
-  if(!Number.isSafeInteger(number)||number<1||number>999999999) {
-    window.alert('Enter an integer generator seed from 1 to 999999999');return;
+  if(!Number.isSafeInteger(number)||number<13||number>999999999) {
+    window.alert('Enter an integer generator seed from 13 to 999999999');return;
   }
   seed=number;
   const generated=generateDevice(number);
@@ -136,6 +121,6 @@ for(let i=1;i<n;i++){let p=i*cell,t=(i%5===0?5:4);line(bx+p-2,by,bx+p-2,by+n*cel
 if(selected>=0){let r=Math.floor(selected/n),c=selected%n;framed(bx,by+r*cell,n*cell,cell,2);framed(bx+c*cell,by,cell,n*cell,2);if(hintIndex===selected)framed(bx+c*cell+5,by+r*cell+5,cell-10,cell-10,3,3)}
 let completedRows=0,completedCols=0;for(let y=0;y<n;y++)if(counts(board.slice(y*n,(y+1)*n).map(v=>v===1)).join()===rowCl[y].join())completedRows++;for(let x=0;x<n;x++)if(counts(Array.from({length:n},(_,y)=>board[y*n+x]===1)).join()===colCl[x].join())completedCols++;
 text('Rows '+completedRows+' / '+n,24,636,200);text('Cols '+completedCols+' / '+n,264,636,192);text(message||'Tap a cell to fill / X / clear',24,670,432,'','center');
-btn('Prev',24,708,96,68,prevGame);btn('Undo',132,708,96,68,undo);btn('Reset',240,708,96,68,reset);btn(solved?'Next':'Check',348,708,108,68,check,'primary');document.querySelector('#proof').textContent='Device level '+seed+' · '+n+'×'+n+' · '+(seed<=12?'authored picture':rounds+' logical deduction passes')+' · '+board.filter(v=>v===1).length+' filled';}
-picker.addEventListener('change',()=>loadLevel(({5:1,7:5,8:13,10:14})[picker.value]));document.querySelector('#newBtn').addEventListener('click',newGame);document.querySelector('#goBtn').addEventListener('click',()=>loadLevel(Number(document.querySelector('#levelInput').value)));document.querySelector('#levelInput').addEventListener('keydown',e=>{if(e.key==='Enter')loadLevel(Number(e.currentTarget.value))});window.addEventListener('resize',rescale);rescale();newGame();
+btn('Prev',24,708,96,68,prevGame);btn('Undo',132,708,96,68,undo);btn('Reset',240,708,96,68,reset);btn(solved?'Next':'Check',348,708,108,68,check,'primary');document.querySelector('#proof').textContent='Device level '+seed+' · '+n+'×'+n+' · '+(rounds+' logical deduction passes')+' · '+board.filter(v=>v===1).length+' filled';}
+picker.addEventListener('change',()=>loadLevel(({7:15,8:13,10:14})[picker.value]));document.querySelector('#newBtn').addEventListener('click',newGame);document.querySelector('#goBtn').addEventListener('click',()=>loadLevel(Number(document.querySelector('#levelInput').value)));document.querySelector('#levelInput').addEventListener('keydown',e=>{if(e.key==='Enter')loadLevel(Number(e.currentTarget.value))});window.addEventListener('resize',rescale);rescale();newGame();
 </script></body></html>

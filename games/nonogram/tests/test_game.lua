@@ -307,10 +307,13 @@ local selected,hinted=A.cursor()
 eq(hinted,(forced.y-1)*p.n+forced.x,'hint highlights its precise square')
 measured(ctx,on_draw,'nonogram selected row and column')
 local mode=A.controls.mode
+local help=A.controls.help
+assert(A.tap(help[1]+help[3]/2,help[2]+help[4]/2))
 assert(A.tap(mode[1]+mode[3]/2,mode[2]+mode[4]/2))
 assert(A.tap(1+select(1,A.geometry()),1+select(2,A.geometry())),
   'X mode paints from real board touch position')
 eq(s.boards[1][1],2,'X mode marks an unknown as empty')
+assert(A.tap(help[1]+help[3]/2,help[2]+help[4]/2))
 assert(A.tap(mode[1]+mode[3]/2,mode[2]+mode[4]/2))
 local gx,gy=A.geometry()
 assert(A.tap(gx+1,gy+1))

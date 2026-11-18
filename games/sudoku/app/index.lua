@@ -285,27 +285,94 @@ local function conflicts(i)
   return false
 end
 local function text(g,x,y,s,font,align,width) UI.text(g,C,x,y,s,font,align,width) end
-local function button(g,x,y,w,h,s,decorated,options) UI.button(g,C,x,y,w,h,s,decorated,options) end
+local function button(g,x,y,w,h,s,decorated,options)
+  options=options or {}
+  options.line_width=options.line_width or 4 -- local Sudoku-only stronger strokes
+  UI.button(g,C,x,y,w,h,s,decorated,options)
+end
 local function control(g,key,label,marked)
   local b=CONTROLS[key];button(g,b[1],b[2],b[3],b[4],label,marked)
 end
+-- Seven-segment pencil digits: tiny legible ink with at most seven strokes.
+-- Packaged 20px bitmap glyphs cannot fit the 3x3 pencil subcells.
+local SEGMENTS={
+  {1,1,1,0,1,1,1},{0,0,1,0,0,1,0},{1,0,1,1,1,0,1},
+  {1,0,1,1,0,1,1},{0,1,1,1,0,1,0},{1,1,0,1,0,1,1},
+  {1,1,0,1,1,1,1},{1,0,1,0,0,1,0},{1,1,1,1,1,1,1},
+}
+local function pencil_digit(g,x,y,n)
+  local v=SEGMENTS[n]
+  local function line(a,b,c,d) g:line(x+a,y+b,x+c,y+d,{line_width=2}) end
+  if v[1]==1 then line(1,0,7,0) end
+  if v[2]==1 then line(0,1,0,5) end
+  if v[3]==1 then line(8,1,8,5) end
+  if v[4]==1 then line(1,6,7,6) end
+  if v[5]==1 then line(0,7,0,11) end
+  if v[6]==1 then line(8,7,8,11) end
+  if v[7]==1 then line(1,12,7,12) end
+end
+local function show_notes(g,x,y,mask)
+  for n=1,9 do
+    if has(mask,n) then
+      pencil_digit(g,x+7+((n-1)%3)*16,y+3+math.floor((n-1)/3)*16,n)
+    end
+  end
+end
+local function highlight_geometry(i)
+  if not i or i<=0 then return nil end
+  local row=math.floor((i-1)/9)
+  local col=(i-1)%9
+  return {row=row,col=col,boxrow=math.floor(row/3)*3,boxcol=math.floor(col/3)*3}
+end
+local function draw_guides(g)
+  if not S.highlight or S.selected==0 then return end
+  local h=highlight_geometry(S.selected)
+  if not h then return end
+  local x,y,cell,size=BOARD.x,BOARD.y,BOARD.cell,BOARD.size
+  -- Full row and column outlines produce a monochrome crosshair, never a
+  -- solid fill over numbers and candidates.
+  g:rect(x,y+h.row*cell,size,cell,{line_width=2})
+  g:rect(x+h.col*cell,y,cell,size,{line_width=2})
+  -- Brackets indicate the selected 3x3 box without extra filled panels.
+  local bx,by=x+h.boxcol*cell+7,y+h.boxrow*cell+7
+  local ex,ey=bx+3*cell-14,by+3*cell-14
+  g:line(bx,by+12,bx,by,{line_width=2})
+  g:line(bx,by,bx+12,by,{line_width=2})
+  g:line(ex-12,ey,ex,ey,{line_width=2})
+  g:line(ex,ey,ex,ey-12,{line_width=2})
+end
+
 local function draw_help(g)
-  text(g,240,155,'HOW TO PLAY','large','center',420)
-  UI.paragraph(g,C,26,215,428,125,'Fill each row, column and 3 by 3 box with 1 to 9. Each number appears once.', 'medium')
-  UI.paragraph(g,C,26,350,428,155,'Tap a square, then a number. Bold numbers are fixed clues. A corner X marks a clash. CHECK verifies your entries.', 'medium')
-  UI.paragraph(g,C,26,515,428,155,'NOTES toggles pencil marks. A dot shows notes in a square; select it to read them below. UNDO also restores cleaned notes.', 'medium')
+  text(g,240,111,'HOW TO PLAY','large','center',420)
+  UI.paragraph(g,C,26,158,428,85,
+    'Fill each row, column and 3 by 3 box with digits 1 to 9. No repeats.', 'medium')
+  UI.paragraph(g,C,26,259,428,107,
+    'Tap a square, then a number. Row and column guide lines show related cells. Equal numbers are underlined.', 'medium')
+  UI.paragraph(g,C,26,387,428,137,
+    'NOTES shows tiny pencil digits. Tap a filled number in Notes mode to lock it; then tap empty cells to add or remove that note.', 'medium')
+  UI.paragraph(g,C,26,546,428,132,
+    'NEW opens difficulty and game settings. Use MULTI SELECT for several squares, CLEAR NOTES for all pencil marks, and CHECK to verify.', 'medium')
   button(g,76,710,328,62,'BACK TO GAME')
 end
 local function draw_menu(g)
-  text(g,240,155,'NEW PUZZLE','large','center',420)
-  text(g,240,200,'Choose how many clues to start with','small','center',430)
-  for i,name in ipairs(NAMES) do button(g,22+(i-1)*150,241,136,52,name,i==CHOICE) end
-  button(g,76,322,328,62,'START NEW')
-  text(g,240,407,'Your current puzzle stays saved','small','center',428)
-  button(g,24,456,210,58,'PREV PUZZLE')
-  button(g,246,456,210,58,'NEXT PUZZLE')
-  button(g,76,550,328,62,'RESET THIS PUZZLE')
-  text(g,240,641,'Page keys also revisit saved puzzles','small','center',430)
+  text(g,240,106,'NEW PUZZLE','large','center',420)
+  text(g,240,157,'Difficulty','small','center',430)
+  for j,difficulty in ipairs(ORDER) do
+    local x,y
+    if j<=3 then x=12+(j-1)*155;y=193
+    else x=90+(j-4)*155;y=255 end
+    button(g,x,y,146,54,NAMES[difficulty],CHOICE==difficulty,{font='small'})
+  end
+  button(g,76,323,328,62,'START NEW')
+  button(g,24,407,210,48,'AUTO CLEAN '..(S.autoClean and 'ON' or 'OFF'))
+  button(g,246,407,210,48,'HIGHLIGHT '..(S.highlight and 'ON' or 'OFF'))
+  button(g,24,463,210,48,'CONFLICTS '..(S.showConflicts and 'ON' or 'OFF'))
+  button(g,246,463,210,48,'MULTI '..(S.multiMode and 'ON' or 'OFF'))
+  button(g,24,519,210,48,'CLEAR NOTES')
+  button(g,246,519,210,48,'RESET PUZZLE')
+  button(g,24,590,210,54,'PREV PUZZLE')
+  button(g,246,590,210,54,'NEXT PUZZLE')
+  text(g,240,656,'Current puzzle stays saved','small','center',428)
   button(g,76,710,328,62,'BACK TO GAME')
 end
 local function draw(g)
@@ -326,36 +393,48 @@ local function draw(g)
   for i=1,81 do
     local x=bx+(i-1)%9*cell
     local y=by+math.floor((i-1)/9)*cell
-    if S.selected==i then g:rect(x+4,y+4,cell-8,cell-8,{line_width=2,radius=6}) end
+    if S.selected==i or S.multiMode and S.multi[i] then
+      g:rect(x+4,y+4,cell-8,cell-8,{line_width=S.selected==i and 3 or 2,radius=6})
+    end
     if S.board[i]>0 then
       local role=P.given[i]>0 and 'strong' or 'clue'
       text(g,x+cell/2,y+math.floor((cell-UI.height(C,role))/2),tostring(S.board[i]),role,'center',cell-14)
-    elseif S.notes[i]>0 then g:circle(x+cell/2,y+cell/2,3,{fill=true}) end
+    elseif S.notes[i]>0 then show_notes(g,x,y,S.notes[i]) end
     if S.board[i]==0 then remaining=remaining+1 end
-    if conflicts(i) then
-      clashes=clashes+1
-      g:line(x+cell-13,y+7,x+cell-7,y+13,{line_width=2})
-      g:line(x+cell-7,y+7,x+cell-13,y+13,{line_width=2})
+    if conflicts(i) then clashes=clashes+1 end
+    if S.showConflicts and (conflicts(i) or S.bad and S.bad[i]) then
+      g:line(x+cell-13,y+7,x+cell-7,y+13,{line_width=3})
+      g:line(x+cell-7,y+7,x+cell-13,y+13,{line_width=3})
+    end
+    if S.highlight and S.selected>0 and i~=S.selected and
+       S.board[i]>0 and S.board[i]==S.board[S.selected] then
+      g:line(x+16,y+cell-8,x+cell-16,y+cell-8,{line_width=3})
     end
   end
-  UI.grid(g,bx,by,9,9,cell,{every=3})
+  UI.grid(g,bx,by,9,9,cell,{every=3,minor=2,major=5,frame=5})
+  draw_guides(g)
   local status=MSG
   if not status and S.selected>0 and S.notes[S.selected]>0 then
     local values={}
     for n=1,9 do if has(S.notes[S.selected],n) then values[#values+1]=n end end
     status='NOTES: '..table.concat(values,' ')
   end
-  text(g,240,575,status or (S.submitted and 'Solved' or 'Left '..remaining..' / Clashes '..clashes),'small','center',448)
+  if not status and S.noteMode and S.locked>0 then
+    status='NOTE '..S.locked..'  '..note_total(S.notes)..'/'..NOTE_CAP[S.difficulty]
+  end
+  text(g,240,575,status or (S.submitted and 'Solved' or
+    'Left '..remaining..' / Clashes '..clashes),'small','center',448)
   control(g,'notes','NOTES',S.noteMode)
   control(g,'undo','UNDO');control(g,'erase','ERASE')
   for n=1,9 do
-    local marked=S.noteMode and S.selected>0 and has(S.notes[S.selected],n)
+    local marked=S.noteMode and (S.locked==n or S.selected>0 and has(S.notes[S.selected],n))
+      or S.highlight and S.selected>0 and S.board[S.selected]==n
     local x,y,w,h=digit_box(n)
     button(g,x,y,w,h,tostring(n),marked,{font='strong'})
   end
 end
 local function hit(x,y,bx,by,w,h) return x>=bx and x<bx+w and y>=by and y<by+h end
-local function tap(x,y)
+local function tap(x,y,additive)
   local function at(key) local b=CONTROLS[key];return hit(x,y,b[1],b[2],b[3],b[4]) end
   if at('help') then
     if HELP or MENU then HELP=false;MENU=false else HELP=true end
@@ -363,21 +442,43 @@ local function tap(x,y)
   end
   if HELP then if hit(x,y,76,710,328,62) then HELP=false;return true end;return false end
   if MENU then
-    for i=1,3 do if hit(x,y,22+(i-1)*150,241,136,52) then CHOICE=i;return true end end
-    if hit(x,y,76,322,328,62) then return new_puzzle(CHOICE) end
-    if hit(x,y,24,456,210,58) then return visit(S.level-1) end
-    if hit(x,y,246,456,210,58) then return visit(S.level+1) end
-    if hit(x,y,76,550,328,62) then return reset() end
+    for j,d in ipairs(ORDER) do
+      local bx,by
+      if j<=3 then bx=12+(j-1)*155;by=193
+      else bx=90+(j-4)*155;by=255 end
+      if hit(x,y,bx,by,146,54) then CHOICE=d;return true end
+    end
+    if hit(x,y,76,323,328,62) then return new_puzzle(CHOICE) end
+    if hit(x,y,24,407,210,48) then S.autoClean=not S.autoClean;save();return true end
+    if hit(x,y,246,407,210,48) then S.highlight=not S.highlight;save();return true end
+    if hit(x,y,24,463,210,48) then S.showConflicts=not S.showConflicts;save();return true end
+    if hit(x,y,246,463,210,48) then
+      S.multiMode=not S.multiMode
+      S.locked=0;S.multi=S.selected>0 and {[S.selected]=true} or {}
+      save();return true
+    end
+    if hit(x,y,24,519,210,48) then local r=clear_notes();MENU=false;return r or true end
+    if hit(x,y,246,519,210,48) then return reset() end
+    if hit(x,y,24,590,210,54) then return visit(S.level-1) end
+    if hit(x,y,246,590,210,54) then return visit(S.level+1) end
     if hit(x,y,76,710,328,62) then MENU=false;return true end
     return false
   end
   if at('new') then MENU=true;CHOICE=S.difficulty;return true end
   if at('check') then return check() end
-  if at('notes') then S.noteMode=not S.noteMode;MSG=nil;save();return true end
+  if at('notes') then
+    S.noteMode=not S.noteMode;S.locked=0;MSG=nil;save();return true
+  end
   if at('undo') then return undo() end
   if at('erase') then return erase() end
-  for n=1,9 do local bx,by,w,h=digit_box(n);if hit(x,y,bx,by,w,h) then return put(n) end end
-  if hit(x,y,BOARD.x,BOARD.y,BOARD.size,BOARD.size) then return select_cell(math.floor((x-BOARD.x)/BOARD.cell)+1,math.floor((y-BOARD.y)/BOARD.cell)+1) end
+  for n=1,9 do
+    local bx,by,w,h=digit_box(n)
+    if hit(x,y,bx,by,w,h) then return put(n) end
+  end
+  if hit(x,y,BOARD.x,BOARD.y,BOARD.size,BOARD.size) then
+    return select_cell(math.floor((x-BOARD.x)/BOARD.cell)+1,
+      math.floor((y-BOARD.y)/BOARD.cell)+1,additive)
+  end
   return false
 end
 local function redraw() if C then pcall(function() C:invalidate() end) end end
@@ -407,7 +508,16 @@ function on_input(context,event)
     if event.type=='pointer' or event.type=='touch' then
       if event.type=='pointer' and event.phase~='up' then return end
       if event.gesture and event.gesture~='tap' and event.gesture~='double_tap' then return end
-      changed=tap(tonumber(event.x) or -1,tonumber(event.y) or -1)
+      local x,y=tonumber(event.x) or -1,tonumber(event.y) or -1
+      if event.gesture=='double_tap' and not HELP and not MENU and
+          hit(x,y,BOARD.x,BOARD.y,BOARD.size,BOARD.size) then
+        local n=math.floor((y-BOARD.y)/BOARD.cell)*9+
+          math.floor((x-BOARD.x)/BOARD.cell)+1
+        if P.given[n]==0 and S.board[n]~=0 and not S.submitted then
+          changed=select_cell((n-1)%9+1,math.floor((n-1)/9)+1)
+          changed=erase() or changed
+        end
+      else changed=tap(x,y,event.additive==true) end
     elseif event.type=='key' and (not event.phase or event.phase=='down') and (event.key=='up' or event.key=='down') and not HELP and not MENU then
       local now=tonumber(event.time_ms)
       if not now and C and C.clock then local good,t=pcall(function() return C.clock:millis() end);if good then now=tonumber(t) end end
@@ -425,5 +535,8 @@ if rawget(_G,'__TEST') then
   __TEST.api={state=function() return S end,puzzle=function() return P end,
     select=select_cell,put=put,erase=erase,undo=undo,reset=reset,check=check,
     geometry=BOARD,controls=CONTROLS,digit_box=digit_box,
-    new=new_puzzle,visit=visit,tap=tap,conflicts=conflicts,solved=function() return solved(S.board) end}
+    new=new_puzzle,visit=visit,tap=tap,conflicts=conflicts,
+    clear_notes=clear_notes,note_total=function() return note_total(S.notes) end,
+    guides=highlight_geometry,select_add=function(x,y) return select_cell(x,y,true) end,
+    solved=function() return solved(S.board) end}
 end

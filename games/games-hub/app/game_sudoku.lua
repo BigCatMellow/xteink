@@ -483,11 +483,11 @@ local function draw_help(g)
   UI.paragraph(g,C,26,158,428,85,
     'Fill each row, column and 3 by 3 box with digits 1 to 9. No repeats.', 'medium')
   UI.paragraph(g,C,26,259,428,107,
-    'Tap a square, then a number. Row and column guide lines show related cells. Equal numbers are underlined.', 'medium')
+    'Tap a square. Guides show its row, column and box. Matches are underlined.', 'medium')
   UI.paragraph(g,C,26,387,428,137,
-    'NOTES shows tiny pencil digits. Tap a filled number in Notes mode to lock it; then tap empty cells to add or remove that note.', 'medium')
+    'NOTES: tap a filled number to lock it, then tap empty squares to mark that number.', 'medium')
   UI.paragraph(g,C,26,546,428,132,
-    'NEW opens difficulty and game settings. Use MULTI SELECT for several squares, CLEAR NOTES for all pencil marks, and CHECK to verify.', 'medium')
+    'NEW holds difficulty and options. MULTI selects cells; CLEAR NOTES removes pencil marks. CHECK verifies.', 'medium')
   button(g,76,710,328,62,'BACK TO GAME')
 end
 local function draw_menu(g)

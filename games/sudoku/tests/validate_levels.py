@@ -62,6 +62,16 @@ for d=1,3 do
   local p=G.generate(999999999,d)
   print(d..'\t999999999\t'..table.concat(p.given)..'\t'..table.concat(p.solution))
 end
+-- Profile v2 uses five visible Meditation difficulty bands and symmetric
+-- uniquely solvable clues. It must not affect released v1 puzzles.
+for d=1,5 do
+  for seed=1,12 do
+    local p=G.generate(seed,d,2)
+    local again=G.generate(seed,d,2)
+    assert(table.concat(p.given)==table.concat(again.given),'new puzzle seed stable')
+    print((d+5)..'\t'..seed..'\t'..table.concat(p.given)..'\t'..table.concat(p.solution))
+  end
+end
 """
 output = subprocess.check_output(['lua', '-'], input=script, text=True,
     cwd=Path(__file__).resolve().parents[1])
@@ -72,7 +82,15 @@ for line in output.splitlines():
     assert given not in seen, 'duplicate grid within sample'
     seen.add(given)
     clues = sum(c != '0' for c in given)
-    assert (45, 36, 30)[int(difficulty)-1] <= clues < 60
+    tier = int(difficulty)
+    if tier <= 3:
+        assert (45, 36, 30)[tier-1] <= clues < 60
+    else:
+        target = (38, 32, 26, 45, 22)[tier-6]
+        assert target <= clues <= 60
     assert count_solutions(given) == [solution], (difficulty, seed, 'not uniquely solvable')
     assert all(g == '0' or g == s for g, s in zip(given, solution))
-print('PASS: 75 generated Sudoku puzzles independently solved; stable seeds, unique solutions, valid givens')
+    if int(difficulty) >= 6:
+        for i in range(81):
+            assert (given[i] == '0') == (given[80-i] == '0'), 'rotational clue symmetry'
+print('PASS: 135 generated Sudoku puzzles independently solved; stable seeds, unique solutions, valid givens')

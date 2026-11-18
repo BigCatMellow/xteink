@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 from render_nonogram import FONT, ROOT, render
 from sync_game_ui import project_path
 
-BASELINE = "764788afef087f919ecf434a22c0af7590b6d2b8"
+BASELINE = "bd733d1b17c70e0745886a1c7b6a0f08e5574197"
 APP = project_path("sudoku") / "app/index.lua"
 SCENES = {
     "first": "",
@@ -65,7 +65,22 @@ def geometry(text):
 
 
 def capture(source, scene):
-    fixture = "dofile(SOURCE)\non_load(ctx)\nlocal A=__TEST.api\n" + SCENES[scene]
+    fixture = r"""dofile(SOURCE)
+on_load(ctx)
+local A=__TEST.api
+-- Both generations display the same historical board for a fair visual diff.
+local G=require('generator')
+local Store=require('puzzle_store')
+local p=G.generate(1,2)
+local zero={}
+for i=1,81 do zero[i]=0 end
+local data=table.concat({'version=1','difficulty=2',
+ 'board='..table.concat(p.given),'notes='..table.concat(zero,','),
+ 'history=','selected=0','noteMode=0','submitted=0'},'\n')
+Store.put(ctx.storage,'sudoku',1,data)
+Store.write(ctx.storage,'sudoku.txt','version=1\nlevel=1\nunlocked=1')
+on_load(ctx)
+""" + SCENES[scene]
     return render(source, 1, scene, bitmap=True, game="sudoku", fixture=fixture)
 
 
@@ -80,7 +95,8 @@ def main():
     new_source = APP.read_text()
     before, after = geometry(old_source.decode("utf-8")), geometry(new_source)
     assert before["board"][2] == after["board"][2] == 468
-    assert before["numeric_touch_area"] < after["numeric_touch_area"]
+    assert before["numeric_touch_area"] == after["numeric_touch_area"]
+    assert before["board"] == after["board"]
     with tempfile.TemporaryDirectory(prefix="xteink-sudoku-") as temp:
         baseline = Path(temp) / "sudoku-before.lua"
         baseline.write_bytes(old_source)
@@ -91,20 +107,20 @@ def main():
             first = capture(baseline, scene)
             last = capture(APP, scene)
             if scene in {"first", "notes", "feedback", "solved"}:
-                # Independent pixel check: game-board ink may move as a whole,
-                # but may not be resized, reflowed, or redrawn differently.
-                old_board = first.crop((6, 108, 474, 576))
-                new_board = last.crop((6, 100, 474, 568))
-                assert old_board.tobytes() == new_board.tobytes(), (
-                    f"{scene}: board pixels changed during a keypad-only pilot"
+                # The board retains identical geometry, but thicker rules
+                # and vector pencil numerals intentionally change its ink.
+                before_board = first.crop((6, 100, 474, 568))
+                after_board = last.crop((6, 100, 474, 568))
+                assert before_board.tobytes() != after_board.tobytes(), (
+                    f"{scene}: expected a visually distinct Sudoku style"
                 )
             first.save(args.out / f"{scene}-before.png")
             last.save(args.out / f"{scene}-after.png")
             top = i * 844
             sheet.paste(first.convert("RGB"), (8, top + 32))
             sheet.paste(last.convert("RGB"), (512, top + 32))
-            pen.text((8, top + 7), f"{scene}: before 0.3.2", font=font, fill=0)
-            pen.text((512, top + 7), f"{scene}: after 0.3.3", font=font, fill=0)
+            pen.text((8, top + 7), f"{scene}: before 0.3.3", font=font, fill=0)
+            pen.text((512, top + 7), f"{scene}: after 0.4.0", font=font, fill=0)
         sheet.save(args.out / "before-after.png")
     (args.out / "metrics.json").write_text(
         json.dumps({"baseline": BASELINE, "before": before, "after": after}, indent=2) + "\n"

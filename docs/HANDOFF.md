@@ -618,3 +618,13 @@ Both checks passed for functional commit `981d182`:
 Locally: `python3 scripts/check_games.py` passed. Wallpaper tests covered 100 new sleeps, fixed timer frames, history transactions, failures, controls and measured layouts; independent JPEG and lossless PNG/cache checks passed. **Only the JPEG preview, not the new v0.5.0 sleep integration, was physically confirmed.**
 
 The repo has received new game commits concurrently. Fetch before publishing and preserve/rebase over unrelated changes rather than overwriting them.
+
+## Sudoku Meditation parity pilot — 2026-11-17
+
+Sudoku v0.4.0 adds stronger mono grid strokes, row/column/box guides, mini
+pencil numerals, locked note entry, multi selection and five difficulty bands.
+Legacy v1 saved puzzles are reloaded with original generator; no format reset.
+Rebuild Games Hub from source, verify bitmap and standalone suites, and check
+physical XTEINK after install-over with a backup. Browser technique classifier
+and animations are intentionally not claimed as ported. Feature inventory:
+docs/design/sudoku-meditation-2026-11-17/FEATURE_PARITY.md.

@@ -596,7 +596,7 @@ local function apply(i)
   MSG='Area revealed'
   if solved(n,tiles) then
     -- Generated fields unlock only after New archives their layout.
-    if n<TOTAL then S.unlocked=math.min(TOTAL,math.max(S.unlocked,n+1)) end
+    if n<TOTAL then S.unlocked=math.min(MAX,math.max(S.unlocked,n+1)) end
     MSG='FIELD CLEARED!'
   end
   save();return true

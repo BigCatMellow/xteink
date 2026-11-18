@@ -747,9 +747,10 @@ local function light_wash(g,x,y,w,h)
   -- Dithered shade, not row/column outline rails. Stagger sparse 2px dots
   -- behind cell marks so the guide is visible without muddying clues.
   local row=0
-  for yy=y+5,y+h-5,12 do
-    for xx=x+5+(row%2)*6,x+w-5,12 do
-      g:rect(xx,yy,2,2,{fill=true,radius=0})
+  for yy=y+4,y+h-4,9 do
+    for xx=x+4+(row%2)*4,x+w-4,9 do
+      -- A 1px halftone point, not a visible 2px checker dot.
+      g:rect(xx,yy,1,1,{fill=true,radius=0})
     end
     row=row+1
   end

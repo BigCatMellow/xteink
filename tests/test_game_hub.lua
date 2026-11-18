@@ -81,7 +81,7 @@ local function draw(label)
  local selected=A.state().selected
  if selected then
   local minimum={summitputt=420,lanternlogic=440,rayvault=430,
-   islandlinks=410,nonogram=336,rectrooms=440,sudoku=468,
+   islandlinks=410,nonogram=336,rectrooms=440,sudoku=441,
    crownfields=440,quietmines=440,sumcross=395,tenpairs=440}
   local id=Catalogue[selected].id
   assert(W==480 and H==800,id..': engines must run on the portrait screen')

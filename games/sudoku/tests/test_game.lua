@@ -211,7 +211,7 @@ do
   local outlines,dots={},{};
   local original=g.rect
   function g:rect(x,y,w,h,options)
-    if options and options.fill and w==2 and h==2 then
+    if options and options.fill and w==1 and h==1 then
       dots[#dots+1]={x=x,y=y}
     elseif not(options and options.fill) then
       outlines[#outlines+1]={x=x,y=y,w=w,h=h}
@@ -231,7 +231,7 @@ do
     'full-column guide outline must not muddy the board')
   assert(hasRect(19+geometry.col*49+4,126+geometry.row*49+4,41,41),
     'single selected-cell frame must remain obvious')
-  assert(#dots>=100 and #dots<350,'light 1-bit focus shade should be sparse')
+  assert(#dots>=200 and #dots<650,'fine 1-bit focus shade should remain bounded')
   for _,dot in ipairs(dots) do
     assert((dot.y>=126+geometry.row*49 and dot.y<126+(geometry.row+1)*49)
       or (dot.x>=19+geometry.col*49 and dot.x<19+(geometry.col+1)*49),

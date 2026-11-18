@@ -8,12 +8,12 @@ from pathlib import Path
 import re
 text=(Path(__file__).resolve().parents[1]/'app'/'levels.lua').read_text()
 raw=re.findall(r'\{title="FIELD (\d+)",n=(\d+),mines=\{([0-9,]+)\}\}',text)
-assert len(raw)==12
+assert len(raw)==24
 def neighbors(n,p):
  x,y=divmod(p,n)[1],p//n
  return {yy*n+xx for yy in range(max(0,y-1),min(n,y+2))
          for xx in range(max(0,x-1),min(n,x+2)) if (xx,yy)!=(x,y)}
-for level,(name,ns,positions) in enumerate(raw,1):
+for level,(name,ns,positions) in enumerate(raw[:12],1):
  assert int(name)==level
  n=int(ns)
  assert n==(6 if level<=4 else 7 if level<=8 else 8)
@@ -51,3 +51,7 @@ for level,(name,ns,positions) in enumerate(raw,1):
  assert len(revealed)==n*n-len(mines), f'{level}: requires guessing ({len(revealed)} safe revealed)'
  print(f'{level:02} {n}x{n}, {len(mines)} mines, {iterations} deduction sweeps, no guessing')
 print('PASS: all 12 Quiet Mines fields solve by arithmetic from START')
+
+# The advanced subset-deduction solver must run in the regular quality gate.
+import runpy
+runpy.run_path(str(Path(__file__).with_name('validate_advanced.py')))

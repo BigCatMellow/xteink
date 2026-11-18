@@ -27,6 +27,18 @@ return {
  {title="FIELD 10",n=8,mines={3,5,8,30,39,41,45,47,50,60}},
  {title="FIELD 11",n=8,mines={3,5,12,36,37,39,40,43,51,63}},
  {title="FIELD 12",n=8,mines={15,16,20,29,30,34,47,56,58,64}},
+ {title="FIELD 13",n=10,mines={5,13,34,35,43,45,47,48,60,64,65,68,72,79,85,87,96,98}},
+ {title="FIELD 14",n=10,mines={6,14,21,25,27,29,38,44,49,51,57,59,67,74,80,93,96,100}},
+ {title="FIELD 15",n=10,mines={3,5,18,31,34,35,48,53,64,66,81,82,85,86,89,97,98,99}},
+ {title="FIELD 16",n=10,mines={5,15,18,26,28,32,35,38,40,61,65,66,68,72,90,96,97,99}},
+ {title="FIELD 17",n=10,mines={8,19,21,24,27,35,48,49,62,69,70,82,85,86,89,97,99,100}},
+ {title="FIELD 18",n=10,mines={8,9,15,16,26,31,33,36,40,45,47,49,52,60,66,75,79,98}},
+ {title="FIELD 19",n=10,mines={14,21,30,36,38,42,46,55,59,65,67,69,75,77,83,84,93,96}},
+ {title="FIELD 20",n=10,mines={4,9,10,14,30,31,39,48,49,52,55,58,66,77,83,89,94,100}},
+ {title="FIELD 21",n=12,mines={11,17,18,25,31,33,35,41,43,46,49,57,62,68,76,82,86,89,90,94,96,101,104,105,112,124,138}},
+ {title="FIELD 22",n=12,mines={5,8,9,11,37,40,41,46,47,61,64,77,79,86,92,94,100,109,112,113,115,120,127,129,139,142,143}},
+ {title="FIELD 23",n=12,mines={3,8,17,23,35,39,44,46,47,63,66,69,72,73,78,80,87,90,97,100,101,108,124,125,128,137,144}},
+ {title="FIELD 24",n=12,mines={6,12,16,36,41,42,50,52,57,58,72,82,88,91,100,102,103,105,113,119,121,122,124,125,140,142,144}},
 }
 
 end
@@ -38,6 +50,7 @@ local LEVELS=require('levels')
 local TOTAL=#LEVELS
 local C,S,ERR,MSG=nil,nil,nil,nil
 local HELP=false
+local HINTED=0
 local KEY_MS=-1000
 local function board(level)
   local p=LEVELS[level]
@@ -111,7 +124,7 @@ local function start()
     S.failed[i]=false
     S.history[i]={}
   end
-  HELP=false;MSG='Begin by opening S (safe start)'
+  HELP=false;HINTED=0;MSG='Begin by opening S (safe start)'
   save()
 end
 local function restore()
@@ -125,11 +138,17 @@ local function restore()
      not lvl or lvl~=math.floor(lvl) or lvl<1 or lvl>TOTAL or
      not u or u~=math.floor(u) or u<lvl or u>TOTAL then return false end
   local r={level=lvl,unlocked=u,mode=f.mode,marks={},failed={},history={}}
+  -- Version 1 saves had twelve levels. Append new fields without resetting
+  -- completed and unfinished boards, flags, mode, or per-field undo.
+  local legacy=f.B13==nil
   for i=1,TOTAL do
     local b=board(i)
-    local t=decode(f['B'..i],b.n*b.n)
-    if not t or (f['F'..i]~='0' and f['F'..i]~='1') then return false end
-    for j,v in ipairs(t) do if v==2 and b.mines[j] and f['F'..i]=='0' then return false end end
+    local absent=i>12 and legacy and f['B'..i]==nil and
+      f['F'..i]==nil and f['H'..i]==nil
+    local t=absent and blank(b.n*b.n) or decode(f['B'..i],b.n*b.n)
+    local failed=absent and '0' or f['F'..i]
+    if not t or (failed~='0' and failed~='1') then return false end
+    for j,v in ipairs(t) do if v==2 and b.mines[j] and failed=='0' then return false end end
     local hist={}
     for v in (f['H'..i] or ''):gmatch('[^;]+') do
       if #hist>=10 then return false end
@@ -137,14 +156,18 @@ local function restore()
       if not old then return false end
       hist[#hist+1]=old
     end
-    if solved(i,t) and i<TOTAL and u<i+1 then return false end
-    r.marks[i]=t;r.failed[i]=f['F'..i]=='1';r.history[i]=hist
+    if solved(i,t) and i<TOTAL and u<i+1 then
+      if legacy and i==12 and u==12 then
+        u=13;r.unlocked=u
+      else return false end
+    end
+    r.marks[i]=t;r.failed[i]=failed=='1';r.history[i]=hist
   end
-  S=r;HELP=false;MSG=nil;return true
+  S=r;HELP=false;HINTED=0;MSG=nil;return true
 end
 local function visit(n)
   if not S or n<1 or n>TOTAL or n>S.unlocked then return false end
-  S.level=n;MSG=nil;HELP=false;save();return true
+  S.level=n;MSG=nil;HELP=false;HINTED=0;save();return true
 end
 local function next_level()return S and visit(S.level+1) or false end
 local function prev()return S and visit(S.level-1) or false end
@@ -163,12 +186,74 @@ local function revealed(level)
   for _,v in ipairs(S.marks[level]) do if v==2 then count=count+1 end end
   return count
 end
+-- Reason only from visible numbered cells and the player's flag assumptions.
+-- Direct 0/all rules come first; subset differences handle harder fields.
+-- No unrevealed mine positions are consulted.
+local function infer_hint(level,marks)
+  local b=board(level)
+  local constraints={}
+  for i=1,b.n*b.n do
+    if marks[i]==2 then
+      local hidden,need={},nearby(b,i)
+      for _,j in ipairs(neighbors(b.n,i)) do
+        if marks[j]==1 then need=need-1
+        elseif marks[j]==0 then hidden[#hidden+1]=j end
+      end
+      if need<0 or need>#hidden then return nil,'Check your flags' end
+      if #hidden>0 then
+        local lookup={}
+        for _,j in ipairs(hidden) do lookup[j]=true end
+        constraints[#constraints+1]={hidden=hidden,need=need,lookup=lookup}
+      end
+    end
+  end
+  for _,c in ipairs(constraints) do
+    if c.need==0 then return {index=c.hidden[1],kind='OPEN',rule='number'} end
+    if c.need==#c.hidden then return {index=c.hidden[1],kind='FLAG',rule='number'} end
+  end
+  for _,a in ipairs(constraints) do
+    for _,bigger in ipairs(constraints) do
+      if #a.hidden<#bigger.hidden then
+        local subset=true
+        for _,j in ipairs(a.hidden) do
+          if not bigger.lookup[j] then subset=false;break end
+        end
+        if subset then
+          local extra={}
+          for _,j in ipairs(bigger.hidden) do
+            if not a.lookup[j] then extra[#extra+1]=j end
+          end
+          local difference=bigger.need-a.need
+          if difference==0 then
+            return {index=extra[1],kind='OPEN',rule='overlap'}
+          elseif difference==#extra then
+            return {index=extra[1],kind='FLAG',rule='overlap'}
+          end
+        end
+      end
+    end
+  end
+  return nil,'No certain move; check flags'
+end
+local function hint()
+  if not S or S.failed[S.level] or solved(S.level,S.marks[S.level]) then return false end
+  if revealed(S.level)==0 then MSG='Open S first';return true end
+  local found,reason=infer_hint(S.level,S.marks[S.level])
+  if not found then HINTED=0;MSG=reason;return true end
+  HINTED=found.index
+  local n=board(S.level).n
+  local row=math.floor((HINTED-1)/n)+1
+  local col=(HINTED-1)%n+1
+  MSG='Hint: '..found.kind..' R'..row..' C'..col..' ('..found.rule..')'
+  return true
+end
 local function apply(i)
   if not S then return false end
   local n=S.level
   local b=board(n)
   local tiles=S.marks[n]
   if i<1 or i>#tiles or S.failed[n] or solved(n,tiles) or tiles[i]==2 then return false end
+  HINTED=0
   if S.mode=='FLAG' then
     record()
     tiles[i]=tiles[i]==1 and 0 or 1
@@ -205,25 +290,26 @@ end
 local function mode()
   if not S then return false end
   S.mode=S.mode=='OPEN' and 'FLAG' or 'OPEN'
+  HINTED=0
   MSG='Mode: '..S.mode;save();return true
 end
 local function undo()
   if not S or S.failed[S.level] or solved(S.level,S.marks[S.level]) then return false end
   local hist=S.history[S.level]
   if #hist==0 then return false end
-  S.marks[S.level]=table.remove(hist);MSG='Last action restored'
+  S.marks[S.level]=table.remove(hist);HINTED=0;MSG='Last action restored'
   save();return true
 end
 local function restart()
   if not S then return false end
   S.marks[S.level]=blank(board(S.level).n^2)
   S.history[S.level]={};S.failed[S.level]=false
-  S.mode='OPEN'
+  S.mode='OPEN';HINTED=0
   MSG='Open S to begin';save();return true
 end
 local function geometry()
   local n=board(S.level).n
-  return UI.grid_geometry(n,120,568)
+  return UI.grid_geometry(n,118,586,460)
 end
 local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
 local function button(g,x,y,w,h,s,marked) UI.button(g,C,x,y,w,h,s,marked) end
@@ -247,7 +333,7 @@ local function render(g)
   if HELP then draw_help(g);return end
   local bx,by,cell=geometry()
   UI.region(bx,by,cell*b.n,cell*b.n)
-  UI.grid(g,bx,by,b.n,b.n,cell)
+  UI.grid(g,bx,by,b.n,b.n,cell,{minor=2,frame=5,every=5,major=4})
   local tiles=S.marks[S.level]
   for y=1,b.n do
     for x=1,b.n do
@@ -255,7 +341,7 @@ local function render(g)
       local px,py=bx+(x-1)*cell,by+(y-1)*cell
       local v=tiles[i]
       if v==0 then
-        g:rect(px+5,py+5,cell-10,cell-10,{line_width=1})
+        g:rect(px+4,py+4,cell-8,cell-8,{line_width=2,radius=2})
         if i==1 and revealed(S.level)==0 then
           text(g,px+cell/2,py+math.floor((cell-20)/2),'S','small','center',cell-12)
         end
@@ -270,6 +356,9 @@ local function render(g)
         local count=nearby(b,i)
         if count>0 then text(g,px+cell/2,py+math.floor((cell-24)/2),count,'medium','center',cell-8) end
       end
+      if HINTED==i and not S.failed[S.level] then
+        g:rect(px+6,py+6,cell-12,cell-12,{line_width=3,radius=3})
+      end
       if S.failed[S.level] and b.mines[i] and v==0 then
         g:circle(px+cell/2,py+cell/2,10,{line_width=2})
         g:line(px+cell/2-8,py+cell/2-8,px+cell/2+8,py+cell/2+8)
@@ -277,14 +366,17 @@ local function render(g)
     end
   end
   local safe=b.n*b.n-b.total
-  text(g,240,585,'SAFE OPEN '..revealed(S.level)..' / '..safe,'medium','center',430)
-  text(g,240,626,MSG or (S.failed[S.level] and 'MINE FOUND' or solved(S.level,tiles) and 'CLEARED' or 'Deduce, mark, reveal'),
-       'small','center',430)
-  text(g,240,664,S.mode..' MODE / FLAGS '..marked(S.level),'small','center',428)
-  button(g,19,707,103,67,S.level>1 and 'PREV' or 'START')
-  button(g,131,707,103,67,'FLAG',S.mode=='FLAG')
-  button(g,243,707,103,67,'UNDO')
-  button(g,355,707,105,67,'RESET')
+  text(g,24,600,'SAFE '..revealed(S.level)..' / '..safe,'medium',nil,200)
+  text(g,260,600,'FLAGS '..marked(S.level)..' / '..b.total,'medium',nil,210)
+  text(g,240,650,MSG or (S.failed[S.level] and 'Mine found'
+    or solved(S.level,tiles) and 'Field cleared'
+    or S.mode=='FLAG' and 'Flag mode: mark mines'
+    or 'Open mode: reveal safe squares'),'small','center',440)
+  button(g,8,710,85,66,S.level>1 and 'Prev' or 'Start')
+  button(g,102,710,85,66,S.mode=='FLAG' and 'Open' or 'Flag',S.mode=='FLAG')
+  button(g,196,710,85,66,'Hint',HINTED>0)
+  button(g,290,710,85,66,'Undo')
+  button(g,384,710,88,66,'Reset')
 end
 local function hit(x,y,bx,by,w,h)return x>=bx and x<bx+w and y>=by and y<by+h end
 local function tap(x,y)
@@ -294,10 +386,11 @@ local function tap(x,y)
     return false
   end
   if hit(x,y,308,12,101,46) then return next_level() end
-  if hit(x,y,19,707,103,67) then return prev() end
-  if hit(x,y,131,707,103,67) then return mode() end
-  if hit(x,y,243,707,103,67) then return undo() end
-  if hit(x,y,355,707,105,67) then return restart() end
+  if hit(x,y,8,710,85,66) then return prev() end
+  if hit(x,y,102,710,85,66) then return mode() end
+  if hit(x,y,196,710,85,66) then return hint() end
+  if hit(x,y,290,710,85,66) then return undo() end
+  if hit(x,y,384,710,88,66) then return restart() end
   local b=board(S.level)
   local bx,by,cell=geometry()
   if hit(x,y,bx,by,cell*b.n,cell*b.n) then
@@ -306,7 +399,7 @@ local function tap(x,y)
   return false
 end
 local function redraw() if C then pcall(function() C:invalidate() end) end end
-local function on_load(ctx) Theme.release();C=ctx or context;ERR=nil
+local function on_load(ctx) Theme.release();C=ctx or context;ERR=nil;HINTED=0
   local ok,e=pcall(function() if not restore() then start() end end)
   if not ok then ERR=tostring(e) end
 end
@@ -345,7 +438,8 @@ if rawget(_G,'__TEST') then __TEST.api={
  levels=LEVELS,board=board,neighbors=neighbors,nearby=nearby,
  state=function()return S end,apply=apply,mode=mode,undo=undo,
  restart=restart,visit=visit,next=next_level,prev=prev,
- solved=solved,geometry=geometry,tap=tap
+ solved=solved,geometry=geometry,tap=tap,hint=hint,infer_hint=infer_hint,
+ hinted=function()return HINTED end
 } end
 
 return {load=on_load,draw=on_draw,input=on_input,leave=on_leave,api=test and test.api,require=require}

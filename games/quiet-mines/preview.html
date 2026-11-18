@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XTEINK Quiet Mines — interactive 480×800 preview</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#ebe8e2;color:#161616;font:14px Inter,Arial,sans-serif}
+main{max-width:940px;margin:auto;padding:16px;display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.panel{width:330px;max-width:100%;line-height:1.5}
+h1{font-size:22px;margin:5px 0 8px}p{margin:7px 0 12px}
+select,button{border:2px solid #333;background:white;padding:8px 11px;color:#111;border-radius:6px;font:600 14px Arial;cursor:pointer}
+select{width:100%;margin-top:6px}.small{font-size:12px;color:#484848}
+.reader{background:#252525;padding:10px;border-radius:18px;box-shadow:0 11px 26px #0003;width:min(500px,100%)}
+canvas{display:block;width:100%;height:auto;background:white;touch-action:manipulation;cursor:pointer;border-radius:5px;image-rendering:pixelated}
+</style></head><body><main>
+<div class="panel"><h1>Quiet Mines · XTEINK preview</h1>
+<p>The 24 boards below are the same handcrafted mine layouts in the X4 Pro game.
+Open the marked S first, deduce mines from the numbered squares, and use Hint if stuck.</p>
+<label for="field">Choose a field</label><select id="field"></select>
+<p><button id="restart">Restart this field</button></p>
+<p id="details" class="small"></p>
+<p class="small">Interactive host mockup at 480×800; board state, clues and deductions match the Lua rules. Font rendering and touch behavior on the real XTEINK require physical testing. No animation or color is used inside the reader.</p>
+</div><div class="reader"><canvas id="screen" width="480" height="800" aria-label="Interactive Quiet Mines game" role="img"></canvas></div>
+</main><script>
+'use strict';
+const LEVELS=[{"id":1,"n":6,"mines":[3,4,15,21,24,27]},{"id":2,"n":6,"mines":[3,16,22,28,31,36]},{"id":3,"n":6,"mines":[5,15,16,18,24,25]},{"id":4,"n":6,"mines":[14,15,17,18,26,35]},{"id":5,"n":7,"mines":[7,14,17,32,35,39,48,49]},{"id":6,"n":7,"mines":[14,18,32,40,41,43,44,46]},{"id":7,"n":7,"mines":[3,13,21,25,36,37,45,46]},{"id":8,"n":7,"mines":[6,23,24,32,42,44,48,49]},{"id":9,"n":8,"mines":[4,6,15,23,25,36,44,45,46,64]},{"id":10,"n":8,"mines":[3,5,8,30,39,41,45,47,50,60]},{"id":11,"n":8,"mines":[3,5,12,36,37,39,40,43,51,63]},{"id":12,"n":8,"mines":[15,16,20,29,30,34,47,56,58,64]},{"id":13,"n":10,"mines":[5,13,34,35,43,45,47,48,60,64,65,68,72,79,85,87,96,98]},{"id":14,"n":10,"mines":[6,14,21,25,27,29,38,44,49,51,57,59,67,74,80,93,96,100]},{"id":15,"n":10,"mines":[3,5,18,31,34,35,48,53,64,66,81,82,85,86,89,97,98,99]},{"id":16,"n":10,"mines":[5,15,18,26,28,32,35,38,40,61,65,66,68,72,90,96,97,99]},{"id":17,"n":10,"mines":[8,19,21,24,27,35,48,49,62,69,70,82,85,86,89,97,99,100]},{"id":18,"n":10,"mines":[8,9,15,16,26,31,33,36,40,45,47,49,52,60,66,75,79,98]},{"id":19,"n":10,"mines":[14,21,30,36,38,42,46,55,59,65,67,69,75,77,83,84,93,96]},{"id":20,"n":10,"mines":[4,9,10,14,30,31,39,48,49,52,55,58,66,77,83,89,94,100]},{"id":21,"n":12,"mines":[11,17,18,25,31,33,35,41,43,46,49,57,62,68,76,82,86,89,90,94,96,101,104,105,112,124,138]},{"id":22,"n":12,"mines":[5,8,9,11,37,40,41,46,47,61,64,77,79,86,92,94,100,109,112,113,115,120,127,129,139,142,143]},{"id":23,"n":12,"mines":[3,8,17,23,35,39,44,46,47,63,66,69,72,73,78,80,87,90,97,100,101,108,124,125,128,137,144]},{"id":24,"n":12,"mines":[6,12,16,36,41,42,50,52,57,58,72,82,88,91,100,102,103,105,113,119,121,122,124,125,140,142,144]}];
+const select=document.getElementById('field');
+for(const p of LEVELS){const o=document.createElement('option');o.value=p.id;o.textContent='Field '+String(p.id).padStart(2,'0')+' · '+p.n+'×'+p.n+' · '+p.mines.length+' mines';select.append(o)}
+const canvas=document.getElementById('screen'),g=canvas.getContext('2d');
+let level=1,marks=[],history=[],mode='OPEN',failed=false,hinted=0,msg='',help=false;
+let board=null,neighbors=null,clues=null;
+const controls=[['Prev',8,710,85,66],['Mode',102,710,85,66],['Hint',196,710,85,66],['Undo',290,710,85,66],['Reset',384,710,88,66]];
+function geometry(){const n=board.n,cell=Math.floor(Math.min(460,468)/n);return{x:Math.floor((480-cell*n)/2),y:118+Math.floor((468-cell*n)/2),cell}}
+function setup(k){level=k;board=LEVELS[level-1];const n=board.n;
+neighbors=Array.from({length:n*n},(_,i)=>{const x=i%n,y=Math.floor(i/n),res=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if((dx||dy)&&x+dx>=0&&x+dx<n&&y+dy>=0&&y+dy<n)res.push((y+dy)*n+x+dx);return res});
+const mines=new Set(board.mines.map(v=>v-1));
+clues=neighbors.map((arr,i)=>arr.filter(j=>mines.has(j)).length);
+marks=Array(n*n).fill(0);history=[];mode='OPEN';failed=false;hinted=0;help=false;msg='Open S first';select.value=String(k);
+document.getElementById('details').textContent='Field '+k+' · '+n+'×'+n+' · '+board.mines.length+' mines · '+(k>12?'subset deductions':'direct deductions');draw()}
+function strokeRect(x,y,w,h,thick=2){g.lineWidth=thick;g.strokeStyle='#111';g.strokeRect(x+thick/2,y+thick/2,w-thick,h-thick)}
+function text(s,x,y,size=20,align='left',bold=false){g.fillStyle='#111';g.font=(bold?'700 ':'500 ')+size+'px Arial,sans-serif';g.textAlign=align;g.textBaseline='top';g.fillText(String(s),x,y)}
+function button(label,x,y,w,h,active=false){strokeRect(x,y,w,h,active?4:3);if(active)strokeRect(x+7,y+7,w-14,h-14,2);text(label,x+w/2,y+(h-24)/2,20,'center',true)}
+function drawn(){const {x,y,cell}=geometry(),n=board.n;let revealed=0,flags=0;
+for(const v of marks){if(v===2)revealed++;if(v===1)flags++}
+text('QUIET MINES',24,17,28,'left',true);button('?',416,12,48,48);
+if(level<24)button('Next',308,12,101,46);
+text('FIELD '+level+'/24   MINES '+board.mines.length,24,80,20);
+for(let i=0;i<n*n;i++){const px=x+i%n*cell,py=y+Math.floor(i/n)*cell,v=marks[i];
+if(v===0){strokeRect(px+4,py+4,cell-8,cell-8,2);if(i===0&&revealed===0)text('S',px+cell/2,py+(cell-20)/2,22,'center',true)}
+else if(v===1){g.lineWidth=3;g.beginPath();g.moveTo(px+cell*.31,py+cell*.18);g.lineTo(px+cell*.31,py+cell*.82);g.stroke();
+g.lineWidth=2;g.beginPath();g.moveTo(px+cell*.31,py+cell*.18);g.lineTo(px+cell*.74,py+cell*.31);g.lineTo(px+cell*.31,py+cell*.48);g.stroke()}
+else if(board.mines.includes(i+1)){text('*',px+cell/2,py+(cell-24)/2,25,'center',true)}
+else if(clues[i])text(clues[i],px+cell/2,py+(cell-24)/2,24,'center',true);
+if(hinted===i+1&&!failed)strokeRect(px+6,py+6,cell-12,cell-12,3);
+if(failed&&v===0&&board.mines.includes(i+1)){g.lineWidth=3;g.beginPath();g.arc(px+cell/2,py+cell/2,10,0,Math.PI*2);g.stroke()}
+}
+const minor=2,major=4;
+for(let j=0;j<=n;j++){const w=(j===0||j===n)?5:j%5===0?major:minor;g.fillStyle='#111';g.fillRect(x+j*cell-Math.floor(w/2),y,w,cell*n);g.fillRect(x,y+j*cell-Math.floor(w/2),cell*n,w)}
+text('SAFE '+revealed+' / '+(n*n-board.mines.length),24,600,20);
+text('FLAGS '+flags+' / '+board.mines.length,260,600,20);
+text(msg||(failed?'Mine found':won()?'Field cleared':'Mode '+mode),240,650,19,'center');
+for(const [name,bx,by,w,h] of controls){const label=name==='Mode'?(mode==='FLAG'?'Open':'Flag'):name;button(label,bx,by,w,h,name==='Mode'&&mode==='FLAG'||name==='Hint'&&hinted>0)}
+}
+function draw(){g.clearRect(0,0,480,800);g.fillStyle='white';g.fillRect(0,0,480,800);if(help){text('QUIET MINES',24,20,28,'left',true);button('X',416,12,48,48);
+text('How to play',240,150,28,'center',true);
+const lines=['Open S first. It is always a safe zero.',
+'Numbers count neighboring mines, including diagonals.',
+'Flag suspicious mines, then switch back to Open.',
+'Hints use numbered clues and your current flags.',
+'Overlapping clues unlock advanced fields.',
+'An incorrect flag may make a deduction unreliable.'];
+lines.forEach((s,i)=>text(s,24,232+i*57,16));button('Back to field',75,706,330,69);return}drawn()}
+function won(){return marks.filter(v=>v===2).length===board.n*board.n-board.mines.length}
+function save(){history.push(marks.slice());if(history.length>10)history.shift();hinted=0}
+function nearMine(i){return board.mines.includes(i+1)}
+function reveal(i){const q=[i];let head=0;while(head<q.length){const j=q[head++];if(marks[j]!==0||nearMine(j))continue;marks[j]=2;if(clues[j]===0)for(const k of neighbors[j])if(marks[k]===0&&!nearMine(k))q.push(k)}}
+function action(i){if(failed||won()||i<0||i>=marks.length||marks[i]===2)return;
+if(mode==='FLAG'){save();marks[i]=marks[i]===1?0:1;msg=marks[i]===1?'Flag placed':'Flag removed';draw();return}
+if(marks[i]===1){msg='Switch to Flag to clear';draw();return}
+if(!marks.includes(2)&&i!==0){msg='Open S first';draw();return}
+save();if(nearMine(i)){failed=true;msg='MINE! Reset this field'}else{reveal(i);msg=won()?'FIELD CLEARED!':'Area revealed'}draw()}
+function infer(){const con=[];
+for(let i=0;i<marks.length;i++){if(marks[i]!==2)continue;let need=clues[i],hidden=[];
+for(const j of neighbors[i]){if(marks[j]===1)need--;else if(marks[j]===0)hidden.push(j)}
+if(need<0||need>hidden.length)return{error:'Check your flags'};
+if(hidden.length)con.push({hidden,need,lookup:new Set(hidden)})}
+for(const c of con){if(c.need===0)return{index:c.hidden[0],kind:'OPEN',rule:'number'};if(c.need===c.hidden.length)return{index:c.hidden[0],kind:'FLAG',rule:'number'}}
+for(const a of con)for(const b of con){if(a.hidden.length>=b.hidden.length||!a.hidden.every(j=>b.lookup.has(j)))continue;
+const extra=b.hidden.filter(j=>!a.lookup.has(j)),diff=b.need-a.need;
+if(diff===0)return{index:extra[0],kind:'OPEN',rule:'overlap'};
+if(diff===extra.length)return{index:extra[0],kind:'FLAG',rule:'overlap'}}
+return{error:'No certain move; check flags'}}
+function hint(){if(failed||won())return;if(!marks.includes(2)){msg='Open S first';draw();return}const o=infer();if(o.error){hinted=0;msg=o.error;draw();return}
+hinted=o.index+1;msg='Hint: '+o.kind+' R'+(Math.floor(o.index/board.n)+1)+' C'+(o.index%board.n+1)+' ('+o.rule+')';draw()}
+function inRect(x,y,bx,by,w,h){return x>=bx&&x<bx+w&&y>=by&&y<by+h}
+function tap(x,y){if(inRect(x,y,416,12,48,48)){help=!help;draw();return}
+if(help){if(inRect(x,y,75,706,330,69)){help=false;draw()}return}
+if(level<24&&inRect(x,y,308,12,101,46)){setup(level+1);return}
+const actions=[()=>{if(level>1)setup(level-1)},()=>{mode=mode==='OPEN'?'FLAG':'OPEN';hinted=0;msg='Mode: '+mode;draw()},hint,()=>{if(history.length&&!failed&&!won()){marks=history.pop();hinted=0;msg='Last action restored';draw()}},()=>setup(level)];
+for(let k=0;k<controls.length;k++){const c=controls[k];if(inRect(x,y,c[1],c[2],c[3],c[4])){actions[k]();return}}
+const {x:bx,y:by,cell}=geometry(),n=board.n;
+if(inRect(x,y,bx,by,n*cell,n*cell)){action(Math.floor((y-by)/cell)*n+Math.floor((x-bx)/cell))}}
+canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect();tap((e.clientX-r.left)*480/r.width,(e.clientY-r.top)*800/r.height)});
+select.addEventListener('change',()=>setup(Number(select.value)));
+document.getElementById('restart').addEventListener('click',()=>setup(level));
+setup(1);
+</script></body></html>

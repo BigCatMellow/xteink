@@ -417,7 +417,8 @@ local function draw(g)
   for y=1,p.n do
     local cy=by+(y-1)*cell+math.floor((cell-clueHeight)/2)
     local label=format_run(p.rowClues[y])
-    text(g,bx-16-UI.width(D or C,label,clueFont),cy,label,clueFont,nil,bx-40)
+    local labelWidth=UI.width(D or C,label,clueFont)
+    text(g,bx-16-labelWidth,cy,label,clueFont,nil,labelWidth)
     if rowMatches[y] then tick(g,bx-12,by+(y-.5)*cell-3) end
   end
   for y=1,p.n do

@@ -70,7 +70,7 @@ for level=1,24 do
  measured(ctx,on_draw,'mines cleared '..level)
  on_leave();on_load(ctx);S=A.state()
  assert(A.solved(level,S.marks[level]),'completed state preserved')
- if level<12 then assert(A.next()) else assert(not A.next()) end
+ if level<24 then assert(A.next()) else assert(not A.next()) end
 end
 -- Level changes do not destroy an incomplete board or flags.
 assert(A.visit(4));A.restart()

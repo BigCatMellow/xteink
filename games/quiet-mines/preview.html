@@ -109,15 +109,20 @@ board=p;currentSeed=seed;currentDiff=difficulty;
 marks=Array(p.n*p.n).fill(0);history=[];mode='OPEN';failed=false;hinted=0;help=false;msg='Open S first';refreshBoard();return true}
 function strokeRect(x,y,w,h,thick=2){g.lineWidth=thick;g.strokeStyle='#111';g.strokeRect(x+thick/2,y+thick/2,w-thick,h-thick)}
 function text(s,x,y,size=20,align='left',bold=false){g.fillStyle='#111';g.font=(bold?'700 ':'500 ')+size+'px Arial,sans-serif';g.textAlign=align;g.textBaseline='top';g.fillText(String(s),x,y)}
-function button(label,x,y,w,h,active=false){strokeRect(x,y,w,h,active?4:3);if(active)strokeRect(x+7,y+7,w-14,h-14,2);text(label,x+w/2,y+(h-24)/2,20,'center',true)}
+function button(label,x,y,w,h,active=false){
+g.fillStyle='#333';g.fillRect(x+3,y+h+1,w-4,1);g.fillRect(x+w+1,y+3,1,h-4);
+g.strokeStyle='#111';g.lineWidth=active?5:3;g.beginPath();
+if(g.roundRect)g.roundRect(x+2,y+2,w-4,h-4,12);
+else g.rect(x+2,y+2,w-4,h-4);
+g.stroke();text(label,x+w/2,y+(h-24)/2,20,'center',true)}
 function drawn(){const {x,y,cell}=geometry(),n=board.n;let revealed=0,flags=0;
 for(const v of marks){if(v===2)revealed++;if(v===1)flags++}
 text('QUIET MINES',24,17,28,'left',true);button('?',416,12,48,48);
 button('New',308,12,101,46);
-text('FIELD '+level+'   MINES '+board.mines.length,24,80,20);
+text('FIELD '+Math.max(1,level-24)+'   MINES '+board.mines.length,24,80,20);
 button(['','Easy','Normal','Hard'][currentDiff],348,76,116,40);
 for(let i=0;i<n*n;i++){const px=x+i%n*cell,py=y+Math.floor(i/n)*cell,v=marks[i];
-if(v===0){strokeRect(px+4,py+4,cell-8,cell-8,2);if(i===0&&revealed===0)text('S',px+cell/2,py+(cell-20)/2,22,'center',true)}
+if(v===0){g.fillStyle='#333';g.fillRect(px+3,py+cell-4,cell-6,1);g.fillRect(px+cell-4,py+3,1,cell-6);if(i===0&&revealed===0)text('S',px+cell/2,py+(cell-20)/2,22,'center',true)}
 else if(v===1){g.lineWidth=3;g.beginPath();g.moveTo(px+cell*.31,py+cell*.18);g.lineTo(px+cell*.31,py+cell*.82);g.stroke();
 g.lineWidth=2;g.beginPath();g.moveTo(px+cell*.31,py+cell*.18);g.lineTo(px+cell*.74,py+cell*.31);g.lineTo(px+cell*.31,py+cell*.48);g.stroke()}
 else if(board.mines.includes(i+1)){text('*',px+cell/2,py+(cell-24)/2,25,'center',true)}
@@ -125,8 +130,7 @@ else if(clues[i])text(clues[i],px+cell/2,py+(cell-24)/2,24,'center',true);
 if(hinted===i+1&&!failed)strokeRect(px+6,py+6,cell-12,cell-12,3);
 if(failed&&v===0&&board.mines.includes(i+1)){g.lineWidth=3;g.beginPath();g.arc(px+cell/2,py+cell/2,10,0,Math.PI*2);g.stroke()}
 }
-const minor=2,major=4;
-for(let j=0;j<=n;j++){const w=(j===0||j===n)?5:j%5===0?major:minor;g.fillStyle='#111';g.fillRect(x+j*cell-Math.floor(w/2),y,w,cell*n);g.fillRect(x,y+j*cell-Math.floor(w/2),cell*n,w)}
+for(let j=0;j<=n;j++){const w=(j===0||j===n)?4:2;g.fillStyle='#111';const at=j===0?0:j===n?n*cell-w:j*cell-Math.floor(w/2);g.fillRect(x+at,y,w,cell*n);g.fillRect(x,y+at,cell*n,w)}
 text('SAFE '+revealed+' / '+(n*n-board.mines.length),24,600,20);
 text('FLAGS '+flags+' / '+board.mines.length,260,600,20);
 text(msg||(failed?'Mine found':won()?'Field cleared':'Mode '+mode),240,650,19,'center');

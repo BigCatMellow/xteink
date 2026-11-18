@@ -12,11 +12,13 @@ local HELP,MENU=false,false
 local CHOICE=2
 local KEY_MS=-1000
 -- One geometry contract for drawing and taps. Values are device pixels.
-local BOARD={x=6,y=100,cell=52,size=468}
-local CONTROLS={new={242,12,76,48},check={326,12,90,48},help={424,12,48,48},
-  notes={8,604,132,60},undo={8,668,132,60},erase={8,732,132,60}}
+-- Approved portrait mockup geometry, on the actual 480x800 screen.
+-- One 441px square board, 49px cells, no phone-style extra chrome.
+local BOARD={x=19,y=126,cell=49,size=441}
+local CONTROLS={new={229,18,75,46},check={311,18,93,46},help={412,18,49,46},
+  notes={19,620,121,53},undo={19,680,121,53},erase={19,740,121,53}}
 local function digit_box(n)
-  return 156+(n-1)%3*106,604+math.floor((n-1)/3)*64,98,60
+  return 148+(n-1)%3*107,620+math.floor((n-1)/3)*60,99,53
 end
 local function copy(a) local b={};for i,v in ipairs(a) do b[i]=v end;return b end
 local function zeros() local a={};for i=1,81 do a[i]=0 end;return a end
@@ -304,8 +306,8 @@ local function button(g,x,y,w,h,s,decorated,options)
   options=options or {}
   -- A 1-bit, two-pixel offset reads as depth without a second inset frame.
   -- Every shadow stays inside the existing 480x800 layout and hitbox.
-  g:rect(x+3,y+h+1,w-4,1,{fill=true,radius=0})
-  g:rect(x+w+1,y+3,1,h-4,{fill=true,radius=0})
+  g:rect(x+4,y+h+2,w-4,2,{fill=true,radius=0})
+  g:rect(x+w+2,y+4,2,h-4,{fill=true,radius=0})
   options.line_width=decorated and 5 or options.line_width or 4
   UI.button(g,C,x,y,w,h,s,false,options)
 end
@@ -348,10 +350,10 @@ end
 -- 12px spacing the two bands consume fewer than 350 canvas commands.
 local function light_wash(g,x,y,w,h)
   local row=0
-  for yy=y+5,y+h-5,12 do
-    local offset=(row%2)*6
-    for xx=x+5+offset,x+w-5,12 do
-      g:rect(xx,yy,2,2,{fill=true,radius=0})
+  for yy=y+4,y+h-4,9 do
+    for xx=x+4+(row%2)*4,x+w-4,9 do
+      -- A 1px halftone point, not a visible 2px checker dot.
+      g:rect(xx,yy,1,1,{fill=true,radius=0})
     end
     row=row+1
   end
@@ -401,14 +403,14 @@ local function draw_menu(g)
 end
 local function draw(g)
   g:clear(0)
-  text(g,16,19,'SUDOKU','large',nil,202)
+  text(g,22,22,'Sudoku','large',nil,194)
   if not HELP and not MENU then
     control(g,'new','NEW');control(g,'check',S.submitted and 'DONE' or 'CHECK')
   end
   control(g,'help',(HELP or MENU) and 'X' or '?')
-  text(g,16,68,'Puzzle '..S.level,'small',nil,260)
+  text(g,22,78,'Puzzle '..S.level,'small',nil,248)
   local difficulty=NAMES[S.difficulty]:sub(1,1)..NAMES[S.difficulty]:sub(2):lower()
-  text(g,402,68,difficulty,'small','center',124)
+  text(g,402,78,difficulty,'small','center',120)
   if HELP then draw_help(g);return end
   if MENU then draw_menu(g);return end
   local bx,by,cell,size=BOARD.x,BOARD.y,BOARD.cell,BOARD.size
@@ -446,7 +448,7 @@ local function draw(g)
   if not status and S.noteMode and S.locked>0 then
     status='NOTE '..S.locked..'  '..note_total(S.notes)..'/'..NOTE_CAP[S.difficulty]
   end
-  text(g,240,575,status or (S.submitted and 'Solved' or
+  text(g,240,583,status or (S.submitted and 'Solved' or
     'Left '..remaining..(S.showConflicts and ' / Clashes '..clashes or '')),'small','center',448)
   control(g,'notes','NOTES',S.noteMode)
   control(g,'undo','UNDO');control(g,'erase','ERASE')

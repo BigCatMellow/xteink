@@ -362,12 +362,14 @@ local CROSS_MODE=false
 local SELECTED=0
 local HINTED=0
 -- One geometry contract for visible controls and touch. See docs/DESIGN.md.
+-- Approved 480x800 portrait drawing and hit-testing coordinates.
+-- Frequent controls are prominent; mode/hint remain usable inside Help.
 local BUTTONS={
-  help={408,20,48,48},mode={332,20,64,48},
-  hint={272,78,76,44},next={352,78,104,44},
-  prev={24,708,96,68},undo={132,708,96,68},
-  reset={240,708,96,68},check={348,708,108,68},
-  back={24,708,432,68}
+  help={414,18,49,48},new={305,18,96,48},next={305,18,96,48},
+  mode={24,610,205,54},hint={244,610,212,54},
+  prev={15,704,105,62},undo={129,704,105,62},
+  reset={243,704,105,62},check={357,704,107,62},
+  back={24,704,432,62}
 }
 local STYLE=Family
 local function copy(arr)
@@ -691,19 +693,21 @@ local function geometry()
   -- unlike 15/20 grids, which would be unusably small on 480px.
   local cap=n==5 and 70 or n==7 and 50 or n==8 and 45
     or (maxColumn>=5 and 35 or 37)
+  -- Fit the *whole* clue+board object to the large central play region,
+  -- not a square placed underneath a toolbar.
   local cell=math.min(cap,math.floor((456-gutter)/n),
-    math.floor((518-clueArea)/n))
+    math.floor((488-clueArea)/n))
   assert(cell>=34,'Nonogram clue density exceeds readable screen')
   local x=math.floor((480-(n*cell+gutter))/2)+gutter
-  local y=112+math.floor((518-(n*cell+clueArea))/2)+clueArea
+  local y=102+math.floor((488-(n*cell+clueArea))/2)+clueArea
   return x,y,cell,gutter,clueArea
 end
 local function button(g,key,label,primary,enabled)
   local b=BUTTONS[key]
   if enabled~=false then
     -- Low-cost 1-bit offset: soft button depth without duplicate inset boxes.
-    g:rect(b[1]+3,b[2]+b[4]+1,b[3]-4,1,{fill=true,radius=0})
-    g:rect(b[1]+b[3]+1,b[2]+3,1,b[4]-4,{fill=true,radius=0})
+    g:rect(b[1]+4,b[2]+b[4]+2,b[3]-4,2,{fill=true,radius=0})
+    g:rect(b[1]+b[3]+2,b[2]+4,2,b[4]-4,{fill=true,radius=0})
   end
   UI.button(g,D or C,b[1],b[2],b[3],b[4],label,false,{
     font=(key=='mode' or key=='hint') and 'small' or nil,
@@ -722,15 +726,17 @@ local function format_run(list)
   return table.concat(result,' ')
 end
 local function help_screen(g)
-  text(g,240,164,'How to solve','large','center',432)
-  UI.paragraph(g,D or C,24,222,432,118,
-    'Each number is a run of filled cells. Leave at least one empty cell between runs.', 'body')
-  UI.paragraph(g,D or C,24,350,432,120,
-    'FILL taps to shade a square; X mode marks known empty cells. Tap the mode button to switch.', 'body')
-  UI.paragraph(g,D or C,24,484,432,116,
-    'Hint uses the clues to find a certain move, without seeing the picture. Undo and Reset keep your progress.', 'body')
-  UI.paragraph(g,D or C,24,614,432,72,
-    'New puzzles are generated; old saves still work.', 'small')
+  text(g,240,143,'How to solve','large','center',432)
+  UI.paragraph(g,D or C,24,204,432,102,
+    'Fill the numbered runs. Separate different runs with at least one empty square.', 'body')
+  UI.paragraph(g,D or C,24,324,432,110,
+    'Fill marks a square; X marks known empty cells. Undo restores the last action.', 'body')
+  UI.paragraph(g,D or C,24,452,432,107,
+    'Hint finds a certain square using the clues, without revealing the solution.', 'body')
+  text(g,240,578,'Puzzle '..(S.level<=TOTAL and S.level or S.level-TOTAL),
+    'small','center',432)
+  button(g,'mode',CROSS_MODE and 'Mode: X' or 'Mode: Fill',false)
+  button(g,'hint','Hint',false,not S.submitted[S.level])
   button(g,'back','Back to puzzle',true)
 end
 local function tick(g,x,y)
@@ -741,31 +747,21 @@ local function light_wash(g,x,y,w,h)
   -- Dithered shade, not row/column outline rails. Stagger sparse 2px dots
   -- behind cell marks so the guide is visible without muddying clues.
   local row=0
-  for yy=y+5,y+h-5,12 do
-    for xx=x+5+(row%2)*6,x+w-5,12 do
-      g:rect(xx,yy,2,2,{fill=true,radius=0})
+  for yy=y+4,y+h-4,9 do
+    for xx=x+4+(row%2)*4,x+w-4,9 do
+      -- A 1px halftone point, not a visible 2px checker dot.
+      g:rect(xx,yy,1,1,{fill=true,radius=0})
     end
     row=row+1
   end
 end
 local function draw(g)
   g:clear(0)
-  -- Typography carries the title: no decorative tile competes with clues.
-  text(g,24,25,'Nonogram','large',nil,286)
-  if not HELP then button(g,'mode',CROSS_MODE and 'X' or 'FILL') end
+  text(g,22,21,'Nonogram','large',nil,270)
   button(g,'help',HELP and 'X' or '?')
-  local p=current()
-  text(g,24,89,S.level<=TOTAL and 'Saved '..S.level
-    or 'Puzzle '..(S.level-TOTAL),'small',nil,230)
-  -- A nine-digit puzzle index would collide with size metadata.
-  if S.level<1000000 then text(g,177,89,p.n..' x '..p.n,'small',nil,90) end
-  if not HELP and not S.submitted[S.level] then
-    button(g,'hint','Hint')
-  end
-  if not HELP and not S.submitted[S.level] then
-    button(g,'next',S.level<S.unlocked and 'Next' or 'New')
-  end
+  if not HELP then button(g,'new','New') end
   if HELP then help_screen(g);return end
+  local p=current()
   local bx,by,cell=geometry()
   UI.region(bx,by,cell*p.n,cell*p.n)
   local board=S.boards[S.level]
@@ -814,13 +810,13 @@ local function draw(g)
     g:rect(bx+col*cell+4,by+row*cell+4,cell-8,cell-8,
       {line_width=HINTED==SELECTED and 4 or 3,radius=3})
   end
-  text(g,24,636,'Rows '..rows..' / '..p.n,'small',nil,200)
-  text(g,264,636,'Cols '..cols..' / '..p.n,'small',nil,192)
+  text(g,24,608,'Rows '..rows..' / '..p.n,'medium',nil,195)
+  text(g,252,608,'Cols '..cols..' / '..p.n,'medium',nil,202)
   local won=S.submitted[S.level]
   local status=MSG or (won and 'Revealed: '..display_name(p.name)
     or CROSS_MODE and 'X mode: mark confirmed empties'
     or 'Fill mode: tap to mark squares')
-  text(g,240,670,status,'small','center',432)
+  text(g,240,658,status,'small','center',432)
   button(g,'prev','Prev',false,S.level>1 and S.level~=TOTAL+1)
   button(g,'undo','Undo',false,not won and #S.history[S.level]>0)
   button(g,'reset','Reset')
@@ -837,13 +833,16 @@ local function tap(x,y)
   if control_hit('help',x,y) then HELP=not HELP;return true end
   if HELP then
     if control_hit('back',x,y) then HELP=false;return true end
+    if control_hit('mode',x,y) then HELP=false;return toggle_mode() end
+    if control_hit('hint',x,y) and not S.submitted[S.level] then
+      HELP=false;return hint()
+    end
     return false
   end
-  if control_hit('mode',x,y) then return toggle_mode() end
-  if control_hit('hint',x,y) then return hint() end
-  if control_hit('next',x,y) and not S.submitted[S.level] then
-    return S.level<S.unlocked and next_level() or new_puzzle()
-  end
+  if control_hit('new',x,y) then return new_puzzle() end
+  -- The status is also a discoverable one-tap mode switch, without
+  -- adding another button to the approved four-button resting screen.
+  if hit(x,y,24,648,432,42) then return toggle_mode() end
   if control_hit('prev',x,y) then return prev() end
   if control_hit('undo',x,y) then return undo() end
   if control_hit('reset',x,y) then return reset() end

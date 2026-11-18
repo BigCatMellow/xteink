@@ -47,20 +47,22 @@ def geometry(text):
     import re
     board = re.search(r"local BOARD=\{x=(\d+),y=(\d+),cell=(\d+),size=(\d+)\}", text)
     keys = re.search(
-        r"return 156\+\(n-1\)%3\*106,(\d+)\+math.floor\(\(n-1\)/3\)\*(\d+),98,(\d+)",
+        r"return (\d+)\+\(n-1\)%3\*(\d+),(\d+)\+math.floor\(\(n-1\)/3\)\*(\d+),(\d+),(\d+)",
         text,
     )
     if not board or not keys:
         raise AssertionError("Sudoku geometry changed: update screenshot measurements")
     x, y, cell, size = map(int, board.groups())
-    start, step, height = map(int, keys.groups())
+    column_start, column_step, start, step, width, height = map(int, keys.groups())
     return {
         "board": [x, y, size, size],
         "cell": cell,
-        "number_key": [98, height],
+        "number_key": [width, height],
+        "number_key_column_start": column_start,
+        "number_key_column_step": column_step,
         "number_key_start": start,
         "number_key_step": step,
-        "numeric_touch_area": 9 * 98 * height,
+        "numeric_touch_area": 9 * width * height,
     }
 
 
@@ -94,9 +96,13 @@ def main():
     )
     new_source = APP.read_text()
     before, after = geometry(old_source.decode("utf-8")), geometry(new_source)
-    assert before["board"][2] == after["board"][2] == 468
-    assert before["numeric_touch_area"] == after["numeric_touch_area"]
-    assert before["board"] == after["board"]
+    # The approved reference intentionally moves and sizes both areas.
+    assert after["board"] == [19, 126, 441, 441]
+    assert after["cell"] == 49
+    assert after["number_key"] == [99, 53]
+    assert after["number_key_start"] == 620
+    assert after["number_key_step"] == 60
+    assert after["numeric_touch_area"] >= 9 * 95 * 50
     with tempfile.TemporaryDirectory(prefix="xteink-sudoku-") as temp:
         baseline = Path(temp) / "sudoku-before.lua"
         baseline.write_bytes(old_source)
@@ -107,10 +113,11 @@ def main():
             first = capture(baseline, scene)
             last = capture(APP, scene)
             if scene in {"first", "notes", "feedback", "solved"}:
-                # The board retains identical geometry, but thicker rules
-                # and vector pencil numerals intentionally change its ink.
-                before_board = first.crop((6, 100, 474, 568))
-                after_board = last.crop((6, 100, 474, 568))
+                # Contrast actual board crops at *their* two resolutions.
+                x1, y1, w1, h1 = before["board"]
+                x2, y2, w2, h2 = after["board"]
+                before_board = first.crop((x1, y1, x1 + w1, y1 + h1))
+                after_board = last.crop((x2, y2, x2 + w2, y2 + h2))
                 assert before_board.tobytes() != after_board.tobytes(), (
                     f"{scene}: expected a visually distinct Sudoku style"
                 )
@@ -119,8 +126,8 @@ def main():
             top = i * 844
             sheet.paste(first.convert("RGB"), (8, top + 32))
             sheet.paste(last.convert("RGB"), (512, top + 32))
-            pen.text((8, top + 7), f"{scene}: before 0.3.3", font=font, fill=0)
-            pen.text((512, top + 7), f"{scene}: after 0.4.0", font=font, fill=0)
+            pen.text((8, top + 7), f"{scene}: historical baseline", font=font, fill=0)
+            pen.text((512, top + 7), f"{scene}: approved portrait 0.6.0", font=font, fill=0)
         sheet.save(args.out / "before-after.png")
     (args.out / "metrics.json").write_text(
         json.dumps({"baseline": BASELINE, "before": before, "after": after}, indent=2) + "\n"

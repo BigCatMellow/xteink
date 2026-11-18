@@ -35,7 +35,7 @@ do
   local old=g.rect
   local dots,rectangles=0,{}
   function g:rect(x,y,w,h,o)
-    if o and o.fill and w==2 and h==2 then dots=dots+1 end
+    if o and o.fill and w==1 and h==1 then dots=dots+1 end
     if not(o and o.fill) then
       rectangles[#rectangles+1]={x=x,y=y,w=w,h=h}
     end
@@ -52,7 +52,7 @@ do
       rails=rails+1
     end
   end
-  assert(dots>=20 and dots<300,'sparse stipple is bounded')
+  assert(dots>=80 and dots<500,'fine stipple is bounded')
   assert(selection,'the selected cell needs a single strong border')
   eq(rails,0,'no full-axis outline rails')
   assert(A.reset())
@@ -97,8 +97,8 @@ for _,level in ipairs({1,5,9}) do
   assert(cell>=34,'touch cells must stay usable with extended 10x10 puzzles')
   assert(n*cell>=345,'the puzzle must receive meaningful screen area')
   assert(math.abs(((bx-gutter)+(bx+n*cell))/2-240)<=.5,'clues and board centered horizontally')
-  assert(math.abs(((by-clueArea)+(by+n*cell))/2-371)<=.5,'clues and board centered vertically')
-  assert(by+n*cell<=630,'board leaves room for feedback and controls')
+  assert(math.abs(((by-clueArea)+(by+n*cell))/2-346)<=.5,'clues and board centered vertically')
+  assert(by+n*cell<=592,'board leaves room for feedback and controls')
   assert(not A.tap(bx-1,by+cell/2),'clue gutter must not paint a square')
   assert(A.tap(bx+1,by+1));eq(s.boards[level][1],1,'top-left touch matches drawn cell')
   assert(A.tap(bx+n*cell-1,by+n*cell-1));eq(s.boards[level][n*n],1,'bottom-right touch matches drawn cell')
@@ -307,10 +307,13 @@ local selected,hinted=A.cursor()
 eq(hinted,(forced.y-1)*p.n+forced.x,'hint highlights its precise square')
 measured(ctx,on_draw,'nonogram selected row and column')
 local mode=A.controls.mode
+local help=A.controls.help
+assert(A.tap(help[1]+help[3]/2,help[2]+help[4]/2))
 assert(A.tap(mode[1]+mode[3]/2,mode[2]+mode[4]/2))
 assert(A.tap(1+select(1,A.geometry()),1+select(2,A.geometry())),
   'X mode paints from real board touch position')
 eq(s.boards[1][1],2,'X mode marks an unknown as empty')
+assert(A.tap(help[1]+help[3]/2,help[2]+help[4]/2))
 assert(A.tap(mode[1]+mode[3]/2,mode[2]+mode[4]/2))
 local gx,gy=A.geometry()
 assert(A.tap(gx+1,gy+1))

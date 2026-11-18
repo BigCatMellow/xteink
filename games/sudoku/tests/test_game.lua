@@ -131,24 +131,24 @@ do
  for _,r in ipairs(reports) do
   eq(#r.regions,1,'one Sudoku puzzle region')
   local board=r.regions[1]
-  eq(board.x,6);eq(board.y,100);eq(board.w,468);eq(board.h,468)
+  eq(board.x,19);eq(board.y,126);eq(board.w,441);eq(board.h,441)
   assert(r.largest_gap.pixels<48,'unused band between screen elements '..r.largest_gap.pixels)
   eq(#r.number_keys,9,'all nine numeric buttons must be visible')
   for _,b in ipairs(r.number_keys) do
-   eq(b.w,98);eq(b.h,60)
+   eq(b.w,99);eq(b.h,53)
    assert(b.x>=0 and b.x+b.w<=480 and b.y>=0 and b.y+b.h<=800,'off-screen number key')
   end
  end
  for _,name in ipairs({'notes','undo','erase'}) do
-  local b=A.controls[name];eq(b[4],60,'tall adjacent button')
+  local b=A.controls[name];eq(b[4],53,'full-size adjacent button')
  end
  for n=1,9 do
   local x,y,w,h=A.digit_box(n)
-  eq(y,604+math.floor((n-1)/3)*64,'adaptive keypad row')
-  eq(w,98);eq(h,60)
+  eq(y,620+math.floor((n-1)/3)*60,'approved keypad row')
+  eq(w,99);eq(h,53)
  end
  local _,y,_,h=A.digit_box(9)
- eq(y+h,792,'reserve eight pixels at bottom')
+ eq(y+h,793,'approved keypad bottom margin')
 end
 
 -- Device-photo regression: inspect filled geometry, independent of line_width.
@@ -161,17 +161,17 @@ do
   return rect(self,x,y,w,h,o)
  end
  g:reset();on_draw(ctx,g);g:verify('sudoku solid divisions')
- assert(grid.size>=468 and grid.cell==52,'board must use the available width')
+ assert(grid.x==19 and grid.y==126 and grid.size==441 and grid.cell==49,'approved portrait board is exact')
  local function bar(x,y,w,h)
   for _,b in ipairs(bars) do if b.x==x and b.y==y and b.w==w and b.h==h and b.radius==0 then return true end end
   return false
  end
  for _,i in ipairs({3,6}) do
-  assert(bar(grid.x+i*52-2,grid.y,5,468),'missing solid vertical 3x3 separator')
-  assert(bar(grid.x,grid.y+i*52-2,468,5),'missing solid horizontal 3x3 separator')
+  assert(bar(grid.x+i*49-2,grid.y,5,441),'missing solid vertical 3x3 separator')
+  assert(bar(grid.x,grid.y+i*49-2,441,5),'missing solid horizontal 3x3 separator')
  end
- assert(bar(grid.x,grid.y,5,468) and bar(grid.x+463,grid.y,5,468),'outer frame must be solid')
- assert(bar(grid.x+51,grid.y,2,468),'interior lines must be 2px')
+ assert(bar(grid.x,grid.y,5,441) and bar(grid.x+436,grid.y,5,441),'outer frame must be solid')
+ assert(bar(grid.x+48,grid.y,2,441),'interior lines must be 2px')
  for n=1,9 do
   local x,y,w,h=A.digit_box(n)
   assert(w>=48 and h>=48,'comfortable number-key touch target')
@@ -180,8 +180,8 @@ do
   eq(s.board[blank],n,'each 3-column digit key matches its label')
  end
  for i=1,81 do
-  local x=grid.x+(i-1)%9*52+26
-  local y=grid.y+math.floor((i-1)/9)*52+26
+  local x=grid.x+(i-1)%9*49+24
+  local y=grid.y+math.floor((i-1)/9)*49+24
   assert(A.tap(x,y));eq(s.selected,i,'all 81 expanded cell touch targets')
  end
 end
@@ -211,7 +211,7 @@ do
   local outlines,dots={},{};
   local original=g.rect
   function g:rect(x,y,w,h,options)
-    if options and options.fill and w==2 and h==2 then
+    if options and options.fill and w==1 and h==1 then
       dots[#dots+1]={x=x,y=y}
     elseif not(options and options.fill) then
       outlines[#outlines+1]={x=x,y=y,w=w,h=h}
@@ -225,16 +225,16 @@ do
     end
     return false
   end
-  assert(not hasRect(6,100+geometry.row*52,468,52),
+  assert(not hasRect(19,126+geometry.row*49,441,49),
     'full-row guide outline must not muddy the board')
-  assert(not hasRect(6+geometry.col*52,100,52,468),
+  assert(not hasRect(19+geometry.col*49,126,49,441),
     'full-column guide outline must not muddy the board')
-  assert(hasRect(6+geometry.col*52+4,100+geometry.row*52+4,44,44),
+  assert(hasRect(19+geometry.col*49+4,126+geometry.row*49+4,41,41),
     'single selected-cell frame must remain obvious')
-  assert(#dots>=100 and #dots<350,'light 1-bit focus shade should be sparse')
+  assert(#dots>=200 and #dots<650,'fine 1-bit focus shade should remain bounded')
   for _,dot in ipairs(dots) do
-    assert((dot.y>=100+geometry.row*52 and dot.y<100+(geometry.row+1)*52)
-      or (dot.x>=6+geometry.col*52 and dot.x<6+(geometry.col+1)*52),
+    assert((dot.y>=126+geometry.row*49 and dot.y<126+(geometry.row+1)*49)
+      or (dot.x>=19+geometry.col*49 and dot.x<19+(geometry.col+1)*49),
       'shade must be restricted to selected row and column')
   end
   -- Pencil digits are drawn inside the cells as monochrome segments,

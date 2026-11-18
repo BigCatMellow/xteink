@@ -57,3 +57,9 @@ one-pixel right/bottom offset shadow. Unlike a rendered grayscale concept,
 the e-ink implementation draws 1-bit sparse dots with a bounded per-frame
 command count. Actual firmware tone, refresh, ghosting and touch accuracy
 still require on-device review.
+
+## v0.6.0 — approved portrait layout reproduced in native code
+
+The 480×800 display now follows the approved device mockup: 441×441 Sudoku board at (19,126), 49px cells; large Sudoku header and Puzzle/difficulty row; Left/Clashes immediately beneath the board; full-size Notes/Undo/Erase and 3×3 number pad at y620/680/740. Selecting a cell keeps one bold border and a faint one-bit stipple row/column wash, not crossing rails. The generator, saved seeds, pencil notes, checks, history, touch geometry and help/settings remain live.
+
+The browser image's photographic bevels, gray shading and antialiasing cannot be bit-for-bit identical on a strictly 1-bit Licorice device. The runtime uses Poppins/Inter bitmap fonts and small offset 2px shadows instead of an image. No device photograph or static illustration is substituted for playable controls.

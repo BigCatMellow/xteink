@@ -1,9 +1,9 @@
 {
   "app_id": "sudoku",
   "display_name": "Sudoku",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "author": "BigCatMellow",
-  "description": "Meditation-style Sudoku: five difficulties, pencil marks, guide lines and offline saves",
+  "description": "Meditation-style Sudoku: five difficulties, pencil marks, soft selection guides and offline saves",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": []

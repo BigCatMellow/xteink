@@ -187,7 +187,8 @@ local function load_generated(state,level)
     local data=Store.get(C.storage,'pattern',level)
     if type(data)=='string' then
       local payload=data
-      if payload:match('\nv2
+      if payload:match('\nv2$') then payload=payload:sub(1,-4)
+      else payload=payload:gsub('\nv3:%d+$','') end
       local b,won,past=payload:match('^([^\n]+)\n([01])\n(.*)$')
       local decoded=decode(b,n)
       local valid=decoded~=nil

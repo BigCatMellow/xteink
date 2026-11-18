@@ -578,7 +578,7 @@ mine layouts, hint logic, no-guess guarantees and undo are unchanged.
 
 Button borders remain rounded, with measured Poppins/Inter bitmap text.
 The subtle photographic shadow is approximated by two small offset 1-bit
-rectangles (2px bottom/right) rather than a gray alpha shadow; sparse stipple
+rectangles (2px bottom/right) rather than a gray alpha shadow; fine one-pixel halftone
 approximates the reference's gray selection wash. Do not replace these
 with image backgrounds: display geometry, labels and hitboxes must remain
 live and responsive to screen state. The device is *actually* 480×800; do

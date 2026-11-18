@@ -1,4 +1,4 @@
-# Quiet Mines — original no-guess Minesweeper on XTEINK X4 Pro
+# Quiet Mines — randomly generated no-guess Minesweeper on XTEINK X4 Pro
 
 Updates are applied directly from the computer while the SD card is mounted;
 see the [family release procedure](../../docs/GAME_UPDATES.md). All active games
@@ -12,7 +12,11 @@ The current release is also available inside Games Hub, with no separate
 installation needed when using the updated hub.
 
 
-A completely static, offline Minesweeper implementation for the X4 Pro. Twelve independently authored mine layouts, with four 6×6 fields (6 mines), four 7×7 fields (8 mines), and four 8×8 fields (10 mines).
+A static, offline Minesweeper implementation for the X4 Pro. **All new fields are generated from a randomized seed** and independently checked for a no-guess solution before being offered.
+
+## Current gameplay (v0.5.0): no prebuilt levels
+
+Fresh play opens with generated Field 1 (internal archive ID 25), with Easy 8×8, Normal 10×10, and Hard 12×12 available. **New** creates another verified board, and **Prev** from Field 1 cannot enter the old fixed campaign. Historical fields are stored only in `app/legacy_levels.lua` to keep previously installed saves readable, including their marks and history. They are not offered to new players. The older sections below describe those pre-v0.5.0 releases and legacy save support.
 
 ## Rules
 

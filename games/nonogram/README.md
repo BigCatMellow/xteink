@@ -8,7 +8,11 @@ installation when using the updated hub. Never uninstall to update.
 
 Presentation follows the [shared game design contract](../../docs/GAME_DESIGN.md): Poppins/Inter, rounded controls and stronger monochrome lines. That document owns design changes, reasons and per-game exceptions.
 
-An original, offline, black-and-white nonogram game for XTOS Licorice. Solve rows and columns of numbered clues to reveal a hidden pixel picture.
+An offline, black-and-white, procedurally generated Nonogram game for XTOS Licorice. Solve rows and columns of numbered clues to reveal a hidden pattern.
+
+## Current gameplay (v0.9.0): generated puzzles only
+
+Every new session starts on a random, deduction-solvable puzzle. **New**, **Next** and navigation among generated saved puzzles never present a hand-authored level; Puzzle 1 starts at internal archive ID 13. The browser preview has no preset picture menu. The original pictures are kept only in `app/legacy_pictures.lua` so an existing installed save can still be restored and finished without losing its marks or undo. The historical campaign is not offered to a fresh player. Earlier release descriptions below document how that migration works; they are not the current starting experience.
 
 **v0.5.0:** the complete clue/board composition is now centered in the game area; grid lines are 3px and the frame/marks 4px. Presentation uses the shared family implementation and keeps the large touch cells, existing levels, generated seeds and saves. See the [current shared design contract](../../docs/GAME_DESIGN.md) for the decisions and reasons.
 
@@ -55,7 +59,7 @@ Leave the firmware-managed `XTApps/` folder alone to preserve app data. No firmw
 ## Source
 
 - `app/index.lua` — logic, clues, UI, saves and input.
-- `app/pictures.lua` — twelve original pixel pictures.
+- `app/legacy_pictures.lua` — compatibility data for installed historical saves; never used for a new puzzle.
 - `app/ui.lua` — synchronized measured-text helper.
 - `app/icon.png` and `assets/icons/nonogram.svg` — native launcher icon.
 - `tests/validate_levels.py` — independent unique-solution verifier.

@@ -1,9 +1,9 @@
 {
   "app_id": "quietmines",
   "display_name": "Quiet Mines",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": "BigCatMellow",
-  "description": "24 no-guess fields, direct and subset hints, full-screen e-ink gameplay",
+  "description": "Random no-guess Minesweeper with 3 tiers and clue-only hints",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": []

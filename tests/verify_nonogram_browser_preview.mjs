@@ -16,10 +16,9 @@ runInNewContext(script.slice(0, cut) + '\nglobalThis.previewLevel = generateDevi
 
 const lua = `
 package.path='app/?.lua;'..package.path
-local Pictures=require('pictures')
 local Generator=require('generator')
-for level=1,44 do
-  local result=level<=12 and Pictures[level] or Generator.generate_v2(level)
+for level=13,56 do
+  local result=Generator.generate_v2(level)
   print(level..'|'..table.concat(result.rows,',')..'|'..(result.rounds or 0))
 end
 for _,level in ipairs({999999998,999999999}) do
@@ -41,4 +40,5 @@ for (const record of run.stdout.trim().split('\n')) {
   checked++;
 }
 assert.equal(checked, 46);
+assert.ok(!html.includes('const pictures='),'Preview cannot contain preset levels');
 console.log(`PASS: ${checked} browser levels exactly match Lua generated boards and deduction passes`);

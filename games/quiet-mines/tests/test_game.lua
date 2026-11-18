@@ -12,7 +12,9 @@ local ctx={storage={read=function(_,k)return save[k]end,write=function(_,k,v)sav
  invalidate=function()redraws=redraws+1 end}
 on_load(ctx)
 local S=A.state()
-eq(S.level,25);eq(#A.levels,24);assert(not A.next())
+eq(S.level,25);eq(#A.legacy_levels,24);assert(not A.next())
+assert(not A.prev(),'PREV must not lead to fixed historical fields')
+eq(S.level,25,'first generated field remains selected')
 local firstGenerated=A.board(25)
 assert(firstGenerated.n==10 and firstGenerated.total==18)
 assert(not firstGenerated.mines[1]);eq(A.nearby(firstGenerated,1),0)
@@ -52,7 +54,7 @@ else assert(first.mines[candidate.index]) end
 local count=0
 for _,v in ipairs(S.marks[1]) do if v==2 then count=count+1 end end
 assert(count>1,'zero-cell start floods neighbors')
-local mine=A.levels[1].mines[1]
+local mine=A.legacy_levels[1].mines[1]
 assert(A.mode());eq(S.mode,'FLAG')
 assert(A.apply(mine));eq(S.marks[1][mine],1)
 on_leave();on_load(ctx);S=A.state()
@@ -96,7 +98,7 @@ end
 -- Level changes do not destroy an incomplete board or flags.
 assert(A.visit(4));A.restart()
 assert(A.apply(1))
-local mine=A.levels[4].mines[1]
+local mine=A.legacy_levels[4].mines[1]
 assert(A.mode());assert(A.apply(mine))
 assert(A.visit(5))
 on_leave();on_load(ctx);S=A.state()

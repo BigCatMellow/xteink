@@ -19,6 +19,10 @@ FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
 HARNESS = r'''
 package.path='app/?.lua;'..TEST_ROOT..'/?.lua;'..package.path
+-- Baseline renders load a historical index.lua requiring its former module
+-- name. Keep that compatibility alias in the host renderer only; no active
+-- game package exposes pictures.lua.
+package.preload['pictures']=function() return require('legacy_pictures') end
 __TEST={}
 local storage={}
 local fonts={}
@@ -152,10 +156,11 @@ def main():
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     source = project_path('nonogram') / 'app/index.lua'
-    scenes = [('5x5', 1, 'partial'), ('7x7', 5, 'partial'), ('8x8', 9, 'partial'),
-              ('generated', 15, 'partial'), ('10x10', 14, 'partial'),
-              ('hint', 14, 'hint'), ('solved', 9, 'solved'),
-              ('help', 1, 'help'), ('wrong', 9, 'wrong')]
+    scenes = [('8x8', 13, 'partial'), ('10x10', 14, 'partial'),
+              ('7x7', 15, 'partial'), ('generated', 16, 'partial'),
+              ('logic-extra', 17, 'partial'), ('hint', 14, 'hint'),
+              ('solved', 15, 'solved'), ('help', 13, 'help'),
+              ('wrong', 16, 'wrong')]
     previews = []
     for name, level, scene in scenes:
         shot = render(source, level, scene, bitmap=args.bitmap)

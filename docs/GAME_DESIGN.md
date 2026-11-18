@@ -507,3 +507,11 @@ this 480×800 native-device update. Visual shape styles and better
 human technique/difficulty scoring are possible follow-ons, but
 must be verified against clue gutter size and physical touch
 targets, not treated as silently completed in this change.
+
+## Generated-only active campaigns — 2026-11-18
+
+Sudoku already generates every game from a fresh, saved seed. Nonogram v0.9.0 and Quiet Mines v0.5.0 remove the authored campaign from fresh gameplay and from the Nonogram browser preview. Their random/generated board history begins at internal IDs 13 and 25 to avoid collisions with installed saves, but the visible count begins at Puzzle/Field 1. PREV from the first generated puzzle must **not** reveal older authored boards. New and regenerated-puzzle UI must never load an archived original or use an unverified puzzle fallback.
+
+`legacy_pictures.lua` and `legacy_levels.lua` contain original fixed layouts **only** for compatibility with previously saved games. These are not choices for new players and are not authored levels in the active campaign. Removing the compatibility data entirely would corrupt installed saves, violating AGENTS.md. Historical tests verify this data's integrity separately from generated-puzzle gameplay and browser parity.
+
+The acceptance gate now asserts generated-first navigation, only generated preview seeds, original-save recovery, solver acceptance, installed font geometry and refreshed Games Hub source fingerprints. The code remains source-only until device installation and on-reader save/latency/touch review.

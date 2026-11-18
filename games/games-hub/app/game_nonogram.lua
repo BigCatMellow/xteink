@@ -287,7 +287,8 @@ end
 return G
 
 end
-factories["pictures"]=function()
+factories["legacy_pictures"]=function()
+-- Legacy save compatibility only. Never used to generate or select new puzzles.
 -- Original monochrome pixel drawings. Names appear only after submission.
 return {
   {name="HEART",rows={".#.#.","#####","#####",".###.","..#.."}},
@@ -305,10 +306,11 @@ return {
 }
 
 end
--- Nonogram: original picture-logic puzzles for XTEINK X4 Pro.
+-- Nonogram: generated clue-logic puzzles for XTEINK X4 Pro.
+-- Historical pictures are kept only for already-saved games.
 -- Tap cells to cycle blank -> ink -> X. Static monochrome refresh only.
 local UI=require('ui')
-local Pictures=require('pictures')
+local Pictures=require('legacy_pictures')
 local Generator=require('generator')
 local Store=require('puzzle_store')
 local Typefaces=require('typefaces')
@@ -576,7 +578,11 @@ local function visit(level)
   save()
   return true
 end
-local function prev() return S and visit(S.level-1) or false end
+local function prev()
+  if not S or S.level==TOTAL+1 then return false end
+  -- Never walk from the first generated puzzle into old prebuilt content.
+  return visit(S.level-1)
+end
 local function next_level() return S and visit(S.level+1) or false end
 local function new_puzzle()
   if not S or S.unlocked>=MAX then return false end
@@ -736,7 +742,8 @@ local function draw(g)
   if not HELP then button(g,'mode',CROSS_MODE and 'X' or 'FILL') end
   button(g,'help',HELP and 'X' or '?')
   local p=current()
-  text(g,24,89,'Puzzle '..S.level,'small',nil,230)
+  text(g,24,89,S.level<=TOTAL and 'Saved '..S.level
+    or 'Puzzle '..(S.level-TOTAL),'small',nil,230)
   -- A nine-digit puzzle index would collide with size metadata.
   if S.level<1000000 then text(g,177,89,p.n..' x '..p.n,'small',nil,90) end
   if not HELP and not S.submitted[S.level] then
@@ -803,7 +810,7 @@ local function draw(g)
     or CROSS_MODE and 'X mode: mark confirmed empties'
     or 'Fill mode: tap to mark squares')
   text(g,240,670,status,'small','center',432)
-  button(g,'prev','Prev',false,S.level>1)
+  button(g,'prev','Prev',false,S.level>1 and S.level~=TOTAL+1)
   button(g,'undo','Undo',false,not won and #S.history[S.level]>0)
   button(g,'reset','Reset')
   button(g,'check',won and (S.level<S.unlocked and 'Next' or 'Done') or 'Check',true,not won or S.level<S.unlocked)
@@ -910,7 +917,7 @@ local function on_leave()
 end
 if rawget(_G,'__TEST') then
   __TEST.api={
-    pictures=Pictures,state=function() return S end,
+    legacy_pictures=Pictures,state=function() return S end,
     shape=shape,runs=runs,correct=picture_correct,paint=paint,
     mark=mark_cell,hint=hint,mode=toggle_mode,
     cursor=function() return SELECTED,HINTED end,

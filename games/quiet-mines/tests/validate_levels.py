@@ -6,7 +6,7 @@ every forced safe square and forced mine. Reject maps requiring a guess.
 """
 from pathlib import Path
 import re
-text=(Path(__file__).resolve().parents[1]/'app'/'levels.lua').read_text()
+text=(Path(__file__).resolve().parents[1]/'app'/'legacy_levels.lua').read_text()
 raw=re.findall(r'\{title="FIELD (\d+)",n=(\d+),mines=\{([0-9,]+)\}\}',text)
 assert len(raw)==24
 def neighbors(n,p):

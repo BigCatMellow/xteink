@@ -118,6 +118,172 @@ function G.generate(number)
   end
   return {name='PATTERN '..number,rows=rows}
 end
+
+-- v2 deduction engine: line-pattern intersections, constrained by known marks.
+-- It reasons only from clues and marks, never from the hidden picture. A
+-- completed fixed point is a constructive proof of a unique solution.
+local function key(list)
+  local parts={}
+  for i,v in ipairs(list) do parts[i]=tostring(v) end
+  return table.concat(parts,',')
+end
+local function clues(rows)
+  local n=#rows
+  local rc,cc={},{}
+  for y=1,n do rc[y]=clue(rows[y]) end
+  for x=1,n do
+    local col={}
+    for y=1,n do col[y]=rows[y]:sub(x,x) end
+    cc[x]=clue(table.concat(col))
+  end
+  return rc,cc
+end
+local function safe_mark(n)
+  local a={}
+  for i=1,n*n do a[i]=0 end
+  return a
+end
+function G.propagate(n,rowClues,colClues,marks)
+  if n<1 or n>10 or #rowClues~=n or #colClues~=n then
+    return {contradiction=true,reason='invalid dimensions'}
+  end
+  local catalogued=catalog(n)
+  local possibilities={{},{}}
+  for axis=1,2 do
+    local arr=axis==1 and rowClues or colClues
+    for line=1,n do
+      local literal=type(arr[line])=='table' and key(arr[line]) or arr[line]
+      local valid=catalogued[literal]
+      if not valid or #valid==0 then
+        return {contradiction=true,reason='impossible line clue'}
+      end
+      possibilities[axis][line]=valid
+    end
+  end
+  local board={}
+  for i=1,n*n do
+    local mark=marks and marks[i] or 0
+    if mark~=0 and mark~=1 and mark~=2 then
+      return {contradiction=true,reason='bad mark'}
+    end
+    board[i]=mark
+  end
+  local steps,rounds={},0
+  for sweep=1,n*n+1 do
+    local progressed=false
+    for axis=1,2 do
+      for line=1,n do
+        local positions=possibilities[axis][line]
+        local matching={}
+        for _,pattern in ipairs(positions) do
+          local valid=true
+          for k=1,n do
+            local i=axis==1 and (line-1)*n+k or (k-1)*n+line
+            local actual=pattern:sub(k,k)=='#' and 1 or 2
+            if board[i]~=0 and board[i]~=actual then valid=false;break end
+          end
+          if valid then matching[#matching+1]=pattern end
+        end
+        if #matching==0 then
+          return {contradiction=true,reason='no patterns fit the marks',
+            steps=steps,rounds=rounds,board=board}
+        end
+        possibilities[axis][line]=matching
+        -- A cell forced in *every* fitting pattern is a sound deduction.
+        for k=1,n do
+          local same=true
+          local char=matching[1]:sub(k,k)
+          for j=2,#matching do
+            if matching[j]:sub(k,k)~=char then same=false;break end
+          end
+          if same then
+            local i=axis==1 and (line-1)*n+k or (k-1)*n+line
+            local v=char=='#' and 1 or 2
+            if board[i]==0 then
+              board[i]=v;progressed=true
+              steps[#steps+1]={x=(i-1)%n+1,y=math.floor((i-1)/n)+1,
+                value=v,axis=axis,round=sweep,options=#matching}
+            elseif board[i]~=v then
+              return {contradiction=true,reason='forced marks disagree',
+                steps=steps,rounds=rounds,board=board}
+            end
+          end
+        end
+      end
+    end
+    if not progressed then break end
+    rounds=sweep
+  end
+  local unresolved=0
+  for i=1,n*n do if board[i]==0 then unresolved=unresolved+1 end end
+  return {solved=unresolved==0,unresolved=unresolved,rounds=rounds,
+    steps=steps,board=board,contradiction=false}
+end
+function G.deduce(rowClues,colClues,marks)
+  local n=#rowClues
+  local outcome=G.propagate(n,rowClues,colClues,marks)
+  if outcome.contradiction then return nil,outcome.reason end
+  return outcome.steps[1],outcome
+end
+local function acceptable(rows)
+  local n=#rows
+  local filled=0
+  local rc,cc=clues(rows)
+  for _,row in ipairs(rows) do for i=1,#row do
+    if row:sub(i,i)=='#' then filled=filled+1 end
+  end end
+  if filled<n*n*.3 or filled>n*n*.7 then return false end
+  local maxRuns=n<=8 and 4 or 5
+  for _,cl in ipairs(rc) do
+    if select(2,cl:gsub(',',''))+1>maxRuns then return false end
+  end
+  for _,cl in ipairs(cc) do
+    if select(2,cl:gsub(',',''))+1>maxRuns then return false end
+  end
+  return true,rc,cc
+end
+function G.generate_v2(number)
+  assert(number>=13 and number==math.floor(number))
+  -- More intricate generated continuation while 5x5 pictures remain authored.
+  -- Geometry stays large enough for touch and the clue stack on 480x800.
+  local n=({8,10,7,10})[(number-13)%4+1]
+  local desired=n==7 and 3 or n==8 and 4 or 5
+  local density=n==7 and 48 or n==8 and 47 or 49
+  local rand=rng(number*131+791009)
+  local best,bestRounds=nil,-1
+  for attempt=1,36 do
+    local rows={}
+    for y=1,n do
+      local items={}
+      for x=1,n do items[x]=rand(100)<=density and '#' or '.' end
+      rows[y]=table.concat(items)
+    end
+    local acceptableShape,rc,cc=acceptable(rows)
+    if acceptableShape then
+      local analysis=G.propagate(n,rc,cc)
+      if analysis.solved and not analysis.contradiction then
+        if analysis.rounds>bestRounds then
+          best={name='LOGIC '..number,rows=rows,rounds=analysis.rounds,
+            generation=2}
+          bestRounds=analysis.rounds
+        end
+        if analysis.rounds>=desired then break end
+      end
+    end
+  end
+  if best then return best end
+  -- Deterministic, no-guess safety net. The row lengths and corresponding
+  -- column patterns force the complete board even on unlucky seeds.
+  local rows={}
+  for y=1,n do
+    local length=n-y+1
+    rows[y]=string.rep('#',length)..string.rep('.',n-length)
+  end
+  local rc,cc=clues(rows)
+  assert(G.propagate(n,rc,cc).solved,'logic fallback must be deductively solved')
+  return {name='LOGIC '..number,rows=rows,rounds=1,generation=2}
+end
+
 return G
 
 end
@@ -149,24 +315,33 @@ local Typefaces=require('typefaces')
 local Family=require('game_style')
 local TOTAL=#Pictures
 local MAX=999999999
+local C,S,ERR,MSG=nil,nil,nil,nil
 local generated=nil
 local function picture(level)
   if level<=TOTAL then return Pictures[level] end
   if not generated or generated.number~=level then
-    generated={number=level,puzzle=Generator.generate(level)}
+    local saved=nil
+    if C and C.storage then saved=Store.get(C.storage,'pattern',level) end
+    -- Existing unmarked generated saves are v1 forever. New levels use v2.
+    local v2=not saved or saved:match('\nv2$')~=nil
+    generated={number=level,puzzle=v2 and Generator.generate_v2(level)
+      or Generator.generate(level)}
   end
   return generated.puzzle
 end
-local C,S,ERR,MSG=nil,nil,nil,nil
 local FONTSET,D=nil,nil
 local FAILED_FONTSET=nil
 local NEEDS_FONTS=true
 local FONT_ERROR=nil
 local HELP=false
 local KEY_MS=-1000
+local CROSS_MODE=false
+local SELECTED=0
+local HINTED=0
 -- One geometry contract for visible controls and touch. See docs/DESIGN.md.
 local BUTTONS={
-  help={408,20,48,48},next={352,78,104,44},
+  help={408,20,48,48},mode={332,20,64,48},
+  hint={272,78,76,44},next={352,78,104,44},
   prev={24,708,96,68},undo={132,708,96,68},
   reset={240,708,96,68},check={348,708,108,68},
   back={24,708,432,68}
@@ -276,7 +451,10 @@ local function save()
     if S.level>TOTAL then
       local past={}
       for j,m in ipairs(S.history[S.level]) do past[j]=code(m) end
-      local data=table.concat({code(S.boards[S.level]),S.submitted[S.level] and '1' or '0',table.concat(past,';')},'\n')
+      local chunks={code(S.boards[S.level]),S.submitted[S.level] and '1' or '0',
+        table.concat(past,';')}
+      if picture(S.level).generation==2 then chunks[#chunks+1]='v2' end
+      local data=table.concat(chunks,'\n')
       Store.put(C.storage,'pattern',S.level,data)
     end
     Store.write(C.storage,'nonogram.txt',table.concat(lines,'\n'))
@@ -291,7 +469,9 @@ local function load_generated(state,level)
   if C and C.storage then
     local data=Store.get(C.storage,'pattern',level)
     if type(data)=='string' then
-      local b,won,past=data:match('^([^\n]+)\n([01])\n(.*)$')
+      local payload=data
+      if payload:match('\nv2$') then payload=payload:sub(1,-4) end
+      local b,won,past=payload:match('^([^\n]+)\n([01])\n(.*)$')
       local decoded=decode(b,n)
       local valid=decoded~=nil
       for part in (past or ''):gmatch('[^;]+') do
@@ -355,7 +535,7 @@ local function restore()
   if loaded.submitted[TOTAL] then loaded.unlocked=math.max(unlocked,TOTAL+1) end
   load_generated(loaded,level)
   S=loaded
-  HELP=false;MSG=nil
+  HELP=false;MSG=nil;CROSS_MODE=false;SELECTED=0;HINTED=0
   return true
 end
 local function visit(level)
@@ -366,24 +546,51 @@ local function visit(level)
     S.boards[S.level]=nil;S.history[S.level]=nil;S.submitted[S.level]=nil
   end
   S.level=level
-  MSG=nil;HELP=false
+  MSG=nil;HELP=false;CROSS_MODE=false;SELECTED=0;HINTED=0
   save()
   return true
 end
 local function prev() return S and visit(S.level-1) or false end
 local function next_level() return S and visit(S.level+1) or false end
-local function paint(x,y)
+local function mark_cell(x,y,kind)
   if not S then return false end
   local p=current()
   if x<1 or x>p.n or y<1 or y>p.n or S.submitted[S.level] then return false end
   local i=(y-1)*p.n+x
+  local marks=S.boards[S.level]
+  local nextValue
+  if kind=='cycle' then nextValue=(marks[i]+1)%3
+  elseif kind=='cross' then nextValue=marks[i]==2 and 0 or 2
+  else nextValue=marks[i]==1 and 0 or 1 end
+  SELECTED=i;HINTED=0
+  if nextValue==marks[i] then return true end
   local history=S.history[S.level]
   if #history>=16 then table.remove(history,1) end
-  history[#history+1]=copy(S.boards[S.level])
-  local board=S.boards[S.level]
-  board[i]=(board[i]+1)%3
-  MSG=nil
-  save()
+  history[#history+1]=copy(marks)
+  marks[i]=nextValue
+  MSG=nil;save()
+  return true
+end
+local function paint(x,y) return mark_cell(x,y,'cycle') end
+local function toggle_mode()
+  CROSS_MODE=not CROSS_MODE;HINTED=0;MSG=nil;return true
+end
+local function hint()
+  if S.submitted[S.level] then return false end
+  local p=current()
+  local step,analysis=Generator.deduce(p.rowClues,p.colClues,S.boards[S.level])
+  if not step then
+    HINTED=0
+    if type(analysis)=='table' then
+      MSG=analysis.solved and 'All cells are decided'
+        or 'No certain move from these clues'
+    else MSG='Marks conflict with clues - Undo' end
+    return true
+  end
+  HINTED=(step.y-1)*p.n+step.x
+  SELECTED=HINTED
+  MSG='Hint R'..step.y..' C'..step.x..
+    (step.value==1 and ': fill' or ': X')
   return true
 end
 local function undo()
@@ -401,6 +608,7 @@ local function reset()
   S.boards[n]=fresh_marks(#picture(n).rows)
   S.history[n]={}
   S.submitted[n]=false
+  SELECTED=0;HINTED=0
   MSG='Fresh grid'
   save()
   return true
@@ -410,6 +618,7 @@ local function display_name(name)
 end
 local function check()
   if not S or S.submitted[S.level] then return false end
+  HINTED=0
   if picture_correct(S.level,S.boards[S.level]) then
     S.submitted[S.level]=true
     S.unlocked=math.min(MAX,math.max(S.unlocked,S.level+1))
@@ -423,7 +632,6 @@ end
 local function geometry()
   local p=current()
   local n=p.n
-  local cell=n==5 and 68 or n==7 and 48 or 44
   local font=n==5 and 'clue' or 'clue_small'
   local widest,maxColumn=0,0
   for _,clue in ipairs(p.rowClues) do
@@ -434,15 +642,24 @@ local function geometry()
   local gutter=widest+16
   local height=UI.height(D or C,font)
   local clueArea=14+height+(maxColumn-1)*(height+6)
-  -- Center the complete clue + board object in the 128..584 puzzle band.
+  -- Measure the whole clue+board object. 10x10 uses 35px targets,
+  -- unlike 15/20 grids, which would be unusably small on 480px.
+  local cap=n==5 and 70 or n==7 and 50 or n==8 and 45 or 35
+  local cell=math.min(cap,math.floor((456-gutter)/n),
+    math.floor((518-clueArea)/n))
+  assert(cell>=34,'Nonogram clue density exceeds readable screen')
   local x=math.floor((480-(n*cell+gutter))/2)+gutter
-  local y=128+math.floor((456-(n*cell+clueArea))/2)+clueArea
+  local y=112+math.floor((518-(n*cell+clueArea))/2)+clueArea
   return x,y,cell,gutter,clueArea
 end
 local function button(g,key,label,primary,enabled)
   local b=BUTTONS[key]
-  UI.button(g,D or C,b[1],b[2],b[3],b[4],label,false,{
-    radius=STYLE.control_radius,line_width=enabled==false and STYLE.inactive_stroke or primary and STYLE.primary_stroke or STYLE.control_stroke
+  UI.button(g,D or C,b[1],b[2],b[3],b[4],label,
+    key=='mode' and CROSS_MODE or false,{
+    font=(key=='mode' or key=='hint') and 'small' or nil,
+    radius=STYLE.control_radius,
+    line_width=enabled==false and STYLE.inactive_stroke
+      or primary and STYLE.primary_stroke or STYLE.control_stroke
   })
 end
 local function text(g,x,y,s,style,align,width)
@@ -458,11 +675,11 @@ local function help_screen(g)
   UI.paragraph(g,D or C,24,222,432,118,
     'Each number is a run of filled cells. Leave at least one empty cell between runs.', 'body')
   UI.paragraph(g,D or C,24,350,432,120,
-    'Tap a cell to cycle: filled, X, clear. X marks a cell you know is empty.', 'body')
+    'FILL taps to shade a square; X mode marks known empty cells. Tap the mode button to switch.', 'body')
   UI.paragraph(g,D or C,24,484,432,116,
-    'Check reveals a solved picture. Undo and Reset affect this puzzle. Every board keeps your progress.', 'body')
+    'Hint uses the clues to find a certain move, without seeing the picture. Undo and Reset keep your progress.', 'body')
   UI.paragraph(g,D or C,24,614,432,72,
-    'Ticks mean a line matches its clues. More patterns follow picture 12.', 'small')
+    'New no-guess logic puzzles follow the twelve picture puzzles.', 'small')
   button(g,'back','Back to puzzle',true)
 end
 local function tick(g,x,y)
@@ -476,11 +693,15 @@ local function draw(g)
   for _,a in ipairs({{1,0},{0,1},{1,1},{2,1},{1,2}}) do
     g:rect(30+a[1]*7,32+a[2]*7,5,5,{fill=true,radius=1})
   end
-  text(g,72,25,'Nonogram','large',nil,312)
+  text(g,72,25,'Nonogram','large',nil,258)
+  if not HELP then button(g,'mode',CROSS_MODE and 'X' or 'FILL') end
   button(g,'help',HELP and 'X' or '?')
   local p=current()
   text(g,24,89,'Puzzle '..S.level,'small',nil,230)
-  text(g,274,89,p.n..' x '..p.n,'small',nil,66)
+  text(g,177,89,p.n..' x '..p.n,'small',nil,90)
+  if not HELP and not S.submitted[S.level] then
+    button(g,'hint','Hint')
+  end
   if not HELP and not S.submitted[S.level] and S.level<S.unlocked then
     button(g,'next','Next')
   end
@@ -511,7 +732,7 @@ local function draw(g)
       local px=bx+(x-1)*cell
       local py=by+(y-1)*cell
       if board[i]==1 then
-        g:rect(px+5,py+5,cell-10,cell-10,{fill=true,radius=STYLE.ink_radius})
+        g:rect(px+4,py+4,cell-8,cell-8,{fill=true,radius=STYLE.ink_radius})
       elseif board[i]==2 then
         local inset=math.floor(cell*.32)
         g:line(px+inset,py+inset,px+cell-inset,py+cell-inset,{line_width=STYLE.mark_stroke})
@@ -520,17 +741,27 @@ local function draw(g)
     end
   end
   for i=1,p.n-1 do
-    local weight=i==5 and STYLE.frame_stroke or STYLE.grid_stroke
+    local weight=i%5==0 and 5 or 4
     UI.stroke(g,bx+i*cell,by,bx+i*cell,by+p.n*cell,weight)
     UI.stroke(g,bx,by+i*cell,bx+p.n*cell,by+i*cell,weight)
   end
-  g:rect(bx,by,cell*p.n,cell*p.n,{line_width=STYLE.frame_stroke,radius=STYLE.board_radius})
-  text(g,24,608,'Rows '..rows..' / '..p.n,'small',nil,200)
-  text(g,264,608,'Columns '..cols..' / '..p.n,'small',nil,192)
-  g:line(24,640,456,640,{line_width=1})
+  g:rect(bx,by,cell*p.n,cell*p.n,{line_width=5,radius=STYLE.board_radius})
+  if SELECTED>0 and SELECTED<=p.n*p.n then
+    local row=math.floor((SELECTED-1)/p.n),col=(SELECTED-1)%p.n
+    g:rect(bx,by+row*cell,cell*p.n,cell,{line_width=2})
+    g:rect(bx+col*cell,by,cell,cell*p.n,{line_width=2})
+    if HINTED==SELECTED then
+      g:rect(bx+col*cell+5,by+row*cell+5,cell-10,cell-10,
+        {line_width=3,radius=3})
+    end
+  end
+  text(g,24,636,'Rows '..rows..' / '..p.n,'small',nil,200)
+  text(g,264,636,'Cols '..cols..' / '..p.n,'small',nil,192)
   local won=S.submitted[S.level]
-  local status=MSG or (won and 'Revealed: '..display_name(p.name) or 'Tap a cell: fill / X / clear')
-  text(g,240,660,status,'small','center',432)
+  local status=MSG or (won and 'Revealed: '..display_name(p.name)
+    or CROSS_MODE and 'X mode: mark confirmed empties'
+    or 'Fill mode: tap to mark squares')
+  text(g,240,670,status,'small','center',432)
   button(g,'prev','Prev',false,S.level>1)
   button(g,'undo','Undo',false,not won and #S.history[S.level]>0)
   button(g,'reset','Reset')
@@ -549,6 +780,8 @@ local function tap(x,y)
     if control_hit('back',x,y) then HELP=false;return true end
     return false
   end
+  if control_hit('mode',x,y) then return toggle_mode() end
+  if control_hit('hint',x,y) then return hint() end
   if control_hit('next',x,y) and not S.submitted[S.level] then return next_level() end
   if control_hit('prev',x,y) then return prev() end
   if control_hit('undo',x,y) then return undo() end
@@ -559,7 +792,8 @@ local function tap(x,y)
   local p=current()
   local bx,by,cell=geometry()
   if hit(x,y,bx,by,cell*p.n,cell*p.n) then
-    return paint(math.floor((x-bx)/cell)+1,math.floor((y-by)/cell)+1)
+    return mark_cell(math.floor((x-bx)/cell)+1,math.floor((y-by)/cell)+1,
+      CROSS_MODE and 'cross' or 'fill')
   end
   return false
 end
@@ -570,7 +804,8 @@ local function on_load(context)
   if FONTSET then FONTSET:release() end
   if FAILED_FONTSET then FAILED_FONTSET:release();FAILED_FONTSET=nil end
   FONTSET=nil;D=nil;NEEDS_FONTS=true;FONT_ERROR=nil
-  C=context or ctx;S=nil;ERR=nil;KEY_MS=-1000
+  C=context or ctx;S=nil;ERR=nil;KEY_MS=-1000;generated=nil
+  CROSS_MODE=false;SELECTED=0;HINTED=0
   local ok,e=pcall(function() if not restore() then start() end end)
   if not ok then ERR=tostring(e) end
 end
@@ -634,6 +869,8 @@ if rawget(_G,'__TEST') then
   __TEST.api={
     pictures=Pictures,state=function() return S end,
     shape=shape,runs=runs,correct=picture_correct,paint=paint,
+    mark=mark_cell,hint=hint,mode=toggle_mode,
+    cursor=function() return SELECTED,HINTED end,
     check=check,reset=reset,undo=undo,visit=visit,next=next_level,
     prev=prev,geometry=geometry,counters=counters,tap=tap,restore=restore,
     controls=BUTTONS,style=STYLE,

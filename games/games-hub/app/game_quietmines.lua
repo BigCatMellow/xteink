@@ -468,7 +468,7 @@ local function new_game()
   if not S or S.unlocked>=MAX then return false end
   if not save() then return true end
   local old=S.level
-  local number=S.unlocked+1
+  local number=math.max(TOTAL,S.unlocked)+1
   if not new_field(number,S.difficulty) then
     MSG='No verified field found - retry New';return true
   end

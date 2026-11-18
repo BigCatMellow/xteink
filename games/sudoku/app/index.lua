@@ -115,11 +115,13 @@ local function save()
   return ok
 end
 local function fresh(level,unlocked,difficulty)
+  local prefs=S and {S.autoClean,S.highlight,S.showConflicts} or {true,true,true}
   P=Generator.generate(level,difficulty,2)
   S={level=level,unlocked=unlocked,difficulty=difficulty,generation=2,
     board=copy(P.given),notes=zeros(),
     history={},selected=0,noteMode=false,submitted=false,
-    autoClean=true,highlight=true,showConflicts=true,locked=0,multiMode=false,multi={}}
+    autoClean=prefs[1],highlight=prefs[2],showConflicts=prefs[3],
+    locked=0,multiMode=false,multi={}}
 end
 local function load_level(level,unlocked)
   local f=fields(Store.get(C.storage,'sudoku',level))
@@ -182,8 +184,9 @@ end
 local function put(n)
   if not S or S.submitted or not integer(n,1,9) then return false end
   local chosen=selected_cells()
-  if S.noteMode and S.locked>0 and #chosen==0 then
-    S.locked=n;MSG='NOTE '..n..': tap empty squares';save();return true
+  if S.noteMode and S.locked>0 then
+    S.locked=n;S.selected=0;S.multi={}
+    MSG='NOTE '..n..': tap empty squares';save();return true
   end
   local touched={}
   for _,i in ipairs(chosen) do
@@ -296,9 +299,9 @@ end
 -- Seven-segment pencil digits: tiny legible ink with at most seven strokes.
 -- Packaged 20px bitmap glyphs cannot fit the 3x3 pencil subcells.
 local SEGMENTS={
-  {1,1,1,0,1,1,1},{0,0,1,0,0,1,0},{1,0,1,1,1,0,1},
-  {1,0,1,1,0,1,1},{0,1,1,1,0,1,0},{1,1,0,1,0,1,1},
-  {1,1,0,1,1,1,1},{1,0,1,0,0,1,0},{1,1,1,1,1,1,1},
+  {0,0,1,0,0,1,0},{1,0,1,1,1,0,1},{1,0,1,1,0,1,1},
+  {0,1,1,1,0,1,0},{1,1,0,1,0,1,1},{1,1,0,1,1,1,1},
+  {1,0,1,0,0,1,0},{1,1,1,1,1,1,1},{1,1,1,1,0,1,1},
 }
 local function pencil_digit(g,x,y,n)
   local v=SEGMENTS[n]
@@ -423,7 +426,7 @@ local function draw(g)
     status='NOTE '..S.locked..'  '..note_total(S.notes)..'/'..NOTE_CAP[S.difficulty]
   end
   text(g,240,575,status or (S.submitted and 'Solved' or
-    'Left '..remaining..' / Clashes '..clashes),'small','center',448)
+    'Left '..remaining..(S.showConflicts and ' / Clashes '..clashes or '')),'small','center',448)
   control(g,'notes','NOTES',S.noteMode)
   control(g,'undo','UNDO');control(g,'erase','ERASE')
   for n=1,9 do

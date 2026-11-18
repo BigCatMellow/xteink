@@ -698,7 +698,8 @@ local function draw(g)
   button(g,'help',HELP and 'X' or '?')
   local p=current()
   text(g,24,89,'Puzzle '..S.level,'small',nil,230)
-  text(g,177,89,p.n..' x '..p.n,'small',nil,90)
+  -- A nine-digit puzzle index would collide with size metadata.
+  if S.level<1000000 then text(g,177,89,p.n..' x '..p.n,'small',nil,90) end
   if not HELP and not S.submitted[S.level] then
     button(g,'hint','Hint')
   end
@@ -723,7 +724,8 @@ local function draw(g)
   for y=1,p.n do
     local cy=by+(y-1)*cell+math.floor((cell-clueHeight)/2)
     local label=format_run(p.rowClues[y])
-    text(g,bx-16-UI.width(D or C,label,clueFont),cy,label,clueFont,nil,bx-40)
+    local labelWidth=UI.width(D or C,label,clueFont)
+    text(g,bx-16-labelWidth,cy,label,clueFont,nil,labelWidth)
     if rowMatches[y] then tick(g,bx-12,by+(y-.5)*cell-3) end
   end
   for y=1,p.n do
@@ -747,7 +749,7 @@ local function draw(g)
   end
   g:rect(bx,by,cell*p.n,cell*p.n,{line_width=5,radius=STYLE.board_radius})
   if SELECTED>0 and SELECTED<=p.n*p.n then
-    local row=math.floor((SELECTED-1)/p.n),col=(SELECTED-1)%p.n
+    local row,col=math.floor((SELECTED-1)/p.n),(SELECTED-1)%p.n
     g:rect(bx,by+row*cell,cell*p.n,cell,{line_width=2})
     g:rect(bx+col*cell,by,cell,cell*p.n,{line_width=2})
     if HINTED==SELECTED then

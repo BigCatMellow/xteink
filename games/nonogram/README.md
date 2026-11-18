@@ -130,3 +130,17 @@ progress is not moved to level 13 or cleared. The random v3 generator
 uses the same zero-guess line-pattern propagation as v2, so candidate
 acceptance still demands a clue-only constructive solution. This does
 not guarantee an artistic-looking final picture or human-rated difficulty.
+
+## v0.9.1 — cleaner logic-grid selection
+
+The clue-plus-board composition remains centered on 480×800 and generated
+puzzles are still validated without guessing. A 10×10 board may grow from
+35px to 37px cells where clue width allows. Grid interiors use a quiet 2px
+rule with a 3px fifth line and 4px outer frame instead of competing 4–5px
+bars. Selecting a cell subtly stipples its row and column, with only one
+strong outline around the active square (or hint); no full-axis borders.
+
+A decorative title icon was removed to emphasize the clues. Rounded buttons
+now use a light one-pixel bottom/right shadow, with X mode distinguished by a
+single strong border. The web preview mirrors these visual choices. Full
+clues, filled/X marks, check, hint, undo, restore, and touch boundaries remain.

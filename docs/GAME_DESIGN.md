@@ -420,3 +420,14 @@ gets brackets, and matching numbers get underlines. Tiny pencil numerals,
 note lock, multi selection, five difficulty controls and settings use the
 existing 468px board and 60px keypad geometry. Existing saves remain
 compatible. See [feature matrix](design/sudoku-meditation-2026-11-17/FEATURE_PARITY.md).
+
+
+## Nonogram logic-first density pilot — November 2026
+
+The 0.7.0 source changes reserve a measured clue-plus-board region
+(y=112..630), use bounded square cells of up to 70/50/45/35px for
+5/7/8/10-square puzzles, and provide stronger 4px internal and
+5px semantic rules. Selection and forced-move hints appear as static
+monochrome outlines. The 10x10 35px target is an explicit on-device
+review item; denser grids are not included. See the Nonogram design
+record for save compatibility and independent reasoning evidence.

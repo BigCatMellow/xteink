@@ -1,0 +1,40 @@
+name: Nonogram 480x800 preview
+on:
+  pull_request:
+    paths:
+      - 'games/nonogram/**'
+      - 'scripts/render_nonogram.py'
+      - '.github/workflows/nonogram-preview.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'games/nonogram/**'
+      - 'scripts/render_nonogram.py'
+      - '.github/workflows/nonogram-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install bitmap renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lua5.4
+          python -m pip install Pillow==10.2.0
+      - name: Render actual Lua frames and original/new comparison
+        run: |
+          git show f7e6e1f75d23ea7064a156fe09ecfa039bff0fac:games/nonogram/app/index.lua > /tmp/nonogram-before.lua
+          python scripts/render_nonogram.py --bitmap --baseline /tmp/nonogram-before.lua --out dist/nonogram-preview
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nonogram-480x800-previews
+          path: dist/nonogram-preview/
+          if-no-files-found: error

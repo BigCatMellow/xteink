@@ -120,3 +120,9 @@ remain distinguishable. The meaningless 5×5 boundary emphasis was removed.
 Large bottom controls have restrained one-pixel shadows and one emphasized
 outline for Flag mode/Hints, not a second decorative box. The browser
 preview mirrors these changes. No hitbox, hint, undo, or save format changed.
+
+## v0.6.0 — approved Minesweeper screen reproduced in native code
+
+The idle screen follows the approved 480×800 portrait reference: Minesweeper title; New/? only in the top controls; mine and safe totals; centered clean 440px grid starting at y152 (for 10×10); simple Safe/Mines progress beneath; five large Prev/Flag/Hint/Undo/Reset buttons at y701. The full grid is drawn from the generated mine layout and current save. The three difficulties remain accessible through Help to avoid cluttering the main play frame. App ID `quietmines` and all saves are unchanged even though the visible display name is now Minesweeper.
+
+The browser preview uses the same geometry and includes seed playback. One-bit offset strokes approximate the approved soft shadows. Photo-real gray shading is not a native e-ink capability; only on-reader comparison can confirm perceived fidelity.

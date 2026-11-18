@@ -144,3 +144,9 @@ A decorative title icon was removed to emphasize the clues. Rounded buttons
 now use a light one-pixel bottom/right shadow, with X mode distinguished by a
 single strong border. The web preview mirrors these visual choices. Full
 clues, filled/X marks, check, hint, undo, restore, and touch boundaries remain.
+
+## v1.0.0 — approved portrait Nonogram reproduced in native code
+
+The approved screen has Nonogram and New/? in the top line, a large centered clue-plus-grid puzzle, Rows/Cols progress and Fill/X status, then four large Prev/Undo/Reset/Check controls. The clue/board object is measured and centered in the 488px region beginning at y102 (10×10 rows are typically 35–37px cells depending on clue height). Selection is a single bold square with a faint row/column stipple underneath. The input-mode switch and clue-only Hint remain reachable from Help; the status line is also a mode-switch touch target. History, seeds, old-save migration and all previously supported puzzle sizes remain.
+
+The web preview follows the same coordinate values and still generates real puzzle layouts. Native soft shadows are approximated as two 1-bit 2px offset strips rather than reusing the photo as a background.

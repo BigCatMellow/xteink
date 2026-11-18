@@ -431,3 +431,28 @@ The 0.7.0 source changes reserve a measured clue-plus-board region
 monochrome outlines. The 10x10 35px target is an explicit on-device
 review item; denser grids are not included. See the Nonogram design
 record for save compatibility and independent reasoning evidence.
+
+## Quiet Mines board-first density pilot — 2026-11-18
+
+The user's 14×14 mobile HTML reference prioritizes the field, moves settings
+off-canvas, and separates Reveal/Flag actions. For the 480×800 Licorice
+reader, retain the existing twelve start-anchored boards and add twelve
+10×10/12×12 no-guess fields instead of copying a phone-density 14×14 grid
+with roughly 32px cells. New 12×12 cells are 38px and require real
+touch and ghosting review.
+
+Quiet Mines v0.3.0 centers a 456–460px square field between y=118 and
+586; x ranges from 9 to 12. The field occupies more of the playable
+screen, up from a maximum 448px square. Row metadata is at y=76,
+safe/flag counters at y=600, contextual hint/status at y=650,
+and five 66px-high controls at y=710. The controls are distinct,
+with active Flag mode visually outlined, and S marks the required first
+safe zero cell. Grids use 2px minor, 4px fifth and 5px outer rules.
+There are no unexplained 48px vertical bands between functional regions.
+
+A deduction-only Hint highlights a logically forced move (direct-number
+or overlapping subset), never automatically opens or flags. Existing
+save history and original field indices remain stable. The authoring
+quality gate separately verifies old direct-deduction fields and new
+subset-deduction boards. Successful host geometry and packaged bitmap
+renders do not establish physical acceptance.

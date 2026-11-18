@@ -457,7 +457,9 @@ local function tap(x,y,additive)
     if hit(x,y,24,463,210,48) then S.showConflicts=not S.showConflicts;save();return true end
     if hit(x,y,246,463,210,48) then
       S.multiMode=not S.multiMode
-      S.locked=0;S.multi=S.selected>0 and {[S.selected]=true} or {}
+      S.locked=0;S.multi={}
+      if S.multiMode then S.selected=0
+      elseif S.selected>0 then S.multi[S.selected]=true end
       save();return true
     end
     if hit(x,y,24,519,210,48) then local r=clear_notes();MENU=false;return r or true end

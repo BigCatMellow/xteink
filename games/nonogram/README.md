@@ -109,3 +109,20 @@ saves retain their historic answers and may not match the v2 preview. CI runs
 `node tests/verify_nonogram_browser_preview.mjs` with Lua 5.4 to compare
 46 exact boards and deduction-pass counts; the browser preview is not a
 replacement for physical-device tests.
+
+## v0.8.0 — generated from the first new session
+
+Fresh installs open at a randomly seeded v3 logic board (number 13),
+rather than requiring the player to complete twelve fixed pictures
+before procedural puzzles appear. Press **New** to create another
+generated board without completing the current one. Generated records
+store their seed and the unfinished marks, undo snapshots and submitted
+state in the existing 64-shard archive. A stored seed always rebuilds
+the same row/column clues after restart.
+
+The original twelve pictures and earlier v1/v2 generated records remain
+untouched and reopen with the exact same solutions. Existing player
+progress is not moved to level 13 or cleared. The random v3 generator
+uses the same zero-guess line-pattern propagation as v2, so candidate
+acceptance still demands a clue-only constructive solution. This does
+not guarantee an artistic-looking final picture or human-rated difficulty.

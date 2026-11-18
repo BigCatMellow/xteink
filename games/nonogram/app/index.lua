@@ -10,15 +10,36 @@ local TOTAL=#Pictures
 local MAX=999999999
 local C,S,ERR,MSG=nil,nil,nil,nil
 local generated=nil
+local function random_seed(level)
+  local now=0
+  if C and C.clock and type(C.clock.millis)=='function' then
+    local ok,v=pcall(function() return C.clock:millis() end)
+    if ok and type(v)=='number' then now=math.floor(v) end
+  end
+  return 13+(level*265443+(now%2147483646)*48271)%999999987
+end
 local function picture(level)
   if level<=TOTAL then return Pictures[level] end
   if not generated or generated.number~=level then
     local saved=nil
     if C and C.storage then saved=Store.get(C.storage,'pattern',level) end
-    -- Existing unmarked generated saves are v1 forever. New levels use v2.
-    local v2=not saved or saved:match('\nv2$')~=nil
-    generated={number=level,puzzle=v2 and Generator.generate_v2(level)
-      or Generator.generate(level)}
+    local v3=saved and saved:match('\nv3:(%d+)$')
+    local p
+    if v3 then
+      local seed=tonumber(v3)
+      assert(seed and seed>=13 and seed<=999999999,'Invalid saved Nonogram seed')
+      p=Generator.generate_v2(seed)
+      p.generation=3;p.seed=seed
+    elseif saved then
+      -- Old archived v2 / v1 puzzles always retain their original seed.
+      p=saved:match('\nv2$') and Generator.generate_v2(level)
+        or Generator.generate(level)
+    else
+      local seed=random_seed(level)
+      p=Generator.generate_v2(seed)
+      p.generation=3;p.seed=seed
+    end
+    generated={number=level,puzzle=p}
   end
   return generated.puzzle
 end
@@ -146,7 +167,10 @@ local function save()
       for j,m in ipairs(S.history[S.level]) do past[j]=code(m) end
       local chunks={code(S.boards[S.level]),S.submitted[S.level] and '1' or '0',
         table.concat(past,';')}
-      if picture(S.level).generation==2 then chunks[#chunks+1]='v2' end
+      if picture(S.level).generation==2 then chunks[#chunks+1]='v2'
+      elseif picture(S.level).generation==3 then
+        chunks[#chunks+1]='v3:'..picture(S.level).seed
+      end
       local data=table.concat(chunks,'\n')
       Store.put(C.storage,'pattern',S.level,data)
     end
@@ -163,7 +187,8 @@ local function load_generated(state,level)
     local data=Store.get(C.storage,'pattern',level)
     if type(data)=='string' then
       local payload=data
-      if payload:match('\nv2$') then payload=payload:sub(1,-4) end
+      if payload:match('\nv2$') then payload=payload:sub(1,-4)
+      else payload=payload:gsub('\nv3:%d+$','') end
       local b,won,past=payload:match('^([^\n]+)\n([01])\n(.*)$')
       local decoded=decode(b,n)
       local valid=decoded~=nil
@@ -180,13 +205,14 @@ local function load_generated(state,level)
   state.boards[level]=marks;state.history[level]=hist;state.submitted[level]=submitted
 end
 local function start()
-  S={level=1,unlocked=1,boards={},history={},submitted={}}
+  S={level=TOTAL+1,unlocked=TOTAL+1,boards={},history={},submitted={}}
   for i=1,TOTAL do
     S.boards[i]=fresh_marks(#Pictures[i].rows)
     S.history[i]={}
     S.submitted[i]=false
   end
-  MSG='Fill cells to match each run'
+  load_generated(S,TOTAL+1)
+  MSG='New generated logic puzzle'
   HELP=false
   save()
 end
@@ -245,6 +271,19 @@ local function visit(level)
 end
 local function prev() return S and visit(S.level-1) or false end
 local function next_level() return S and visit(S.level+1) or false end
+local function new_puzzle()
+  if not S or S.unlocked>=MAX then return false end
+  if not save() then return true end
+  local number=S.unlocked+1
+  load_generated(S,number)
+  if S.level>TOTAL then
+    S.boards[S.level]=nil;S.history[S.level]=nil;S.submitted[S.level]=nil
+  end
+  S.level=number;S.unlocked=number
+  MSG='New generated logic puzzle'
+  HELP=false;CROSS_MODE=false;SELECTED=0;HINTED=0
+  save();return true
+end
 local function mark_cell(x,y,kind)
   if not S then return false end
   local p=current()
@@ -396,8 +435,8 @@ local function draw(g)
   if not HELP and not S.submitted[S.level] then
     button(g,'hint','Hint')
   end
-  if not HELP and not S.submitted[S.level] and S.level<S.unlocked then
-    button(g,'next','Next')
+  if not HELP and not S.submitted[S.level] then
+    button(g,'next',S.level<S.unlocked and 'Next' or 'New')
   end
   if HELP then help_screen(g);return end
   local bx,by,cell=geometry()
@@ -477,7 +516,9 @@ local function tap(x,y)
   end
   if control_hit('mode',x,y) then return toggle_mode() end
   if control_hit('hint',x,y) then return hint() end
-  if control_hit('next',x,y) and not S.submitted[S.level] then return next_level() end
+  if control_hit('next',x,y) and not S.submitted[S.level] then
+    return S.level<S.unlocked and next_level() or new_puzzle()
+  end
   if control_hit('prev',x,y) then return prev() end
   if control_hit('undo',x,y) then return undo() end
   if control_hit('reset',x,y) then return reset() end
@@ -567,7 +608,7 @@ if rawget(_G,'__TEST') then
     mark=mark_cell,hint=hint,mode=toggle_mode,
     cursor=function() return SELECTED,HINTED end,
     check=check,reset=reset,undo=undo,visit=visit,next=next_level,
-    prev=prev,geometry=geometry,counters=counters,tap=tap,restore=restore,
+    prev=prev,new=new_puzzle,geometry=geometry,counters=counters,tap=tap,restore=restore,
     controls=BUTTONS,style=STYLE,
     typefaces=function() return FONTSET,FONT_ERROR end
   }

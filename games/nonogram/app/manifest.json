@@ -1,7 +1,7 @@
 {
   "app_id": "nonogram",
   "display_name": "Nonogram",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "author": "BigCatMellow",
   "description": "Picture and logic-only nonograms: deduction hints, larger grids and preserved progress",
   "entry": "index.lua",

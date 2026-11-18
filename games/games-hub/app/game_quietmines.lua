@@ -12,6 +12,201 @@ require=function(name)
  if not f then return native_require(name) end
  local v=f();if v==nil then v=true end;loaded[name]=v;return v
 end
+factories["generator"]=function()
+-- Procedural, deterministic, no-guess Minesweeper generator.
+-- Uses the same direct-number and subset-difference inference as Hint.
+-- A candidate is accepted only after the solver opens every safe square.
+-- No prearranged mine coordinates, unverified "best" fallback or RNG state leaks.
+local G={}
+local SETTINGS={
+  {n=8,mines=10,minOpening=12,maxOpening=55,minPasses=2,minSubset=0},
+  {n=10,mines=18,minOpening=7,maxOpening=48,minPasses=3,minSubset=1},
+  {n=12,mines=27,minOpening=4,maxOpening=48,minPasses=4,minSubset=2}
+}
+G.settings=SETTINGS
+local MAXSEED=2147483646
+local function rng(seed)
+  local s=math.floor(seed)%MAXSEED+1
+  return function(limit)
+    s=s*16807%2147483647
+    return s%limit+1
+  end
+end
+local neighborhoods={}
+local function neighbors(n)
+  if neighborhoods[n] then return neighborhoods[n] end
+  local all={}
+  for i=1,n*n do
+    local x,y=(i-1)%n+1,math.floor((i-1)/n)+1
+    local list={}
+    for dy=-1,1 do for dx=-1,1 do
+      local xx,yy=x+dx,y+dy
+      if (dx~=0 or dy~=0) and xx>=1 and yy>=1 and xx<=n and yy<=n then
+        list[#list+1]=(yy-1)*n+xx
+      end
+    end end
+    all[i]=list
+  end
+  neighborhoods[n]=all
+  return all
+end
+local function build(n,indices)
+  local mine={}
+  for _,i in ipairs(indices) do mine[i]=true end
+  local adj=neighbors(n)
+  local clues={}
+  for i=1,n*n do
+    local count=0
+    for _,j in ipairs(adj[i]) do if mine[j] then count=count+1 end end
+    clues[i]=count
+  end
+  return mine,adj,clues
+end
+local function reveal(i,mine,adj,clues,opened,flagged)
+  local q,head={i},1
+  local changed=0
+  while head<=#q do
+    local p=q[head];head=head+1
+    if not opened[p] and not flagged[p] and not mine[p] then
+      opened[p]=true;changed=changed+1
+      if clues[p]==0 then
+        for _,j in ipairs(adj[p]) do
+          if not opened[j] and not flagged[j] then q[#q+1]=j end
+        end
+      end
+    end
+  end
+  return changed
+end
+local function candidates(n,mine,adj,clues,opened,flagged)
+  local constraints={}
+  for i=1,n*n do
+    if opened[i] and clues[i]>0 then
+      local hidden,need,lookup={},clues[i],{}
+      for _,j in ipairs(adj[i]) do
+        if flagged[j] then need=need-1
+        elseif not opened[j] then hidden[#hidden+1]=j;lookup[j]=true end
+      end
+      if need<0 or need>#hidden then return nil end
+      if #hidden>0 then
+        constraints[#constraints+1]={hidden=hidden,need=need,lookup=lookup}
+      end
+    end
+  end
+  return constraints
+end
+local function inferred(constraints)
+  local safe,flag={},{}
+  local count=0
+  local function add(dest,i)
+    if not dest[i] then dest[i]=true;count=count+1 end
+  end
+  for _,c in ipairs(constraints) do
+    if c.need==0 then for _,i in ipairs(c.hidden) do add(safe,i) end
+    elseif c.need==#c.hidden then for _,i in ipairs(c.hidden) do add(flag,i) end end
+  end
+  if count>0 then return safe,flag,false end
+  local subset=false
+  for _,a in ipairs(constraints) do
+    for _,b in ipairs(constraints) do
+      if #a.hidden<#b.hidden then
+        local contained=true
+        for _,i in ipairs(a.hidden) do
+          if not b.lookup[i] then contained=false;break end
+        end
+        if contained then
+          local remaining=b.need-a.need
+          local extra={}
+          for _,i in ipairs(b.hidden) do
+            if not a.lookup[i] then extra[#extra+1]=i end
+          end
+          if remaining==0 then
+            for _,i in ipairs(extra) do add(safe,i) end
+            subset=true
+          elseif remaining==#extra then
+            for _,i in ipairs(extra) do add(flag,i) end
+            subset=true
+          end
+        end
+      end
+    end
+  end
+  return safe,flag,subset
+end
+function G.analyze(n,positions)
+  if type(n)~='number' or n<4 or n>12 or type(positions)~='table' then
+    return {solved=false,reason='invalid dimensions'}
+  end
+  local mine,adj,clues=build(n,positions)
+  if mine[1] or clues[1]~=0 then return {solved=false,reason='unsafe start'} end
+  local opened,flagged={},{}
+  local opening=reveal(1,mine,adj,clues,opened,flagged)
+  local passes,subsetMoves,subsetPasses=0,0,0
+  for _=1,n*n*2 do
+    local constraints=candidates(n,mine,adj,clues,opened,flagged)
+    if not constraints then break end
+    local safe,flag,subset=inferred(constraints)
+    local progressed,moveCount=0,0
+    for i=1,n*n do
+      if flag[i] and not flagged[i] then
+        if not mine[i] then return {solved=false,reason='bad mine deduction'} end
+        flagged[i]=true;progressed=progressed+1;moveCount=moveCount+1
+      end
+    end
+    for i=1,n*n do
+      if safe[i] and not opened[i] and not flagged[i] then
+        if mine[i] then return {solved=false,reason='bad safe deduction'} end
+        progressed=progressed+reveal(i,mine,adj,clues,opened,flagged)
+        moveCount=moveCount+1
+      end
+    end
+    if progressed==0 then break end
+    passes=passes+1
+    if subset then
+      subsetMoves=subsetMoves+moveCount
+      subsetPasses=subsetPasses+1
+    end
+  end
+  local openedCount=0
+  for i=1,n*n do if opened[i] then openedCount=openedCount+1 end end
+  return {solved=openedCount==n*n-#positions,
+    opening=opening,passes=passes,subsetMoves=subsetMoves,
+    subsetPasses=subsetPasses,opened=openedCount}
+end
+function G.generate(seed,difficulty)
+  local cfg=SETTINGS[difficulty]
+  assert(cfg and type(seed)=='number' and seed>=1 and seed==math.floor(seed))
+  local n=cfg.n
+  local random=rng(seed*131+difficulty*791009)
+  local pool={}
+  for i=1,n*n do
+    local x,y=(i-1)%n+1,math.floor((i-1)/n)+1
+    if x>2 or y>2 then pool[#pool+1]=i end
+  end
+  for attempt=1,128 do
+    -- Partial Fisher-Yates: no duplicate mine positions.
+    for i=#pool,2,-1 do
+      local j=random(i)
+      pool[i],pool[j]=pool[j],pool[i]
+    end
+    local indices={}
+    for i=1,cfg.mines do indices[i]=pool[i] end
+    local metrics=G.analyze(n,indices)
+    if metrics.solved and
+       metrics.opening>=cfg.minOpening and
+       metrics.opening<=cfg.maxOpening and
+       metrics.passes>=cfg.minPasses and
+       metrics.subsetMoves>=cfg.minSubset then
+      table.sort(indices)
+      return {n=n,mines=indices,difficulty=difficulty,seed=seed,
+        attempts=attempt,metrics=metrics}
+    end
+  end
+  return nil,'No verified no-guess field for this seed'
+end
+return G
+
+end
 factories["levels"]=function()
 -- Original no-guess seeded Minesweeper boards; start at cell 1 (safe zero).
 return {
@@ -47,12 +242,19 @@ end
 local UI=require('ui')
 local Theme=require('theme')
 local LEVELS=require('levels')
+local Generator=require('generator')
+local Store=require('puzzle_store')
 local TOTAL=#LEVELS
+local MAX=999999999
 local C,S,ERR,MSG=nil,nil,nil,nil
 local HELP=false
 local HINTED=0
 local KEY_MS=-1000
 local function board(level)
+  if level>TOTAL then
+    if S and S.generated and S.generated.level==level then return S.generated.board end
+    error('Generated field was not loaded')
+  end
   local p=LEVELS[level]
   local t={}
   for _,i in ipairs(p.mines) do t[i]=true end
@@ -105,26 +307,101 @@ local function solved(level,marks)
   end
   return true
 end
+-- Keep original 24 maps unchanged. New boards have explicit mine layouts
+-- stored in a 64-shard archive, so they survive generator updates.
+local function seed_for(level,salt)
+  local ms=0
+  if C and C.clock and type(C.clock.millis)=='function' then
+    local ok,v=pcall(function() return C.clock:millis() end)
+    if ok and type(v)=='number' then ms=math.floor(v) end
+  end
+  return (level*48271+(ms%2147483646)*131071+salt*389)%2147483646+1
+end
+local function new_field(level,difficulty)
+  for salt=0,7 do
+    local seed=seed_for(level,salt)
+    local p=Generator.generate(seed,difficulty)
+    if p then
+      local mines={}
+      for _,i in ipairs(p.mines) do mines[i]=true end
+      S.generated={level=level,difficulty=difficulty,seed=seed,
+        positions=p.mines,board={n=p.n,mines=mines,total=#p.mines}}
+      S.marks[level]=blank(p.n*p.n)
+      S.failed[level]=false;S.history[level]={}
+      return true
+    end
+  end
+  return false
+end
+local function load_field(level)
+  if not C or not C.storage then return false end
+  local data=Store.get(C.storage,'mines',level)
+  if type(data)~='string' then return false end
+  local diff,seed,n,raw,marks,failed,hist=
+    data:match('^v2\n(%d+)\n(%d+)\n(%d+)\n([%d,]+)\n([012]+)\n([01])\n(.*)$')
+  diff,seed,n=tonumber(diff),tonumber(seed),tonumber(n)
+  local cfg=diff and Generator.settings[diff]
+  if not cfg or n~=cfg.n or not seed or seed<1 or seed>2147483646 then return false end
+  local positions,mines={},{}
+  for part in raw:gmatch('%d+') do
+    local i=tonumber(part)
+    if i<1 or i>n*n or mines[i] then return false end
+    positions[#positions+1]=i;mines[i]=true
+  end
+  if #positions~=cfg.mines or mines[1] or mines[2] or mines[n+1] or mines[n+2] then return false end
+  local decoded=decode(marks,n*n)
+  if not decoded then return false end
+  for i,v in ipairs(decoded) do
+    if v==2 and mines[i] and failed~='1' then return false end
+  end
+  local past={}
+  for part in (hist or ''):gmatch('[^;]+') do
+    if #past>=10 then return false end
+    local previous=decode(part,n*n)
+    if not previous then return false end
+    past[#past+1]=previous
+  end
+  S.generated={level=level,difficulty=diff,seed=seed,
+    positions=positions,board={n=n,mines=mines,total=#positions}}
+  S.marks[level]=decoded;S.failed[level]=failed=='1';S.history[level]=past
+  return true
+end
 local function save()
-  if not S or not C or not C.storage then return end
-  local lines={'version=1','level='..S.level,'unlocked='..S.unlocked,'mode='..S.mode}
+  if not S or not C or not C.storage then return true end
+  local lines={'version=1','level='..S.level,'unlocked='..S.unlocked,
+    'mode='..S.mode,'difficulty='..(S.difficulty or 2)}
   for i=1,TOTAL do
     lines[#lines+1]='B'..i..'='..encode(S.marks[i])
     lines[#lines+1]='F'..i..'='..(S.failed[i] and '1' or '0')
-    local hist={}
-    for j,m in ipairs(S.history[i]) do hist[j]=encode(m) end
-    lines[#lines+1]='H'..i..'='..table.concat(hist,';')
+    local past={}
+    for j,m in ipairs(S.history[i]) do past[j]=encode(m) end
+    lines[#lines+1]='H'..i..'='..table.concat(past,';')
   end
-  pcall(function() C.storage:write('quiet-mines.txt',table.concat(lines,'\n')) end)
+  local ok=pcall(function()
+    if S.level>TOTAL then
+      local g=S.generated
+      assert(g and g.level==S.level)
+      local past={}
+      for j,m in ipairs(S.history[S.level]) do past[j]=encode(m) end
+      Store.put(C.storage,'mines',S.level,
+        table.concat({'v2',g.difficulty,g.seed,g.board.n,
+          table.concat(g.positions,','),encode(S.marks[S.level]),
+          S.failed[S.level] and '1' or '0',table.concat(past,';')},'\n'))
+    end
+    Store.write(C.storage,'quiet-mines.txt',table.concat(lines,'\n'))
+  end)
+  if not ok then MSG='Save failed - keep this field open' end
+  return ok
 end
 local function start()
-  S={level=1,unlocked=1,mode='OPEN',marks={},failed={},history={}}
+  S={level=TOTAL+1,unlocked=TOTAL+1,mode='OPEN',difficulty=2,
+    marks={},failed={},history={}}
   for i=1,TOTAL do
     S.marks[i]=blank(board(i).n^2)
-    S.failed[i]=false
-    S.history[i]={}
+    S.failed[i]=false;S.history[i]={}
   end
-  HELP=false;HINTED=0;MSG='Begin by opening S (safe start)'
+  assert(new_field(S.level,S.difficulty),'Could not generate a no-guess field')
+  HELP=false;HINTED=0;MSG='New random field: open S'
   save()
 end
 local function restore()
@@ -135,9 +412,12 @@ local function restore()
   for k,v in data:gmatch('([%w_]+)=([^\n]*)') do f[k]=v end
   local lvl,u=tonumber(f.level),tonumber(f.unlocked)
   if f.version~='1' or (f.mode~='OPEN' and f.mode~='FLAG') or
-     not lvl or lvl~=math.floor(lvl) or lvl<1 or lvl>TOTAL or
-     not u or u~=math.floor(u) or u<lvl or u>TOTAL then return false end
-  local r={level=lvl,unlocked=u,mode=f.mode,marks={},failed={},history={}}
+     not lvl or lvl~=math.floor(lvl) or lvl<1 or lvl>MAX or
+     not u or u~=math.floor(u) or u<lvl or u>MAX then return false end
+  local difficulty=tonumber(f.difficulty or '2')
+  if not difficulty or not Generator.settings[difficulty] then return false end
+  local r={level=lvl,unlocked=u,mode=f.mode,difficulty=difficulty,
+    marks={},failed={},history={}}
   -- Version 1 saves had twelve levels. Append new fields without resetting
   -- completed and unfinished boards, flags, mode, or per-field undo.
   local legacy=f.B13==nil
@@ -163,14 +443,47 @@ local function restore()
     end
     r.marks[i]=t;r.failed[i]=failed=='1';r.history[i]=hist
   end
-  S=r;HELP=false;HINTED=0;MSG=nil;return true
+  S=r
+  if lvl>TOTAL and not load_field(lvl) then
+    error('Cannot load saved generated field; progress has not been overwritten')
+  end
+  HELP=false;HINTED=0;MSG=nil;return true
 end
 local function visit(n)
-  if not S or n<1 or n>TOTAL or n>S.unlocked then return false end
-  S.level=n;MSG=nil;HELP=false;HINTED=0;save();return true
+  if not S or n<1 or n>MAX or n>S.unlocked or n~=math.floor(n) then return false end
+  if not save() then return true end
+  local old=S.level
+  if n>TOTAL and n~=old and not load_field(n) then
+    MSG='Could not load saved field';return true
+  end
+  if old>TOTAL and n~=old then
+    S.marks[old]=nil;S.failed[old]=nil;S.history[old]=nil
+  end
+  S.level=n;MSG=nil;HELP=false;HINTED=0
+  save();return true
 end
 local function next_level()return S and visit(S.level+1) or false end
 local function prev()return S and visit(S.level-1) or false end
+local function new_game()
+  if not S or S.unlocked>=MAX then return false end
+  if not save() then return true end
+  local old=S.level
+  local number=S.unlocked+1
+  if not new_field(number,S.difficulty) then
+    MSG='No verified field found - retry New';return true
+  end
+  if old>TOTAL then
+    S.marks[old]=nil;S.failed[old]=nil;S.history[old]=nil
+  end
+  S.level=number;S.unlocked=number;S.mode='OPEN'
+  HELP=false;HINTED=0;MSG='New random field: open S'
+  save();return true
+end
+local function cycle_difficulty()
+  S.difficulty=S.difficulty%3+1
+  MSG=({'Easy','Normal','Hard'})[S.difficulty]..' for next New'
+  save();return true
+end
 local function record()
   local hist=S.history[S.level]
   if #hist>=10 then table.remove(hist,1) end
@@ -282,7 +595,8 @@ local function apply(i)
   end
   MSG='Area revealed'
   if solved(n,tiles) then
-    S.unlocked=math.min(TOTAL,math.max(S.unlocked,n+1))
+    -- Generated fields unlock only after New archives their layout.
+    if n<TOTAL then S.unlocked=math.min(MAX,math.max(S.unlocked,n+1)) end
     MSG='FIELD CLEARED!'
   end
   save();return true
@@ -318,7 +632,7 @@ local function draw_help(g)
   UI.paragraph(g,C,28,230,424,110,
     'Open safe squares. Numbers tell how many mines touch that square, including diagonals.', 'medium')
   UI.paragraph(g,C,28,358,424,111,
-    'Begin at S: each level has a logical, no-guess route from that square. FLAG marks suspected mines.', 'medium')
+    'Open S first on a random field. Every accepted field has a no-guess route. FLAG marks mines.', 'medium')
   UI.paragraph(g,C,28,488,424,115,
     'Opening a mine loses that field. RESET restarts. All numbers appear at once; no animation.', 'medium')
   button(g,75,706,330,69,'BACK TO FIELD')
@@ -327,9 +641,10 @@ local function render(g)
   g:clear(0)
   text(g,23,15,'QUIET MINES','large',nil,320)
   button(g,416,12,48,48,HELP and 'X' or '?')
-  if S.level<TOTAL and S.level<S.unlocked then button(g,308,12,101,46,'NEXT') end
+  button(g,308,12,101,46,'New')
   local b=board(S.level)
-  text(g,23,76,'FIELD '..S.level..'/'..TOTAL..'   MINES '..b.total,'medium',nil,438)
+  text(g,23,76,'FIELD '..S.level..'   MINES '..b.total,'medium',nil,320)
+  button(g,348,76,116,40,({'Easy','Normal','Hard'})[S.difficulty])
   if HELP then draw_help(g);return end
   local bx,by,cell=geometry()
   UI.region(bx,by,cell*b.n,cell*b.n)
@@ -385,7 +700,8 @@ local function tap(x,y)
     if hit(x,y,75,706,330,69) then HELP=false;return true end
     return false
   end
-  if hit(x,y,308,12,101,46) then return next_level() end
+  if hit(x,y,308,12,101,46) then return new_game() end
+  if hit(x,y,348,76,116,40) then return cycle_difficulty() end
   if hit(x,y,8,710,85,66) then return prev() end
   if hit(x,y,102,710,85,66) then return mode() end
   if hit(x,y,196,710,85,66) then return hint() end
@@ -438,6 +754,7 @@ if rawget(_G,'__TEST') then __TEST.api={
  levels=LEVELS,board=board,neighbors=neighbors,nearby=nearby,
  state=function()return S end,apply=apply,mode=mode,undo=undo,
  restart=restart,visit=visit,next=next_level,prev=prev,
+ new=new_game,difficulty=cycle_difficulty,
  solved=solved,geometry=geometry,tap=tap,hint=hint,infer_hint=infer_hint,
  hinted=function()return HINTED end
 } end

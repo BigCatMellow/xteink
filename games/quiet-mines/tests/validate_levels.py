@@ -58,3 +58,6 @@ runpy.run_path(str(Path(__file__).with_name('validate_advanced.py')))
 
 # Browser preview must use the exact curated device layouts, never separate seeds.
 runpy.run_path(str(Path(__file__).with_name('validate_preview.py')))
+
+# Verify the on-device procedural generator independently for every difficulty.
+runpy.run_path(str(Path(__file__).with_name('validate_generated.py')))

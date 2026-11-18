@@ -8,43 +8,114 @@ body{margin:0;background:#ebe8e2;color:#161616;font:14px Inter,Arial,sans-serif}
 main{max-width:940px;margin:auto;padding:16px;display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
 .panel{width:330px;max-width:100%;line-height:1.5}
 h1{font-size:22px;margin:5px 0 8px}p{margin:7px 0 12px}
-select,button{border:2px solid #333;background:white;padding:8px 11px;color:#111;border-radius:6px;font:600 14px Arial;cursor:pointer}
-select{width:100%;margin-top:6px}.small{font-size:12px;color:#484848}
+select,input,button{border:2px solid #333;background:white;padding:8px 11px;color:#111;border-radius:6px;font:600 14px Arial;cursor:pointer}
+select,input{width:100%;margin-top:6px}.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.small{font-size:12px;color:#484848}
 .reader{background:#252525;padding:10px;border-radius:18px;box-shadow:0 11px 26px #0003;width:min(500px,100%)}
 canvas{display:block;width:100%;height:auto;background:white;touch-action:manipulation;cursor:pointer;border-radius:5px;image-rendering:pixelated}
 </style></head><body><main>
 <div class="panel"><h1>Quiet Mines · XTEINK preview</h1>
-<p>The 24 boards below are the same handcrafted mine layouts in the X4 Pro game.
-Open the marked S first, deduce mines from the numbered squares, and use Hint if stuck.</p>
-<label for="field">Choose a field</label><select id="field"></select>
-<p><button id="restart">Restart this field</button></p>
+<p>Generate a new verified no-guess board, or replay a specific seed.
+Open S first, deduce mines from the numbers, and use Hint if stuck.</p>
+<label for="difficultySelect">Difficulty</label>
+<select id="difficultySelect"><option value="1">Easy · 8×8</option><option value="2" selected>Normal · 10×10</option><option value="3">Hard · 12×12</option></select>
+<label for="seedInput">Seed (replays the exact board)</label>
+<input id="seedInput" type="number" min="1" max="2147483646"/>
+<div class="actions"><button id="applySeed">Play seed</button><button id="randomBtn">New random</button><button id="restart">Restart</button></div>
 <p id="details" class="small"></p>
 <p class="small">Interactive host mockup at 480×800; board state, clues and deductions match the Lua rules. Font rendering and touch behavior on the real XTEINK require physical testing. No animation or color is used inside the reader.</p>
 </div><div class="reader"><canvas id="screen" width="480" height="800" aria-label="Interactive Quiet Mines game" role="img"></canvas></div>
 </main><script>
 'use strict';
-const LEVELS=[{"id":1,"n":6,"mines":[3,4,15,21,24,27]},{"id":2,"n":6,"mines":[3,16,22,28,31,36]},{"id":3,"n":6,"mines":[5,15,16,18,24,25]},{"id":4,"n":6,"mines":[14,15,17,18,26,35]},{"id":5,"n":7,"mines":[7,14,17,32,35,39,48,49]},{"id":6,"n":7,"mines":[14,18,32,40,41,43,44,46]},{"id":7,"n":7,"mines":[3,13,21,25,36,37,45,46]},{"id":8,"n":7,"mines":[6,23,24,32,42,44,48,49]},{"id":9,"n":8,"mines":[4,6,15,23,25,36,44,45,46,64]},{"id":10,"n":8,"mines":[3,5,8,30,39,41,45,47,50,60]},{"id":11,"n":8,"mines":[3,5,12,36,37,39,40,43,51,63]},{"id":12,"n":8,"mines":[15,16,20,29,30,34,47,56,58,64]},{"id":13,"n":10,"mines":[5,13,34,35,43,45,47,48,60,64,65,68,72,79,85,87,96,98]},{"id":14,"n":10,"mines":[6,14,21,25,27,29,38,44,49,51,57,59,67,74,80,93,96,100]},{"id":15,"n":10,"mines":[3,5,18,31,34,35,48,53,64,66,81,82,85,86,89,97,98,99]},{"id":16,"n":10,"mines":[5,15,18,26,28,32,35,38,40,61,65,66,68,72,90,96,97,99]},{"id":17,"n":10,"mines":[8,19,21,24,27,35,48,49,62,69,70,82,85,86,89,97,99,100]},{"id":18,"n":10,"mines":[8,9,15,16,26,31,33,36,40,45,47,49,52,60,66,75,79,98]},{"id":19,"n":10,"mines":[14,21,30,36,38,42,46,55,59,65,67,69,75,77,83,84,93,96]},{"id":20,"n":10,"mines":[4,9,10,14,30,31,39,48,49,52,55,58,66,77,83,89,94,100]},{"id":21,"n":12,"mines":[11,17,18,25,31,33,35,41,43,46,49,57,62,68,76,82,86,89,90,94,96,101,104,105,112,124,138]},{"id":22,"n":12,"mines":[5,8,9,11,37,40,41,46,47,61,64,77,79,86,92,94,100,109,112,113,115,120,127,129,139,142,143]},{"id":23,"n":12,"mines":[3,8,17,23,35,39,44,46,47,63,66,69,72,73,78,80,87,90,97,100,101,108,124,125,128,137,144]},{"id":24,"n":12,"mines":[6,12,16,36,41,42,50,52,57,58,72,82,88,91,100,102,103,105,113,119,121,122,124,125,140,142,144]}];
-const select=document.getElementById('field');
-for(const p of LEVELS){const o=document.createElement('option');o.value=p.id;o.textContent='Field '+String(p.id).padStart(2,'0')+' · '+p.n+'×'+p.n+' · '+p.mines.length+' mines';select.append(o)}
+// PROCEDURAL_BEGIN
+const SETTINGS=[null,
+ {n:8,mines:10,minOpening:12,maxOpening:55,minPasses:2,minSubset:0},
+ {n:10,mines:18,minOpening:7,maxOpening:48,minPasses:3,minSubset:1},
+ {n:12,mines:27,minOpening:4,maxOpening:48,minPasses:4,minSubset:2}];
+function seededRng(seed){let x=seed%2147483646+1;return length=>{x=x*16807%2147483647;return x%length+1}}
+function getAdj(n){return Array.from({length:n*n},(_,i)=>{const x=i%n,y=Math.floor(i/n),out=[];
+ for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+ const nx=x+dx,ny=y+dy;
+ if((dx||dy)&&nx>=0&&nx<n&&ny>=0&&ny<n)out.push(ny*n+nx)}return out})}
+function measureGenerated(n,positions){
+ const mine=new Set(positions.map(p=>p-1)),adj=getAdj(n);
+ const clues=adj.map(a=>a.filter(j=>mine.has(j)).length);
+ if(mine.has(0)||clues[0]!==0)return{solved:false};
+ const opened=new Set(),flagged=new Set();
+ const reveal=i=>{const queue=[i];let at=0,changed=0;
+ while(at<queue.length){const j=queue[at++];if(opened.has(j)||flagged.has(j)||mine.has(j))continue;
+ opened.add(j);changed++;
+ if(clues[j]===0)for(const k of adj[j])if(!opened.has(k)&&!flagged.has(k))queue.push(k)}
+ return changed};
+ const opening=reveal(0);let passes=0,subsetMoves=0,subsetPasses=0;
+ for(let pass=0;pass<n*n*2;pass++){
+ const constraints=[];
+ for(let i=0;i<n*n;i++)if(opened.has(i)&&clues[i]>0){
+ let need=clues[i],hidden=[];
+ for(const j of adj[i]){if(flagged.has(j))need--;else if(!opened.has(j))hidden.push(j)}
+ if(need<0||need>hidden.length)return{solved:false};
+ if(hidden.length)constraints.push({hidden,need,lookup:new Set(hidden)})}
+ const safe=new Set(),flag=new Set();let subset=false;
+ for(const c of constraints){
+ if(c.need===0)for(const i of c.hidden)safe.add(i);
+ else if(c.need===c.hidden.length)for(const i of c.hidden)flag.add(i)}
+ if(!safe.size&&!flag.size){
+ for(const a of constraints)for(const b of constraints){
+ if(a.hidden.length>=b.hidden.length||!a.hidden.every(j=>b.lookup.has(j)))continue;
+ const extra=b.hidden.filter(j=>!a.lookup.has(j)),remain=b.need-a.need;
+ if(remain===0){for(const i of extra)safe.add(i);subset=true}
+ else if(remain===extra.length){for(const i of extra)flag.add(i);subset=true}
+ }}
+ let changed=0,moves=0;
+ for(let i=0;i<n*n;i++)if(flag.has(i)&&!flagged.has(i)){
+ if(!mine.has(i))return{solved:false};flagged.add(i);changed++;moves++}
+ for(let i=0;i<n*n;i++)if(safe.has(i)&&!opened.has(i)&&!flagged.has(i)){
+ if(mine.has(i))return{solved:false};changed+=reveal(i);moves++}
+ if(!changed)break;
+ passes++;
+ if(subset){subsetMoves+=moves;subsetPasses++}
+ }
+ return{solved:opened.size===n*n-positions.length,opening,passes,subsetMoves,subsetPasses};
+}
+function generateRandom(seed,difficulty){
+ const cfg=SETTINGS[difficulty];if(!cfg||!Number.isSafeInteger(seed)||seed<1||seed>2147483646)return null;
+ const rand=seededRng(seed*131+difficulty*791009),n=cfg.n;
+ const pool=[];for(let i=1;i<=n*n;i++){const x=(i-1)%n+1,y=Math.floor((i-1)/n)+1;if(x>2||y>2)pool.push(i)}
+ for(let attempt=1;attempt<=128;attempt++){
+ for(let i=pool.length;i>=2;i--){const j=rand(i)-1;[pool[i-1],pool[j]]=[pool[j],pool[i-1]]}
+ const mines=pool.slice(0,cfg.mines),metrics=measureGenerated(n,mines);
+ if(metrics.solved&&metrics.opening>=cfg.minOpening&&metrics.opening<=cfg.maxOpening&&metrics.passes>=cfg.minPasses&&metrics.subsetMoves>=cfg.minSubset){
+ mines.sort((a,b)=>a-b);return{n,mines,difficulty,seed,attempts:attempt,metrics}}
+ }
+ return null;
+}
+// PROCEDURAL_END
+
+const select=document.getElementById('difficultySelect');
 const canvas=document.getElementById('screen'),g=canvas.getContext('2d');
-let level=1,marks=[],history=[],mode='OPEN',failed=false,hinted=0,msg='',help=false;
+let level=24,marks=[],history=[],mode='OPEN',failed=false,hinted=0,msg='',help=false;
+let currentSeed=0,currentDiff=2;const sessions=new Map();
 let board=null,neighbors=null,clues=null;
 const controls=[['Prev',8,710,85,66],['Mode',102,710,85,66],['Hint',196,710,85,66],['Undo',290,710,85,66],['Reset',384,710,88,66]];
 function geometry(){const n=board.n,cell=Math.floor(Math.min(460,468)/n);return{x:Math.floor((480-cell*n)/2),y:118+Math.floor((468-cell*n)/2),cell}}
-function setup(k){level=k;board=LEVELS[level-1];const n=board.n;
-neighbors=Array.from({length:n*n},(_,i)=>{const x=i%n,y=Math.floor(i/n),res=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if((dx||dy)&&x+dx>=0&&x+dx<n&&y+dy>=0&&y+dy<n)res.push((y+dy)*n+x+dx);return res});
-const mines=new Set(board.mines.map(v=>v-1));
-clues=neighbors.map((arr,i)=>arr.filter(j=>mines.has(j)).length);
-marks=Array(n*n).fill(0);history=[];mode='OPEN';failed=false;hinted=0;help=false;msg='Open S first';select.value=String(k);
-document.getElementById('details').textContent='Field '+k+' · '+n+'×'+n+' · '+board.mines.length+' mines · '+(k>12?'subset deductions':'direct deductions');draw()}
+function freshSeed(){return Math.floor(Math.random()*2147483646)+1}
+function saveSession(){if(board)sessions.set(level,{board,marks:marks.slice(),history:history.map(a=>a.slice()),mode,failed,hinted,msg,currentSeed,currentDiff})}
+function setSession(k){const p=sessions.get(k);if(!p)return;level=k;board=p.board;marks=p.marks.slice();history=p.history.map(a=>a.slice());mode=p.mode;failed=p.failed;hinted=p.hinted;msg=p.msg;currentSeed=p.currentSeed;currentDiff=p.currentDiff;refreshBoard()}
+function refreshBoard(){const n=board.n;neighbors=getAdj(n);const mines=new Set(board.mines.map(v=>v-1));clues=neighbors.map(a=>a.filter(j=>mines.has(j)).length);select.value=String(currentDiff);document.getElementById('seedInput').value=String(currentSeed);document.getElementById('details').textContent='Field '+level+' · '+n+'×'+n+' · '+board.mines.length+' mines · seed '+currentSeed+' · '+board.metrics.subsetMoves+' subset moves';draw()}
+function setup(seed,difficulty,next=true){
+const p=generateRandom(seed,difficulty);
+if(!p){document.getElementById('details').textContent='Could not generate a verified no-guess board for that seed. Try another.';return false}
+if(next){saveSession();level++}
+board=p;currentSeed=seed;currentDiff=difficulty;
+marks=Array(p.n*p.n).fill(0);history=[];mode='OPEN';failed=false;hinted=0;help=false;msg='Open S first';refreshBoard();return true}
 function strokeRect(x,y,w,h,thick=2){g.lineWidth=thick;g.strokeStyle='#111';g.strokeRect(x+thick/2,y+thick/2,w-thick,h-thick)}
 function text(s,x,y,size=20,align='left',bold=false){g.fillStyle='#111';g.font=(bold?'700 ':'500 ')+size+'px Arial,sans-serif';g.textAlign=align;g.textBaseline='top';g.fillText(String(s),x,y)}
 function button(label,x,y,w,h,active=false){strokeRect(x,y,w,h,active?4:3);if(active)strokeRect(x+7,y+7,w-14,h-14,2);text(label,x+w/2,y+(h-24)/2,20,'center',true)}
 function drawn(){const {x,y,cell}=geometry(),n=board.n;let revealed=0,flags=0;
 for(const v of marks){if(v===2)revealed++;if(v===1)flags++}
 text('QUIET MINES',24,17,28,'left',true);button('?',416,12,48,48);
-if(level<24)button('Next',308,12,101,46);
-text('FIELD '+level+'/24   MINES '+board.mines.length,24,80,20);
+button('New',308,12,101,46);
+text('FIELD '+level+'   MINES '+board.mines.length,24,80,20);
+button(['','Easy','Normal','Hard'][currentDiff],348,76,116,40);
 for(let i=0;i<n*n;i++){const px=x+i%n*cell,py=y+Math.floor(i/n)*cell,v=marks[i];
 if(v===0){strokeRect(px+4,py+4,cell-8,cell-8,2);if(i===0&&revealed===0)text('S',px+cell/2,py+(cell-20)/2,22,'center',true)}
 else if(v===1){g.lineWidth=3;g.beginPath();g.moveTo(px+cell*.31,py+cell*.18);g.lineTo(px+cell*.31,py+cell*.82);g.stroke();
@@ -95,13 +166,19 @@ hinted=o.index+1;msg='Hint: '+o.kind+' R'+(Math.floor(o.index/board.n)+1)+' C'+(
 function inRect(x,y,bx,by,w,h){return x>=bx&&x<bx+w&&y>=by&&y<by+h}
 function tap(x,y){if(inRect(x,y,416,12,48,48)){help=!help;draw();return}
 if(help){if(inRect(x,y,75,706,330,69)){help=false;draw()}return}
-if(level<24&&inRect(x,y,308,12,101,46)){setup(level+1);return}
-const actions=[()=>{if(level>1)setup(level-1)},()=>{mode=mode==='OPEN'?'FLAG':'OPEN';hinted=0;msg='Mode: '+mode;draw()},hint,()=>{if(history.length&&!failed&&!won()){marks=history.pop();hinted=0;msg='Last action restored';draw()}},()=>setup(level)];
+if(inRect(x,y,308,12,101,46)){setup(freshSeed(),currentDiff,true);return}
+if(inRect(x,y,348,76,116,40)){currentDiff=currentDiff%3+1;select.value=String(currentDiff);msg=['','Easy','Normal','Hard'][currentDiff]+' for next New';draw();return}
+const actions=[()=>{if(sessions.has(level-1)){saveSession();setSession(level-1)}},()=>{mode=mode==='OPEN'?'FLAG':'OPEN';hinted=0;msg='Mode: '+mode;draw()},hint,()=>{if(history.length&&!failed&&!won()){marks=history.pop();hinted=0;msg='Last action restored';draw()}},()=>setup(currentSeed,board.difficulty,false)];
 for(let k=0;k<controls.length;k++){const c=controls[k];if(inRect(x,y,c[1],c[2],c[3],c[4])){actions[k]();return}}
 const {x:bx,y:by,cell}=geometry(),n=board.n;
 if(inRect(x,y,bx,by,n*cell,n*cell)){action(Math.floor((y-by)/cell)*n+Math.floor((x-bx)/cell))}}
 canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect();tap((e.clientX-r.left)*480/r.width,(e.clientY-r.top)*800/r.height)});
-select.addEventListener('change',()=>setup(Number(select.value)));
-document.getElementById('restart').addEventListener('click',()=>setup(level));
-setup(1);
+select.addEventListener('change',()=>{currentDiff=Number(select.value);msg=['','Easy','Normal','Hard'][currentDiff]+' for next New';draw()});
+document.getElementById('restart').addEventListener('click',()=>setup(currentSeed,board.difficulty,false));
+document.getElementById('randomBtn').addEventListener('click',()=>setup(freshSeed(),Number(select.value),true));
+document.getElementById('applySeed').addEventListener('click',()=>{
+const seed=Number(document.getElementById('seedInput').value);
+if(!Number.isSafeInteger(seed)||seed<1||seed>2147483646){document.getElementById('details').textContent='Seed must be an integer from 1 to 2147483646.';return}
+setup(seed,Number(select.value),true)});
+setup(freshSeed(),2,true);
 </script></body></html>

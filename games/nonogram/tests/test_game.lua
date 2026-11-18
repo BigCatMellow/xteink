@@ -156,7 +156,7 @@ for level=2,12 do
   if level<12 then assert(A.next()) end
 end
 assert(A.next(),'generated puzzles follow the authored pictures')
-eq(s.level,13);assert(A.prev())
+eq(s.level,13);assert(not A.prev(),'First generated puzzle must not navigate into authored boards')
 
 -- Revisit earlier stages; reset does not discard global unlocks.
 assert(A.visit(5))
@@ -224,7 +224,12 @@ for number=13,24 do
   local signature=table.concat(p.rows)
   measured(ctx,on_draw,'generated nonogram blank '..number)
   assert(A.paint(1,1));assert(A.paint(2,1))
-  assert(A.prev());on_leave();on_load(ctx);s=A.state();assert(A.next())
+  if number==13 then
+    assert(not A.prev(),'first generated puzzle does not expose picture 12')
+    on_leave();on_load(ctx);s=A.state()
+  else
+    assert(A.prev());on_leave();on_load(ctx);s=A.state();assert(A.next())
+  end
   eq(s.boards[number][1],1);eq(s.boards[number][2],1)
   assert(A.undo(),'generated undo survives navigation and relaunch')
   eq(s.boards[number][2],0)

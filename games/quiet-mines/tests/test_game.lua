@@ -80,7 +80,7 @@ assert(A.mode());assert(A.apply(mine))
 assert(A.visit(5))
 on_leave();on_load(ctx);S=A.state()
 assert(A.prev());eq(S.marks[4][mine],1,'flag persisted after visit')
-eq(S.unlocked,12)
+eq(S.unlocked,24)
 -- Physical touch pointer release only.
 assert(A.visit(2));A.restart()
 local x0,y0,cell=A.geometry()

@@ -689,7 +689,7 @@ local function geometry()
   local clueArea=14+height+(maxColumn-1)*(height+6)
   -- Measure the whole clue+board object. 10x10 uses 35px targets,
   -- unlike 15/20 grids, which would be unusably small on 480px.
-  local cap=n==5 and 70 or n==7 and 50 or n==8 and 45 or 35
+  local cap=n==5 and 70 or n==7 and 50 or n==8 and 45 or 37
   local cell=math.min(cap,math.floor((456-gutter)/n),
     math.floor((518-clueArea)/n))
   assert(cell>=34,'Nonogram clue density exceeds readable screen')
@@ -699,11 +699,16 @@ local function geometry()
 end
 local function button(g,key,label,primary,enabled)
   local b=BUTTONS[key]
-  UI.button(g,D or C,b[1],b[2],b[3],b[4],label,
-    key=='mode' and CROSS_MODE or false,{
+  if enabled~=false then
+    -- Low-cost 1-bit offset: soft button depth without duplicate inset boxes.
+    g:rect(b[1]+3,b[2]+b[4]+1,b[3]-4,1,{fill=true,radius=0})
+    g:rect(b[1]+b[3]+1,b[2]+3,1,b[4]-4,{fill=true,radius=0})
+  end
+  UI.button(g,D or C,b[1],b[2],b[3],b[4],label,false,{
     font=(key=='mode' or key=='hint') and 'small' or nil,
     radius=STYLE.control_radius,
     line_width=enabled==false and STYLE.inactive_stroke
+      or key=='mode' and CROSS_MODE and 5
       or primary and STYLE.primary_stroke or STYLE.control_stroke
   })
 end
@@ -724,21 +729,28 @@ local function help_screen(g)
   UI.paragraph(g,D or C,24,484,432,116,
     'Hint uses the clues to find a certain move, without seeing the picture. Undo and Reset keep your progress.', 'body')
   UI.paragraph(g,D or C,24,614,432,72,
-    'New no-guess logic puzzles follow the twelve picture puzzles.', 'small')
+    'Every new puzzle is generated and solvable from the clues. Older saved games stay available.', 'small')
   button(g,'back','Back to puzzle',true)
 end
 local function tick(g,x,y)
   g:line(x,y+3,x+3,y+6,{line_width=3})
   g:line(x+3,y+6,x+8,y,{line_width=3})
 end
+local function light_wash(g,x,y,w,h)
+  -- Dithered shade, not row/column outline rails. Stagger sparse 2px dots
+  -- behind cell marks so the guide is visible without muddying clues.
+  local row=0
+  for yy=y+5,y+h-5,12 do
+    for xx=x+5+(row%2)*6,x+w-5,12 do
+      g:rect(xx,yy,2,2,{fill=true,radius=0})
+    end
+    row=row+1
+  end
+end
 local function draw(g)
   g:clear(0)
-  -- A small tile mark supplies identity; the puzzle remains the dominant shape.
-  g:rect(24,26,32,32,{radius=6,line_width=2})
-  for _,a in ipairs({{1,0},{0,1},{1,1},{2,1},{1,2}}) do
-    g:rect(30+a[1]*7,32+a[2]*7,5,5,{fill=true,radius=1})
-  end
-  text(g,72,25,'Nonogram','large',nil,258)
+  -- Typography carries the title: no decorative tile competes with clues.
+  text(g,24,25,'Nonogram','large',nil,286)
   if not HELP then button(g,'mode',CROSS_MODE and 'X' or 'FILL') end
   button(g,'help',HELP and 'X' or '?')
   local p=current()
@@ -759,6 +771,11 @@ local function draw(g)
   local rows,cols,rowMatches,colMatches=counters()
   local clueFont=p.n==5 and 'clue' or 'clue_small'
   local clueHeight=UI.height(D or C,clueFont)
+  if SELECTED>0 and SELECTED<=p.n*p.n then
+    local row,col=math.floor((SELECTED-1)/p.n),(SELECTED-1)%p.n
+    light_wash(g,bx+3,by+row*cell+3,cell*p.n-6,cell-6)
+    light_wash(g,bx+col*cell+3,by+3,cell-6,cell*p.n-6)
+  end
   for x=1,p.n do
     local clue=p.colClues[x]
     local cx=bx+(x-.5)*cell
@@ -788,20 +805,13 @@ local function draw(g)
       end
     end
   end
-  for i=1,p.n-1 do
-    local weight=i%5==0 and 5 or 4
-    UI.stroke(g,bx+i*cell,by,bx+i*cell,by+p.n*cell,weight)
-    UI.stroke(g,bx,by+i*cell,bx+p.n*cell,by+i*cell,weight)
-  end
-  g:rect(bx,by,cell*p.n,cell*p.n,{line_width=5,radius=STYLE.board_radius})
+  -- A single connected grid. Stronger fifth lines aid counting; the
+  -- selection is one obvious square, with no extra full-row/column rails.
+  UI.grid(g,bx,by,p.n,p.n,cell,{minor=2,major=3,every=5,frame=4})
   if SELECTED>0 and SELECTED<=p.n*p.n then
     local row,col=math.floor((SELECTED-1)/p.n),(SELECTED-1)%p.n
-    g:rect(bx,by+row*cell,cell*p.n,cell,{line_width=2})
-    g:rect(bx+col*cell,by,cell,cell*p.n,{line_width=2})
-    if HINTED==SELECTED then
-      g:rect(bx+col*cell+5,by+row*cell+5,cell-10,cell-10,
-        {line_width=3,radius=3})
-    end
+    g:rect(bx+col*cell+4,by+row*cell+4,cell-8,cell-8,
+      {line_width=HINTED==SELECTED and 4 or 3,radius=3})
   end
   text(g,24,636,'Rows '..rows..' / '..p.n,'small',nil,200)
   text(g,264,636,'Cols '..cols..' / '..p.n,'small',nil,192)

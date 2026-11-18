@@ -56,9 +56,13 @@ local function shuffle(a,rand)
   for i=#a,2,-1 do local j=rand(i);a[i],a[j]=a[j],a[i] end
   return a
 end
-function G.generate(number,difficulty)
-  assert(number>=1 and number==math.floor(number) and difficulty>=1 and difficulty<=3)
-  local rand=rng(number*193+difficulty*100019)
+function G.generate(number,difficulty,generation)
+  generation=generation or 1
+  assert(number>=1 and number==math.floor(number) and
+    difficulty>=1 and difficulty<=(generation==2 and 5 or 3))
+  local seed=number*193+difficulty*100019
+  if generation==2 then seed=seed+81173 end
+  local rand=rng(seed)
   local digits=shuffle({1,2,3,4,5,6,7,8,9},rand)
   local bands=shuffle({0,1,2},rand)
   local stacks=shuffle({0,1,2},rand)
@@ -78,15 +82,34 @@ function G.generate(number,difficulty)
   end end
   local board=copy(solution)
   local order={}
-  for i=1,81 do order[i]=i end
+  local target
+  if generation==2 then
+    -- Meditation's five visible difficulty bands: Beginner/Easy/Medium/
+    -- Hard/Expert. The device uses deterministic rotationally symmetric
+    -- removal with exact uniqueness checks. Its CPU budget does not
+    -- reproduce the browser's ten-attempt logical-technique classifier.
+    target=({38,32,26,45,22})[difficulty]
+    for i=1,41 do
+      if i==41 then order[#order+1]={41}
+      else order[#order+1]={i,82-i} end
+    end
+  else
+    -- Keep every previously released v1 generated board byte-for-byte.
+    target=({45,36,30})[difficulty]
+    for i=1,81 do order[i]=i end
+  end
   shuffle(order,rand)
   local remaining=81
-  local target=({45,36,30})[difficulty]
-  for _,i in ipairs(order) do
+  for _,pair in ipairs(order) do
     if remaining<=target then break end
-    local before=board[i];board[i]=0
-    -- A budget exhaustion rejects the removal, preserving uniqueness.
-    if G.count(board,1500)==1 then remaining=remaining-1 else board[i]=before end
+    local cells=type(pair)=='table' and pair or {pair}
+    if remaining-#cells>=target then
+      local original={}
+      for j,i in ipairs(cells) do original[j]=board[i];board[i]=0 end
+      -- Solver exhaustion is never accepted as evidence of uniqueness.
+      if G.count(board,1500)==1 then remaining=remaining-#cells
+      else for j,i in ipairs(cells) do board[i]=original[j] end end
+    end
   end
   return {given=board,solution=solution,clues=remaining}
 end

@@ -16,6 +16,16 @@ on:
       - 'assets/fonts/game-ui/**'
       - 'scripts/sync_game_theme.py'
       - 'scripts/make_game_fonts.py'
+  pull_request:
+    paths:
+      - 'games/sudoku/**'
+      - '.github/workflows/sudoku.yml'
+      - 'shared/game_ui.lua'
+      - 'shared/puzzle_store.lua'
+      - 'shared/game_theme.lua'
+      - 'shared/game_style.lua'
+      - 'shared/typefaces.lua'
+      - 'scripts/sync_game_theme.py'
   workflow_dispatch:
 permissions:
   contents: read

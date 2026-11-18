@@ -3,12 +3,19 @@
 local UI=require('ui')
 local Theme=require('theme')
 local LEVELS=require('levels')
+local Generator=require('generator')
+local Store=require('puzzle_store')
 local TOTAL=#LEVELS
+local MAX=999999999
 local C,S,ERR,MSG=nil,nil,nil,nil
 local HELP=false
 local HINTED=0
 local KEY_MS=-1000
 local function board(level)
+  if level>TOTAL then
+    if S and S.generated and S.generated.level==level then return S.generated.board end
+    error('Generated field was not loaded')
+  end
   local p=LEVELS[level]
   local t={}
   for _,i in ipairs(p.mines) do t[i]=true end
@@ -61,26 +68,101 @@ local function solved(level,marks)
   end
   return true
 end
+-- Keep original 24 maps unchanged. New boards have explicit mine layouts
+-- stored in a 64-shard archive, so they survive generator updates.
+local function seed_for(level,salt)
+  local ms=0
+  if C and C.clock and type(C.clock.millis)=='function' then
+    local ok,v=pcall(function() return C.clock:millis() end)
+    if ok and type(v)=='number' then ms=math.floor(v) end
+  end
+  return (level*48271+(ms%2147483646)*131071+salt*389)%2147483646+1
+end
+local function new_field(level,difficulty)
+  for salt=0,7 do
+    local seed=seed_for(level,salt)
+    local p=Generator.generate(seed,difficulty)
+    if p then
+      local mines={}
+      for _,i in ipairs(p.mines) do mines[i]=true end
+      S.generated={level=level,difficulty=difficulty,seed=seed,
+        positions=p.mines,board={n=p.n,mines=mines,total=#p.mines}}
+      S.marks[level]=blank(p.n*p.n)
+      S.failed[level]=false;S.history[level]={}
+      return true
+    end
+  end
+  return false
+end
+local function load_field(level)
+  if not C or not C.storage then return false end
+  local data=Store.get(C.storage,'mines',level)
+  if type(data)~='string' then return false end
+  local diff,seed,n,raw,marks,failed,hist=
+    data:match('^v2\n(%d+)\n(%d+)\n(%d+)\n([%d,]+)\n([012]+)\n([01])\n(.*)$')
+  diff,seed,n=tonumber(diff),tonumber(seed),tonumber(n)
+  local cfg=diff and Generator.settings[diff]
+  if not cfg or n~=cfg.n or not seed or seed<1 or seed>2147483646 then return false end
+  local positions,mines={},{}
+  for part in raw:gmatch('%d+') do
+    local i=tonumber(part)
+    if i<1 or i>n*n or mines[i] then return false end
+    positions[#positions+1]=i;mines[i]=true
+  end
+  if #positions~=cfg.mines or mines[1] or mines[2] or mines[n+1] or mines[n+2] then return false end
+  local decoded=decode(marks,n*n)
+  if not decoded then return false end
+  for i,v in ipairs(decoded) do
+    if v==2 and mines[i] and failed~='1' then return false end
+  end
+  local past={}
+  for part in (hist or ''):gmatch('[^;]+') do
+    if #past>=10 then return false end
+    local previous=decode(part,n*n)
+    if not previous then return false end
+    past[#past+1]=previous
+  end
+  S.generated={level=level,difficulty=diff,seed=seed,
+    positions=positions,board={n=n,mines=mines,total=#positions}}
+  S.marks[level]=decoded;S.failed[level]=failed=='1';S.history[level]=past
+  return true
+end
 local function save()
-  if not S or not C or not C.storage then return end
-  local lines={'version=1','level='..S.level,'unlocked='..S.unlocked,'mode='..S.mode}
+  if not S or not C or not C.storage then return true end
+  local lines={'version=1','level='..S.level,'unlocked='..S.unlocked,
+    'mode='..S.mode,'difficulty='..(S.difficulty or 2)}
   for i=1,TOTAL do
     lines[#lines+1]='B'..i..'='..encode(S.marks[i])
     lines[#lines+1]='F'..i..'='..(S.failed[i] and '1' or '0')
-    local hist={}
-    for j,m in ipairs(S.history[i]) do hist[j]=encode(m) end
-    lines[#lines+1]='H'..i..'='..table.concat(hist,';')
+    local past={}
+    for j,m in ipairs(S.history[i]) do past[j]=encode(m) end
+    lines[#lines+1]='H'..i..'='..table.concat(past,';')
   end
-  pcall(function() C.storage:write('quiet-mines.txt',table.concat(lines,'\n')) end)
+  local ok=pcall(function()
+    if S.level>TOTAL then
+      local g=S.generated
+      assert(g and g.level==S.level)
+      local past={}
+      for j,m in ipairs(S.history[S.level]) do past[j]=encode(m) end
+      Store.put(C.storage,'mines',S.level,
+        table.concat({'v2',g.difficulty,g.seed,g.board.n,
+          table.concat(g.positions,','),encode(S.marks[S.level]),
+          S.failed[S.level] and '1' or '0',table.concat(past,';')},'\n'))
+    end
+    Store.write(C.storage,'quiet-mines.txt',table.concat(lines,'\n'))
+  end)
+  if not ok then MSG='Save failed - keep this field open' end
+  return ok
 end
 local function start()
-  S={level=1,unlocked=1,mode='OPEN',marks={},failed={},history={}}
+  S={level=TOTAL+1,unlocked=TOTAL+1,mode='OPEN',difficulty=2,
+    marks={},failed={},history={}}
   for i=1,TOTAL do
     S.marks[i]=blank(board(i).n^2)
-    S.failed[i]=false
-    S.history[i]={}
+    S.failed[i]=false;S.history[i]={}
   end
-  HELP=false;HINTED=0;MSG='Begin by opening S (safe start)'
+  assert(new_field(S.level,S.difficulty),'Could not generate a no-guess field')
+  HELP=false;HINTED=0;MSG='New random field: open S'
   save()
 end
 local function restore()

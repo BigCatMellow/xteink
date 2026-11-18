@@ -302,6 +302,10 @@ end
 store['nonogram.txt']='version=1\nlevel=500\nunlocked=800\n'
 on_load(ctx);s=A.state()
 eq(s.level,13,'malformed saves restart at a generated puzzle')
+assert(A.visit(1));s=A.state();s.unlocked=4
+assert(A.new());s=A.state()
+eq(s.level,13,'New from legacy stage must bypass the authored pictures')
+assert(A.shape(s.level).n>=7,'a generated puzzle was loaded')
 assert(type(on_tick)=='nil','no background animation')
 assert(A.visit(13))
 local oldSignature=table.concat(A.shape(13).rows)

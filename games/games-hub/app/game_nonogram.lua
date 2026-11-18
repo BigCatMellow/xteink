@@ -689,7 +689,8 @@ local function geometry()
   local clueArea=14+height+(maxColumn-1)*(height+6)
   -- Measure the whole clue+board object. 10x10 uses 35px targets,
   -- unlike 15/20 grids, which would be unusably small on 480px.
-  local cap=n==5 and 70 or n==7 and 50 or n==8 and 45 or 37
+  local cap=n==5 and 70 or n==7 and 50 or n==8 and 45
+    or (maxColumn>=5 and 35 or 37)
   local cell=math.min(cap,math.floor((456-gutter)/n),
     math.floor((518-clueArea)/n))
   assert(cell>=34,'Nonogram clue density exceeds readable screen')

@@ -72,3 +72,35 @@ Host geometry and solver checks are not proof of physical rendering or
 persistent-storage capacity on the X4 Pro. Verify 12×12 taps, actual
 font widths, repeated saved moves, reinstall-over-existing and sleep/wake
 before treating v0.3.0 as device-tested.
+
+## v0.4.0 — procedural fields by default
+
+A new installation starts with a generated field at archive ID 25, not
+with an authored field. The **New** button always generates another
+board, even before the current one is solved. The difficulty selector
+cycles **Easy (8×8, 10 mines)**, **Normal (10×10, 18 mines)** and
+**Hard (12×12, 27 mines)**. The top-right selector changes the *next*
+board, leaving the current field untouched. The browser preview also
+generates and replays layouts from explicit integer seeds.
+
+The user's mobile HTML supplied the method: seed a PRNG, place mines
+outside the safe-start neighborhood, flood-reveal S, apply basic
+arithmetic and overlapping-number subset deductions, and accept only
+candidates proven solvable. The Lua implementation uses bounded attempts
+to avoid unresponsive generation, and rejects candidates that fail.
+**It never falls back to an unchecked board.** If no suitable field is
+found within the attempt budget, existing progress stays intact and
+New can be retried. The independent Python solver separately validates
+generated fields against their hidden mine positions.
+
+Legacy fields 1–24 still exist only to reopen existing saves; they are
+not the source of random boards. New fields store their *actual mine
+positions* with their seed, progress and undo in a 64-shard archive.
+That protects an unfinished layout even if the generation algorithm
+later changes. A completed generated board does not unlock an empty
+archive slot; a real new board must be generated and saved first.
+
+Random selection guarantees different seeds, not mathematically perfect
+uniqueness across an unlimited number of boards. No-guess solvability is
+verified, but human challenge, real-device generation latency, save quota,
+12×12 finger targets and e-ink ghosting still require physical checks.

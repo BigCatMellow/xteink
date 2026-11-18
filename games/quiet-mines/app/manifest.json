@@ -1,9 +1,9 @@
 {
   "app_id": "quietmines",
   "display_name": "Quiet Mines",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "BigCatMellow",
-  "description": "Original deduction-first Minesweeper for monochrome e-ink",
+  "description": "24 no-guess fields, direct and subset hints, full-screen e-ink gameplay",
   "entry": "index.lua",
   "api": "2.0",
   "permissions": []

@@ -391,7 +391,8 @@ local function draw(g)
   button(g,'help',HELP and 'X' or '?')
   local p=current()
   text(g,24,89,'Puzzle '..S.level,'small',nil,230)
-  text(g,177,89,p.n..' x '..p.n,'small',nil,90)
+  -- A nine-digit puzzle index would collide with size metadata.
+  if S.level<1000000 then text(g,177,89,p.n..' x '..p.n,'small',nil,90) end
   if not HELP and not S.submitted[S.level] then
     button(g,'hint','Hint')
   end

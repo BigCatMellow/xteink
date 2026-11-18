@@ -110,9 +110,30 @@ function text(s,x,y,w,cls='',align='left'){const d=el('div',x,y,w,null,'text '+c
 function btn(t,x,y,w,h,cb,cls=''){const e=el('button',x,y,w,h,'appbtn '+cls);e.type='button';e.textContent=t;e.onclick=cb;return e}
 function line(x1,y1,x2,y2,thick){const d=el('div',x1,y1,Math.max(1,x2-x1),Math.max(1,y2-y1));d.style.background='#111';d.style.pointerEvents='none';if(y2-y1===0){d.style.height=thick+'px'}else if(x2-x1===0){d.style.width=thick+'px'}return d}
 function framed(x,y,w,h,t=3,r=0){const e=el('div',x,y,w,h);e.style.border=t+'px solid #111';e.style.borderRadius=r+'px';e.style.pointerEvents='none';return e}
-function geometry(){const rowCl=rc(),colCl=cc(),ch=n===5?24:20;let maxWidth=Math.max(...rowCl.map(a=>a.join(' ').length*(n===5?14:11)));const gutter=maxWidth+16,clueArea=14+ch+(Math.max(...colCl.map(a=>a.length))-1)*(ch+6);const cap=n===5?70:n===7?50:n===8?45:(Math.max(...colCl.map(a=>a.length))>=5?35:37);let cell=Math.min(cap,Math.floor((456-gutter)/n),Math.floor((518-clueArea)/n));const bx=Math.floor((480-(n*cell+gutter))/2)+gutter,by=112+Math.floor((518-(n*cell+clueArea))/2)+clueArea;return{bx,by,cell,gutter,clueArea,rowCl,colCl}}
-function showHelp(){screen.replaceChildren();text('Nonogram',24,25,286,'title');btn('X',408,20,48,48,render,'tiny');text('How to solve',24,140,432,'title');const paragraphs=['Read each clue as a consecutive run of filled cells. Separate adjacent runs with at least one empty square.','FILL toggles black cells. X marks confirmed empties. Toggle the input mode at the top right.','HINT uses only the clues and your confirmed marks to find a logically forced square. No answer peek or guessing.','Complete every required filled square, then press CHECK. Your progress stays on this browser page.'];paragraphs.forEach((p,i)=>{const e=text(p,24,206+i*112,432,'');e.style.whiteSpace='normal';e.style.fontSize='22px';e.style.lineHeight='1.35'});btn('Back to puzzle',24,708,432,68,render,'primary')}
-function render(){screen.replaceChildren();const g=geometry();text('Nonogram',24,25,286,'title');btn(mode==='fill'?'FILL':'X',332,20,64,48,()=>{mode=mode==='fill'?'cross':'fill';hintIndex=-1;render()},'tiny'+(mode==='cross'?' active':''));btn('?',408,20,48,48,showHelp,'tiny');text('Puzzle '+seed,24,89,210);text(n+' x '+n,177,89,90);btn('Hint',272,78,76,44,hint,'tiny');btn('New',352,78,104,44,newGame,'tiny');
+function geometry(){const rowCl=rc(),colCl=cc(),ch=n===5?24:20;let maxWidth=Math.max(...rowCl.map(a=>a.join(' ').length*(n===5?14:11)));const gutter=maxWidth+16,clueArea=14+ch+(Math.max(...colCl.map(a=>a.length))-1)*(ch+6);const cap=n===5?70:n===7?50:n===8?45:(Math.max(...colCl.map(a=>a.length))>=5?35:37);let cell=Math.min(cap,Math.floor((456-gutter)/n),Math.floor((488-clueArea)/n));const bx=Math.floor((480-(n*cell+gutter))/2)+gutter,by=102+Math.floor((488-(n*cell+clueArea))/2)+clueArea;return{bx,by,cell,gutter,clueArea,rowCl,colCl}}
+function showHelp(){
+screen.replaceChildren();
+text('Nonogram',22,21,270,'title');btn('X',414,18,49,48,render,'tiny');
+text('How to solve',24,143,432,'title');
+const paragraphs=[
+ 'Fill the numbered runs. Separate different runs with an empty square.',
+ 'Fill marks a square; X marks known empty cells. Undo restores the last mark.',
+ 'Hint uses the clues to identify a certain square, without guessing.'
+];
+paragraphs.forEach((p,i)=>{
+const e=text(p,24,204+i*123,432);e.style.whiteSpace='normal';e.style.fontSize='21px';e.style.lineHeight='1.35'
+});
+text('Puzzle '+Math.max(1,seed-12),24,578,432,'','center');
+btn('Mode: '+(mode==='fill'?'Fill':'X'),24,610,205,54,()=>{mode=mode==='fill'?'cross':'fill';render()});
+btn('Hint',244,610,212,54,()=>{hint();},'');
+btn('Back to puzzle',24,704,432,62,render,'primary');
+}
+function render(){
+screen.replaceChildren();
+const g=geometry();
+text('Nonogram',22,21,270,'title');
+btn('New',305,18,96,48,newGame);
+btn('?',414,18,49,48,showHelp,'tiny');
 const{bx,by,cell,rowCl,colCl}=g,ch=n===5?24:20;
 for(let x=0;x<n;x++)colCl[x].forEach((v,j)=>{const d=text(v,bx+x*cell,by-14-ch+(j-colCl[x].length+1)*(ch+6),cell,'clue'+(n===5?' big':''),'center');if(!board.some((b,i)=>i%n===x&&b===0))d.classList.add('done')});
 for(let y=0;y<n;y++){const value=rowCl[y].join(' ');const w=Math.max(30,value.length*(n===5?14:11));const d=text(value,bx-16-w,by+y*cell+(cell-ch)/2,w,'clue'+(n===5?' big':''),'right');if(!board.slice(y*n,(y+1)*n).includes(0))d.classList.add('done')}
@@ -128,7 +149,12 @@ for(let y=0;y<n;y++)for(let x=0;x<n;x++){const at=y*n+x,px=bx+x*cell,py=by+y*cel
 for(let i=1;i<n;i++){let p=i*cell,t=(i%5===0?3:2);line(bx+p-Math.floor(t/2),by,bx+p-Math.floor(t/2),by+n*cell,t);line(bx,by+p-Math.floor(t/2),bx+n*cell,by+p-Math.floor(t/2),t)}framed(bx,by,cell*n,cell*n,4,8);
 if(selected>=0){let r=Math.floor(selected/n),c=selected%n;framed(bx+c*cell+4,by+r*cell+4,cell-8,cell-8,hintIndex===selected?4:3,3)}
 let completedRows=0,completedCols=0;for(let y=0;y<n;y++)if(counts(board.slice(y*n,(y+1)*n).map(v=>v===1)).join()===rowCl[y].join())completedRows++;for(let x=0;x<n;x++)if(counts(Array.from({length:n},(_,y)=>board[y*n+x]===1)).join()===colCl[x].join())completedCols++;
-text('Rows '+completedRows+' / '+n,24,636,200);text('Cols '+completedCols+' / '+n,264,636,192);text(message||'Tap a cell to fill / X / clear',24,670,432,'','center');
-btn('Prev',24,708,96,68,prevGame);btn('Undo',132,708,96,68,undo);btn('Reset',240,708,96,68,reset);btn(solved?'Next':'Check',348,708,108,68,check,'primary');document.querySelector('#proof').textContent='Device level '+seed+' · '+n+'×'+n+' · '+(rounds+' logical deduction passes')+' · '+board.filter(v=>v===1).length+' filled';}
+text('Rows '+completedRows+' / '+n,24,608,200);
+text('Cols '+completedCols+' / '+n,252,608,202);
+text(message||(mode==='fill'?'Fill mode: tap to mark squares':'X mode: mark empty squares'),24,658,432,'','center');
+const modeHit=el('button',24,648,432,42,'cell');
+modeHit.setAttribute('aria-label','Switch between Fill and X mark modes');
+modeHit.onclick=()=>{mode=mode==='fill'?'cross':'fill';hintIndex=-1;render()};
+btn('Prev',15,704,105,62,prevGame);btn('Undo',129,704,105,62,undo);btn('Reset',243,704,105,62,reset);btn(solved?'Next':'Check',357,704,107,62,check,'primary');document.querySelector('#proof').textContent='Device level '+seed+' · '+n+'×'+n+' · '+(rounds+' logical deduction passes')+' · '+board.filter(v=>v===1).length+' filled';}
 picker.addEventListener('change',()=>loadLevel(({7:15,8:13,10:14})[picker.value]));document.querySelector('#newBtn').addEventListener('click',newGame);document.querySelector('#goBtn').addEventListener('click',()=>loadLevel(Number(document.querySelector('#levelInput').value)));document.querySelector('#levelInput').addEventListener('keydown',e=>{if(e.key==='Enter')loadLevel(Number(e.currentTarget.value))});window.addEventListener('resize',rescale);rescale();newGame();
 </script></body></html>

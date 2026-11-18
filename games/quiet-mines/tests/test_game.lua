@@ -125,6 +125,13 @@ for level=13,24 do
   assert(A.solved(level,S.marks[level]))
 end
 assert(advancedOverlap>=12,'advanced campaign requires multi-number overlap deductions')
+-- Reconstruct the finished original twelfth board for the legacy-save case.
+assert(A.visit(12));assert(A.restart());assert(A.apply(1))
+local oldBoard=A.board(12)
+for i=1,oldBoard.n*oldBoard.n do
+  if not oldBoard.mines[i] and S.marks[12][i]~=2 then assert(A.apply(i)) end
+end
+assert(A.solved(12,S.marks[12]))
 -- A saved original 12-field installation must gain the new levels without
 -- destroying previously submitted boards, unfinished marks, or undo.
 local old={}

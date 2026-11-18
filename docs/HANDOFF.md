@@ -628,3 +628,11 @@ Rebuild Games Hub from source, verify bitmap and standalone suites, and check
 physical XTEINK after install-over with a backup. Browser technique classifier
 and animations are intentionally not claimed as ported. Feature inventory:
 docs/design/sudoku-meditation-2026-11-17/FEATURE_PARITY.md.
+
+## Nonogram 0.7.0 source integration — November 2026
+
+No-guess v2 patterns, a constraint-based Hint, 10x10 layouts,
+stronger lines and direct Fill/X input were added. New generated
+records use an explicit version marker while all unmarked existing
+saved patterns continue with original v1 seeds. The 480x800 bitmap
+preview and full quality tests do not prove physical device behavior.

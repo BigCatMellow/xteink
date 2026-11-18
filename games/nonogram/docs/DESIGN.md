@@ -181,3 +181,33 @@ CI pins the matching Python/Pillow wheel; that wheel was checked locally
 against the exported glyph masks. Physical acceptance still needs the real
 reader's PNG appearance, first-frame generation time, repeated taps,
 sleep/resume and native memory behavior.
+
+
+## Nonogram 0.7.0 — logic-depth and screen-space review
+
+The uploaded HTML example has an overlap-only solver whose later
+passes do not incorporate the player's marks. One overlap pass is
+not a reliable difficulty measurement and does not prove uniqueness.
+
+The new generator enumerates all legal patterns for each clue, filters
+them against the current confirmed fill/X marks, and forces a square
+only when every remaining candidate pattern agrees. Row and column
+propagation repeats until no further deductions are possible. New v2
+puzzles are accepted only when this process finishes the board; an
+independent Python solver tests single-solution and no-guess behavior.
+
+The game retains a centrally aligned clue-plus-board composition,
+bounded by y=112..630. It sizes square cells from measured row-clue
+width and column-clue height rather than fixed board coordinates:
+max 70px for 5x5, 50px for 7x7, 45px for 8x8, 35px for 10x10.
+The last is a touch-size exception requiring physical validation.
+Internal rules are 4px; fifth boundaries and frames are 5px. Selected
+row/column guides are 2px and a hint adds an inset 3px outline.
+Long puzzle numbers avoid colliding with size labels.
+
+New v2 records are marked with a fourth line. The absence of that
+line on older generated saves means generator v1, preserving the
+exact previous picture at the same numeric ID. The twelve authored
+pictures are not changed. Hints are clue-based and do not write marks.
+The runtime intentionally excludes 15/20-square touch boards, browser
+animations, mouse dragging and direct seed entry.

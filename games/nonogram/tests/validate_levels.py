@@ -23,7 +23,7 @@ def solutions(rows,limit=2):
     n=len(rows)
     row_clues=[clue(row) for row in rows]
     col_clues=[clue(''.join(rows[y][x] for y in range(n))) for x in range(n)]
-    assert max(map(len,row_clues+col_clues))<=3,'clues would not fit the display'
+    assert max(map(len,row_clues+col_clues))<=5,'clue stack too tall for 10x10 screen'
     row_choices=[]
     for target in row_clues:
         row_choices.append([
@@ -93,3 +93,67 @@ for record in output.splitlines():
         assert tuple(rows) not in seen, 'duplicate generated board within sample'
         seen.add(tuple(rows))
 print('PASS: 102 generated patterns + 32 forced fallbacks independently solved; unique, bounded clues')
+
+
+# Independent no-guess validator. Each round filters all row and column
+# candidate patterns against the current confirmed fills/X marks and commits
+# only cells shared by *every* surviving candidate.
+def propagate_without_guessing(rows):
+    n=len(rows)
+    _,rc,cc=solutions(rows,limit=1)
+    def patterns(cl):
+        return [tuple(mask>>i & 1 for i in range(n)) for mask in range(1<<n)
+                if clue(''.join('#' if mask>>i&1 else '.' for i in range(n)))==cl]
+    candidates=[[patterns(k) for k in rc],[patterns(k) for k in cc]]
+    state=[[-1]*n for _ in range(n)]
+    rounds=0
+    while True:
+        change=False
+        for axis in range(2):
+            for line in range(n):
+                opts=[p for p in candidates[axis][line] if all(
+                    (state[line][j] if axis==0 else state[j][line]) in (-1,p[j])
+                    for j in range(n))]
+                assert opts, 'contradictory deduction'
+                candidates[axis][line]=opts
+                for j in range(n):
+                    forced=opts[0][j]
+                    if all(p[j]==forced for p in opts):
+                        r,c=(line,j) if axis==0 else (j,line)
+                        if state[r][c]==-1:
+                            state[r][c]=forced
+                            change=True
+        if not change:
+            return all(v!=-1 for row in state for v in row),rounds
+        rounds+=1
+
+v2_script = r"""
+package.path='app/?.lua;'..package.path
+local G=require('generator')
+for seed=13,38 do
+  local p=G.generate_v2(seed)
+  local again=G.generate_v2(seed)
+  assert(table.concat(p.rows)==table.concat(again.rows),'stable v2 seed')
+  assert(p.generation==2)
+  print(seed..'\t'..table.concat(p.rows,',')..'\t'..p.rounds)
+end
+for _,seed in ipairs({999999998,999999999}) do
+  local p=G.generate_v2(seed)
+  print(seed..'\t'..table.concat(p.rows,',')..'\t'..p.rounds)
+end
+"""
+v2_output=subprocess.check_output(['lua','-'],input=v2_script,text=True,
+    cwd=Path(__file__).resolve().parents[1])
+for record in v2_output.splitlines():
+    seed,raw,reported=record.split('\t')
+    rows=raw.split(',')
+    n=len(rows)
+    assert n in (7,8,10) and all(len(row)==n for row in rows)
+    black=sum(row.count('#') for row in rows)
+    assert .3 <= black/n**2 <= .7 or int(reported)==1
+    solutions_found,rc,cc=solutions(rows)
+    assert solutions_found==[rows], ('v2',seed,'solution not unique')
+    solved,rounds=propagate_without_guessing(rows)
+    assert solved, ('v2',seed,'requires guessing under complete line inference')
+    assert rounds>=1 and int(reported)>=1
+print('PASS: 28 v2 patterns independently solved without guessing, uniquely solvable')

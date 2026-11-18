@@ -58,11 +58,11 @@ for _,level in ipairs({1,5,9}) do
   assert(A.visit(level));A.reset()
   local bx,by,cell,gutter,clueArea=A.geometry()
   local n=A.shape(level).n
-  assert(cell>=44,'touch cells must not return to the cramped 39px layout')
-  assert(n*cell>=336,'the puzzle must receive meaningful screen area')
+  assert(cell>=34,'touch cells must stay usable with extended 10x10 puzzles')
+  assert(n*cell>=345,'the puzzle must receive meaningful screen area')
   assert(math.abs(((bx-gutter)+(bx+n*cell))/2-240)<=.5,'clues and board centered horizontally')
-  assert(math.abs(((by-clueArea)+(by+n*cell))/2-356)<=.5,'clues and board centered vertically')
-  assert(by+n*cell<=584,'board leaves room for feedback and controls')
+  assert(math.abs(((by-clueArea)+(by+n*cell))/2-371)<=.5,'clues and board centered vertically')
+  assert(by+n*cell<=630,'board leaves room for feedback and controls')
   assert(not A.tap(bx-1,by+cell/2),'clue gutter must not paint a square')
   assert(A.tap(bx+1,by+1));eq(s.boards[level][1],1,'top-left touch matches drawn cell')
   assert(A.tap(bx+n*cell-1,by+n*cell-1));eq(s.boards[level][n*n],1,'bottom-right touch matches drawn cell')
@@ -70,6 +70,16 @@ for _,level in ipairs({1,5,9}) do
   assert(A.tap(undo[1]+1,undo[2]+undo[4]/2),'full rounded control remains a touch target')
   eq(s.boards[level][n*n],0)
 end
+-- The improved board still fits the actual panel and touch registration.
+do
+ local G=require('generator')
+ local n7=G.generate_v2(14)
+ eq(#n7.rows,10,'new generated continuation rotates through 10x10')
+ local deduction=G.propagate(10,
+   A.runs({1}),A.runs({1})) -- intentionally invalid clue vector
+ assert(deduction.contradiction,'invalid line clues are rejected')
+end
+
 -- Restore the fresh initial progression used by the behavioral scenarios below.
 store={};on_load(ctx);s=A.state()
 
@@ -239,6 +249,52 @@ before=redraws
 assert(not on_input(ctx,{type='key',phase='down',key='up',time_ms=20000}))
 eq(s.level,1,'PREV at first puzzle must not fall through to NEXT')
 eq(redraws,before)
+
+-- New XTEINK Nonogram interface: fill/X switches, clue-only hint and selection.
+assert(A.visit(1));A.reset()
+local p,Gen=A.shape(1),require('generator')
+local emptyMarks=s.boards[1]
+local forced,logical=Gen.deduce(p.rowClues,p.colClues,emptyMarks)
+assert(forced and logical and not logical.contradiction,'a clue-only deduction should exist')
+local actual=p.rows[forced.y]:sub(forced.x,forced.x)=='#' and 1 or 2
+eq(forced.value,actual,'a hint must be logically correct')
+local prior=table.concat(emptyMarks)
+assert(A.hint());eq(table.concat(emptyMarks),prior,'hint never changes player marks')
+local selected,hinted=A.cursor()
+eq(hinted,(forced.y-1)*p.n+forced.x,'hint highlights its precise square')
+measured(ctx,on_draw,'nonogram selected row and column')
+local mode=A.controls.mode
+assert(A.tap(mode[1]+mode[3]/2,mode[2]+mode[4]/2))
+assert(A.tap(1+select(1,A.geometry()),1+select(2,A.geometry())),
+  'X mode paints from real board touch position')
+eq(s.boards[1][1],2,'X mode marks an unknown as empty')
+assert(A.tap(mode[1]+mode[3]/2,mode[2]+mode[4]/2))
+local gx,gy=A.geometry()
+assert(A.tap(gx+1,gy+1))
+eq(s.boards[1][1],1,'Fill mode replaces an X with ink')
+assert(A.tap(gx+1,gy+1))
+eq(s.boards[1][1],0,'Fill mode toggles ink off')
+-- Contradicting an entire non-empty row must never produce a fake hint.
+for x=1,p.n do assert(A.mark(x,1,'cross')) end
+local step,reason=Gen.deduce(p.rowClues,p.colClues,s.boards[1])
+assert(not step and reason,'invalid line states reject unsound hints')
+assert(A.hint());A.reset()
+-- A legacy, untagged generated level retains the original v1 image even
+-- after the v2 generator is introduced for fresh, unvisited puzzles.
+do
+ local Store=require('puzzle_store')
+ local classic=Gen.generate(50)
+ local n=#classic.rows
+ local zeros={}
+ for i=1,n*n do zeros[i]=0 end
+ Store.put(ctx.storage,'pattern',50,table.concat({table.concat(zeros),'0',''},'\n'))
+ s.unlocked=math.max(s.unlocked,50)
+ assert(A.visit(50))
+ eq(table.concat(A.shape(50).rows),table.concat(classic.rows),
+   'legacy generated seed remains untouched')
+ assert(A.reset())
+end
+
 store['nonogram.txt']='version=1\nlevel=500\nunlocked=800\n'
 on_load(ctx)
 eq(A.state().level,1,'malformed saves reset')

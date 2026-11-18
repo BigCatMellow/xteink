@@ -89,3 +89,7 @@ need checking. [Actual bitmap host previews](../../docs/design/games-hub/overvie
 The public release has **no personal save data**. Paper Golf remains shelved
 and excluded. See the [design contract](../../docs/GAME_DESIGN.md) and
 [quality requirements](../../docs/GAME_QUALITY.md).
+
+Games Hub 0.4.7 contains Nonogram 0.7.0, with stronger grids,
+clue-only hints, Fill/X controls and logic-checked new patterns.
+Historic saved levels retain the original generator.

@@ -63,3 +63,34 @@ Leave the firmware-managed `XTApps/` folder alone to preserve app data. No firmw
 - `docs/DEVICE_TESTING.md` — physical acceptance checks.
 
 **Hardware status:** The builds require testing on a real X4 Pro for touch alignment, font rendering and sleep/resume before being considered device-verified.
+
+
+## Nonogram 0.7.0: deeper logic and clearer interaction
+
+The user's compact Nonogram HTML provided useful controls, seed-based
+generation, fill/X marking, undo, and check. Its overlap-only solver does
+not prove that players can finish a puzzle without guessing. The new
+v2 generator instead tests every candidate row and column pattern and
+propagates forced cells to a fixed point. A puzzle is accepted only if
+all its squares are determined by this reasoning. An independent Python
+solver verifies unique solutions and no-guess completion across samples.
+
+New, **unvisited** generated puzzles cycle through 8x8, 10x10, 7x7, and
+10x10 grids. Previously saved generated patterns have no v2 marker and
+always load with their original v1 seeds and solutions, preserving saves.
+New records contain a trailing v2 marker after the existing data.
+
+FILL and X are direct toggle modes. HINT uses only the clue numbers and
+current marks; it never reads the hidden answer. It highlights a deduced
+square without changing the board. Selected row/column outlines, bolder
+4px cell rules, 5px fifth dividers, and a 5px frame give stronger e-ink
+readability. Cell sizes are capped at 70, 50, 45, and 35 pixels for the
+5/7/8/10 sizes, with measured clue gutters. The 10x10 size needs a
+physical touch check; 15x15 and 20x20 are omitted because targets
+would be too small. Browser right-click/drag and seed entry are not
+supported by the physical reader input path.
+
+The twelve original pictures, app ID, historic levels, unfinished marks,
+submitted states and saved undo history are unchanged. Correct-but-
+unsubmitted boards remain saved. Host renders and CI are not physical
+device acceptance. See the full design/logic review in docs/DESIGN.md.

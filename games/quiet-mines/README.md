@@ -108,3 +108,15 @@ Random selection guarantees different seeds, not mathematically perfect
 uniqueness across an unlimited number of boards. No-guess solvability is
 verified, but human challenge, real-device generation latency, save quota,
 12×12 finger targets and e-ink ghosting still require physical checks.
+
+## v0.5.1 — clean portrait field
+
+All generated 8×8/10×10/12×12 layouts keep their exact mine positions and
+solver guarantees. The grid is now one continuous shared 2px grid with a 4px
+frame, not separate inset rectangles in each unopened tile. The latter are
+identified by a minimal right/bottom one-pixel bevel, so opened blank cells
+remain distinguishable. The meaningless 5×5 boundary emphasis was removed.
+
+Large bottom controls have restrained one-pixel shadows and one emphasized
+outline for Flag mode/Hints, not a second decorative box. The browser
+preview mirrors these changes. No hitbox, hint, undo, or save format changed.

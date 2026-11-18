@@ -208,10 +208,14 @@ do
   eq(geometry.row,math.floor((firstBlank-1)/9))
   eq(geometry.col,(firstBlank-1)%9)
   local g=require('game_canvas').canvas()
-  local outlines,lines={},{0}
+  local outlines,dots={},{};
   local original=g.rect
   function g:rect(x,y,w,h,options)
-    if not(options and options.fill) then outlines[#outlines+1]={x=x,y=y,w=w,h=h} end
+    if options and options.fill and w==2 and h==2 then
+      dots[#dots+1]={x=x,y=y}
+    elseif not(options and options.fill) then
+      outlines[#outlines+1]={x=x,y=y,w=w,h=h}
+    end
     return original(self,x,y,w,h,options)
   end
   g:reset();on_draw(ctx,g);g:verify('selection guides and 2px cell rules')
@@ -221,8 +225,18 @@ do
     end
     return false
   end
-  assert(hasRect(6,100+geometry.row*52,468,52),'row guide missing')
-  assert(hasRect(6+geometry.col*52,100,52,468),'column guide missing')
+  assert(not hasRect(6,100+geometry.row*52,468,52),
+    'full-row guide outline must not muddy the board')
+  assert(not hasRect(6+geometry.col*52,100,52,468),
+    'full-column guide outline must not muddy the board')
+  assert(hasRect(6+geometry.col*52+4,100+geometry.row*52+4,44,44),
+    'single selected-cell frame must remain obvious')
+  assert(#dots>=100 and #dots<350,'light 1-bit focus shade should be sparse')
+  for _,dot in ipairs(dots) do
+    assert((dot.y>=100+geometry.row*52 and dot.y<100+(geometry.row+1)*52)
+      or (dot.x>=6+geometry.col*52 and dot.x<6+(geometry.col+1)*52),
+      'shade must be restricted to selected row and column')
+  end
   -- Pencil digits are drawn inside the cells as monochrome segments,
   -- not represented solely by a dot or a status caption.
   assert(tap_control('notes'))

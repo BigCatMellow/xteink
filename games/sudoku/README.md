@@ -42,3 +42,18 @@ randomized completed grids, symmetry-preserving clue removal and exact
 one-solution checking. The Meditation browser's full ten-attempt human-
 technique difficulty classification is not claimed as implemented on
 the reader; a unique solution is not itself a human difficulty score.
+
+## v0.5.1 — calm portrait selection
+
+The 480×800 portrait screen retains its full 468×468, 52px-per-cell Sudoku
+board and three-row 60px keypad. Selected rows and columns now use a subtle
+12px-spaced monochrome stipple under the numbers instead of heavy outlined
+crosshairs; the selected cell has exactly one thick frame. 3×3 box brackets
+are removed. Matching-digit underlines, pencil marks, conflict indicators,
+multiselect, check, menus, and all existing saves remain functional.
+
+Controls use a single rounded border, stronger when selected, and a restrained
+one-pixel right/bottom offset shadow. Unlike a rendered grayscale concept,
+the e-ink implementation draws 1-bit sparse dots with a bounded per-frame
+command count. Actual firmware tone, refresh, ghosting and touch accuracy
+still require on-device review.

@@ -325,7 +325,6 @@ end
 local function geometry()
   local p=current()
   local n=p.n
-  local cell=n==5 and 68 or n==7 and 48 or 44
   local font=n==5 and 'clue' or 'clue_small'
   local widest,maxColumn=0,0
   for _,clue in ipairs(p.rowClues) do
@@ -336,15 +335,24 @@ local function geometry()
   local gutter=widest+16
   local height=UI.height(D or C,font)
   local clueArea=14+height+(maxColumn-1)*(height+6)
-  -- Center the complete clue + board object in the 128..584 puzzle band.
+  -- Measure the whole clue+board object. 10x10 uses 35px targets,
+  -- unlike 15/20 grids, which would be unusably small on 480px.
+  local cap=n==5 and 70 or n==7 and 50 or n==8 and 45 or 35
+  local cell=math.min(cap,math.floor((456-gutter)/n),
+    math.floor((518-clueArea)/n))
+  assert(cell>=34,'Nonogram clue density exceeds readable screen')
   local x=math.floor((480-(n*cell+gutter))/2)+gutter
-  local y=128+math.floor((456-(n*cell+clueArea))/2)+clueArea
+  local y=112+math.floor((518-(n*cell+clueArea))/2)+clueArea
   return x,y,cell,gutter,clueArea
 end
 local function button(g,key,label,primary,enabled)
   local b=BUTTONS[key]
-  UI.button(g,D or C,b[1],b[2],b[3],b[4],label,false,{
-    radius=STYLE.control_radius,line_width=enabled==false and STYLE.inactive_stroke or primary and STYLE.primary_stroke or STYLE.control_stroke
+  UI.button(g,D or C,b[1],b[2],b[3],b[4],label,
+    key=='mode' and CROSS_MODE or false,{
+    font=(key=='mode' or key=='hint') and 'small' or nil,
+    radius=STYLE.control_radius,
+    line_width=enabled==false and STYLE.inactive_stroke
+      or primary and STYLE.primary_stroke or STYLE.control_stroke
   })
 end
 local function text(g,x,y,s,style,align,width)
@@ -360,11 +368,11 @@ local function help_screen(g)
   UI.paragraph(g,D or C,24,222,432,118,
     'Each number is a run of filled cells. Leave at least one empty cell between runs.', 'body')
   UI.paragraph(g,D or C,24,350,432,120,
-    'Tap a cell to cycle: filled, X, clear. X marks a cell you know is empty.', 'body')
+    'FILL taps to shade a square; X mode marks known empty cells. Tap the mode button to switch.', 'body')
   UI.paragraph(g,D or C,24,484,432,116,
-    'Check reveals a solved picture. Undo and Reset affect this puzzle. Every board keeps your progress.', 'body')
+    'Hint uses the clues to find a certain move, without seeing the picture. Undo and Reset keep your progress.', 'body')
   UI.paragraph(g,D or C,24,614,432,72,
-    'Ticks mean a line matches its clues. More patterns follow picture 12.', 'small')
+    'New no-guess logic puzzles follow the twelve picture puzzles.', 'small')
   button(g,'back','Back to puzzle',true)
 end
 local function tick(g,x,y)
@@ -378,11 +386,15 @@ local function draw(g)
   for _,a in ipairs({{1,0},{0,1},{1,1},{2,1},{1,2}}) do
     g:rect(30+a[1]*7,32+a[2]*7,5,5,{fill=true,radius=1})
   end
-  text(g,72,25,'Nonogram','large',nil,312)
+  text(g,72,25,'Nonogram','large',nil,258)
+  if not HELP then button(g,'mode',CROSS_MODE and 'X' or 'FILL') end
   button(g,'help',HELP and 'X' or '?')
   local p=current()
   text(g,24,89,'Puzzle '..S.level,'small',nil,230)
-  text(g,274,89,p.n..' x '..p.n,'small',nil,66)
+  text(g,177,89,p.n..' x '..p.n,'small',nil,90)
+  if not HELP and not S.submitted[S.level] then
+    button(g,'hint','Hint')
+  end
   if not HELP and not S.submitted[S.level] and S.level<S.unlocked then
     button(g,'next','Next')
   end
@@ -413,7 +425,7 @@ local function draw(g)
       local px=bx+(x-1)*cell
       local py=by+(y-1)*cell
       if board[i]==1 then
-        g:rect(px+5,py+5,cell-10,cell-10,{fill=true,radius=STYLE.ink_radius})
+        g:rect(px+4,py+4,cell-8,cell-8,{fill=true,radius=STYLE.ink_radius})
       elseif board[i]==2 then
         local inset=math.floor(cell*.32)
         g:line(px+inset,py+inset,px+cell-inset,py+cell-inset,{line_width=STYLE.mark_stroke})
@@ -422,17 +434,27 @@ local function draw(g)
     end
   end
   for i=1,p.n-1 do
-    local weight=i==5 and STYLE.frame_stroke or STYLE.grid_stroke
+    local weight=i%5==0 and 5 or 4
     UI.stroke(g,bx+i*cell,by,bx+i*cell,by+p.n*cell,weight)
     UI.stroke(g,bx,by+i*cell,bx+p.n*cell,by+i*cell,weight)
   end
-  g:rect(bx,by,cell*p.n,cell*p.n,{line_width=STYLE.frame_stroke,radius=STYLE.board_radius})
-  text(g,24,608,'Rows '..rows..' / '..p.n,'small',nil,200)
-  text(g,264,608,'Columns '..cols..' / '..p.n,'small',nil,192)
-  g:line(24,640,456,640,{line_width=1})
+  g:rect(bx,by,cell*p.n,cell*p.n,{line_width=5,radius=STYLE.board_radius})
+  if SELECTED>0 and SELECTED<=p.n*p.n then
+    local row=math.floor((SELECTED-1)/p.n),col=(SELECTED-1)%p.n
+    g:rect(bx,by+row*cell,cell*p.n,cell,{line_width=2})
+    g:rect(bx+col*cell,by,cell,cell*p.n,{line_width=2})
+    if HINTED==SELECTED then
+      g:rect(bx+col*cell+5,by+row*cell+5,cell-10,cell-10,
+        {line_width=3,radius=3})
+    end
+  end
+  text(g,24,636,'Rows '..rows..' / '..p.n,'small',nil,200)
+  text(g,264,636,'Cols '..cols..' / '..p.n,'small',nil,192)
   local won=S.submitted[S.level]
-  local status=MSG or (won and 'Revealed: '..display_name(p.name) or 'Tap a cell: fill / X / clear')
-  text(g,240,660,status,'small','center',432)
+  local status=MSG or (won and 'Revealed: '..display_name(p.name)
+    or CROSS_MODE and 'X mode: mark confirmed empties'
+    or 'Fill mode: tap to mark squares')
+  text(g,240,670,status,'small','center',432)
   button(g,'prev','Prev',false,S.level>1)
   button(g,'undo','Undo',false,not won and #S.history[S.level]>0)
   button(g,'reset','Reset')
@@ -451,6 +473,8 @@ local function tap(x,y)
     if control_hit('back',x,y) then HELP=false;return true end
     return false
   end
+  if control_hit('mode',x,y) then return toggle_mode() end
+  if control_hit('hint',x,y) then return hint() end
   if control_hit('next',x,y) and not S.submitted[S.level] then return next_level() end
   if control_hit('prev',x,y) then return prev() end
   if control_hit('undo',x,y) then return undo() end
@@ -461,7 +485,8 @@ local function tap(x,y)
   local p=current()
   local bx,by,cell=geometry()
   if hit(x,y,bx,by,cell*p.n,cell*p.n) then
-    return paint(math.floor((x-bx)/cell)+1,math.floor((y-by)/cell)+1)
+    return mark_cell(math.floor((x-bx)/cell)+1,math.floor((y-by)/cell)+1,
+      CROSS_MODE and 'cross' or 'fill')
   end
   return false
 end
@@ -537,6 +562,8 @@ if rawget(_G,'__TEST') then
   __TEST.api={
     pictures=Pictures,state=function() return S end,
     shape=shape,runs=runs,correct=picture_correct,paint=paint,
+    mark=mark_cell,hint=hint,mode=toggle_mode,
+    cursor=function() return SELECTED,HINTED end,
     check=check,reset=reset,undo=undo,visit=visit,next=next_level,
     prev=prev,geometry=geometry,counters=counters,tap=tap,restore=restore,
     controls=BUTTONS,style=STYLE,

@@ -3,7 +3,9 @@ local UI=require('ui')
 local Theme=require('theme')
 local Generator=require('generator')
 local Store=require('puzzle_store')
-local NAMES={'EASY','MEDIUM','HARD'}
+local NAMES={'EASY','MEDIUM','HARD','BEGINNER','EXPERT'}
+local ORDER={4,1,2,3,5} -- Meditation order; legacy save IDs 1..3 stay unchanged.
+local NOTE_CAP={65,39,19,99,13}
 local MAX=999999999
 local C,S,P,ERR,MSG=nil,nil,nil,nil,nil
 local HELP,MENU=false,false
@@ -18,6 +20,30 @@ local function digit_box(n)
 end
 local function copy(a) local b={};for i,v in ipairs(a) do b[i]=v end;return b end
 local function zeros() local a={};for i=1,81 do a[i]=0 end;return a end
+local function flag(s,fallback) return s=='1' or (s==nil and fallback or false) end
+local function selection_code(a)
+  local found={}
+  for i=1,81 do if a and a[i] then found[#found+1]=i end end
+  return table.concat(found,',')
+end
+local function read_selection(s)
+  local result={}
+  if not s or s=='' then return result end
+  if s:sub(1,1)==',' or s:sub(-1)==',' or s:find(',,',1,true) then return nil end
+  for item in s:gmatch('[^,]+') do
+    local n=tonumber(item)
+    if not n or n<1 or n>81 or n~=math.floor(n) or result[n] then return nil end
+    result[n]=true
+  end
+  return result
+end
+local function note_total(notes)
+  local n=0
+  for i=1,81 do
+    for k=1,9 do if math.floor(notes[i]/2^(k-1))%2==1 then n=n+1 end end
+  end
+  return n
+end
 local function board_code(a) return table.concat(a) end
 local function notes_code(a)
   local masks={}
@@ -73,7 +99,14 @@ local function save()
   local data=table.concat({'version=1','difficulty='..S.difficulty,
     'board='..board_code(S.board),'notes='..notes_code(S.notes),'history='..table.concat(past,';'),
     'selected='..S.selected,'noteMode='..(S.noteMode and '1' or '0'),
-    'submitted='..(S.submitted and '1' or '0')},'\n')
+    'submitted='..(S.submitted and '1' or '0'),
+    'generation='..(S.generation or 1),
+    'autoClean='..(S.autoClean and '1' or '0'),
+    'highlight='..(S.highlight and '1' or '0'),
+    'showConflicts='..(S.showConflicts and '1' or '0'),
+    'locked='..(S.locked or 0),
+    'multiMode='..(S.multiMode and '1' or '0'),
+    'multi='..selection_code(S.multi)},'\n')
   local ok=pcall(function()
     Store.put(C.storage,'sudoku',S.level,data)
     Store.write(C.storage,'sudoku.txt','version=1\nlevel='..S.level..'\nunlocked='..S.unlocked)
@@ -82,29 +115,39 @@ local function save()
   return ok
 end
 local function fresh(level,unlocked,difficulty)
-  P=Generator.generate(level,difficulty)
-  S={level=level,unlocked=unlocked,difficulty=difficulty,board=copy(P.given),notes=zeros(),
-    history={},selected=0,noteMode=false,submitted=false}
+  P=Generator.generate(level,difficulty,2)
+  S={level=level,unlocked=unlocked,difficulty=difficulty,generation=2,
+    board=copy(P.given),notes=zeros(),
+    history={},selected=0,noteMode=false,submitted=false,
+    autoClean=true,highlight=true,showConflicts=true,locked=0,multiMode=false,multi={}}
 end
 local function load_level(level,unlocked)
   local f=fields(Store.get(C.storage,'sudoku',level))
-  local difficulty=integer(f.difficulty,1,3)
-  if f.version~='1' or not difficulty then return false end
+  local difficulty=integer(f.difficulty,1,5)
+  local generation=integer(f.generation or '1',1,2)
+  if f.version~='1' or not difficulty or not generation then return false end
   local board,notes=parse_board(f.board),parse_notes(f.notes)
   local selected=integer(f.selected,0,81)
-  if not board or not notes or not selected or (f.noteMode~='0' and f.noteMode~='1') or
+  local locked=integer(f.locked or '0',0,9)
+  local multi=read_selection(f.multi)
+  if not board or not notes or not selected or not locked or not multi or
+      (f.noteMode~='0' and f.noteMode~='1') or
       (f.submitted~='0' and f.submitted~='1') then return false end
-  P=Generator.generate(level,difficulty)
+  P=Generator.generate(level,difficulty,generation)
   if not consistent(board,notes) or (f.submitted=='1' and not solved(board)) then return false end
   local history={}
   for part in (f.history or ''):gmatch('[^;]+') do
     local b,n=part:match('^([^:]+):(.+)$')
     b,n=parse_board(b),parse_notes(n)
-    if not b or not n or not consistent(b,n) or #history>=32 then return false end
+    if not b or not n or not consistent(b,n) or #history>=100 then return false end
     history[#history+1]={board=b,notes=n}
   end
-  S={level=level,unlocked=unlocked,difficulty=difficulty,board=board,notes=notes,
-    history=history,selected=selected,noteMode=f.noteMode=='1',submitted=f.submitted=='1'}
+  S={level=level,unlocked=unlocked,difficulty=difficulty,generation=generation,
+    board=board,notes=notes,history=history,selected=selected,
+    noteMode=f.noteMode=='1',submitted=f.submitted=='1',
+    autoClean=flag(f.autoClean,true),highlight=flag(f.highlight,true),
+    showConflicts=flag(f.showConflicts,true),locked=locked,
+    multiMode=flag(f.multiMode,false),multi=multi}
   return true
 end
 local function visit(level)
@@ -116,7 +159,7 @@ local function visit(level)
   return true
 end
 local function new_puzzle(difficulty)
-  if not S or not integer(difficulty,1,3) or S.unlocked>=MAX then return false end
+  if not S or not integer(difficulty,1,5) or S.unlocked>=MAX then return false end
   if not save() then return true end
   local number=S.unlocked+1
   fresh(number,number,difficulty)
@@ -125,51 +168,111 @@ local function new_puzzle(difficulty)
   return true
 end
 local function remember()
-  if #S.history>=32 then table.remove(S.history,1) end
+  if #S.history>=100 then table.remove(S.history,1) end
   S.history[#S.history+1]={board=copy(S.board),notes=copy(S.notes)}
 end
 local function has(mask,n) return math.floor(mask/2^(n-1))%2==1 end
+local function selected_cells()
+  local found={}
+  if S.multiMode then
+    for i=1,81 do if S.multi[i] then found[#found+1]=i end end
+  elseif S.selected>0 then found[1]=S.selected end
+  return found
+end
 local function put(n)
-  local i=S and S.selected or 0
-  if i==0 or P.given[i]>0 or S.submitted or not integer(n,1,9) then return false end
-  if S.noteMode then
-    if S.board[i]>0 then MSG='Erase the value before adding notes';return true end
-    remember()
-    S.notes[i]=S.notes[i]+(has(S.notes[i],n) and -1 or 1)*2^(n-1)
-  else
-    if S.board[i]==n then return false end
-    remember();S.board[i]=n;S.notes[i]=0
-    for _,j in ipairs(Generator.peers[i]) do
-      if has(S.notes[j],n) then S.notes[j]=S.notes[j]-2^(n-1) end
+  if not S or S.submitted or not integer(n,1,9) then return false end
+  local chosen=selected_cells()
+  if S.noteMode and S.locked>0 and #chosen==0 then
+    S.locked=n;MSG='NOTE '..n..': tap empty squares';save();return true
+  end
+  local touched={}
+  for _,i in ipairs(chosen) do
+    if P.given[i]==0 and (S.noteMode and S.board[i]==0 or not S.noteMode) then
+      touched[#touched+1]=i
     end
   end
-  MSG=nil;save();return true
+  if #touched==0 then return false end
+  if S.noteMode then
+    local current=note_total(S.notes)
+    local nextCount=current
+    for _,i in ipairs(touched) do nextCount=nextCount+(has(S.notes[i],n) and -1 or 1) end
+    if nextCount>NOTE_CAP[S.difficulty] then
+      MSG='NOTE LIMIT '..NOTE_CAP[S.difficulty];return true
+    end
+    remember()
+    for _,i in ipairs(touched) do
+      S.notes[i]=S.notes[i]+(has(S.notes[i],n) and -1 or 1)*2^(n-1)
+    end
+  else
+    local i=S.selected
+    if i==0 or P.given[i]>0 or S.board[i]==n then return false end
+    remember();S.board[i]=n;S.notes[i]=0
+    if S.autoClean then
+      for _,j in ipairs(Generator.peers[i]) do
+        if has(S.notes[j],n) then S.notes[j]=S.notes[j]-2^(n-1) end
+      end
+    end
+  end
+  MSG=nil;S.bad=nil;save();return true
 end
 local function erase()
-  local i=S and S.selected or 0
-  if i==0 or P.given[i]>0 or S.submitted or (S.board[i]==0 and S.notes[i]==0) then return false end
-  remember();S.board[i]=0;S.notes[i]=0;MSG=nil;save();return true
+  if not S or S.submitted then return false end
+  local touched={}
+  for _,i in ipairs(selected_cells()) do
+    if P.given[i]==0 and (S.board[i]~=0 or S.notes[i]~=0) then touched[#touched+1]=i end
+  end
+  if #touched==0 then return false end
+  remember()
+  for _,i in ipairs(touched) do S.board[i]=0;S.notes[i]=0 end
+  MSG=nil;S.bad=nil;save();return true
+end
+local function clear_notes()
+  if not S or S.submitted or note_total(S.notes)==0 then return false end
+  remember();S.notes=zeros();S.locked=0;MSG='All pencil notes cleared';save();return true
 end
 local function undo()
   if not S or S.submitted or #S.history==0 then return false end
   local h=table.remove(S.history)
-  S.board=h.board;S.notes=h.notes;MSG='Last move restored';save();return true
+  S.board=h.board;S.notes=h.notes;S.bad=nil;MSG='Last move restored';save();return true
 end
 local function reset()
   if not S then return false end
   S.board=copy(P.given);S.notes=zeros();S.history={};S.submitted=false
-  S.selected=0;S.noteMode=false;MENU=false;MSG='This puzzle restarted';save();return true
+  S.selected=0;S.noteMode=false;S.locked=0;S.multi={};S.multiMode=false
+  MENU=false;S.bad=nil;MSG='This puzzle restarted';save();return true
 end
-local function select_cell(x,y)
+local function select_cell(x,y,additive)
   if not S or not integer(x,1,9) or not integer(y,1,9) then return false end
-  S.selected=(y-1)*9+x;MSG=nil;save();return true
+  local i=(y-1)*9+x
+  if S.noteMode and S.board[i]>0 then
+    S.locked=S.board[i];S.selected=0;S.multi={}
+    MSG='NOTE '..S.locked..': tap empty squares';save();return true
+  end
+  if S.noteMode and S.locked>0 and S.board[i]==0 and P.given[i]==0 then
+    S.selected=i;S.multi={[i]=true}
+    local n=S.locked
+    if not has(S.notes[i],n) and note_total(S.notes)>=NOTE_CAP[S.difficulty] then
+      MSG='NOTE LIMIT '..NOTE_CAP[S.difficulty];return true
+    end
+    remember();S.notes[i]=S.notes[i]+(has(S.notes[i],n) and -1 or 1)*2^(n-1)
+    MSG=nil;save();return true
+  end
+  if additive or S.multiMode then
+    if S.multi[i] then S.multi[i]=nil
+    else S.multi[i]=true end
+    S.selected=i
+  else
+    S.selected=i;S.multi={[i]=true}
+  end
+  MSG=nil;save();return true
 end
 local function check()
   if not S or S.submitted then return false end
   local wrong,empty=0,0
+  S.bad={}
   for i=1,81 do
     if S.board[i]==0 then empty=empty+1
-    elseif S.board[i]~=P.solution[i] then wrong=wrong+1 end
+    elseif S.board[i]~=P.solution[i] then wrong=wrong+1;S.bad[i]=true end
   end
   if wrong>0 then MSG=wrong..' incorrect '..(wrong==1 and 'value' or 'values')
   elseif empty>0 then MSG='Correct so far: '..empty..' empty'

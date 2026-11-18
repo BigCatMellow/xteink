@@ -92,6 +92,16 @@ local function read(name)
   if not data and err and err~='not_found' then error('Cannot read saved progress') end
   return data
 end
+-- New puzzles use a fresh seed; legacy puzzle records without one continue
+-- to use their original numbered seed. Never reseed an existing save.
+local function new_seed(number)
+  local now=0
+  if C and C.clock and type(C.clock.millis)=='function' then
+    local ok,v=pcall(function() return C.clock:millis() end)
+    if ok and type(v)=='number' then now=math.floor(v) end
+  end
+  return (number*48271+(now%2147483646)*131071)%2147483646+1
+end
 local function save()
   if not S or not C or not C.storage then return true end
   local past={}
@@ -100,7 +110,7 @@ local function save()
     'board='..board_code(S.board),'notes='..notes_code(S.notes),'history='..table.concat(past,';'),
     'selected='..S.selected,'noteMode='..(S.noteMode and '1' or '0'),
     'submitted='..(S.submitted and '1' or '0'),
-    'generation='..(S.generation or 1),
+    'generation='..(S.generation or 1),'seed='..(S.seed or S.level),
     'autoClean='..(S.autoClean and '1' or '0'),
     'highlight='..(S.highlight and '1' or '0'),
     'showConflicts='..(S.showConflicts and '1' or '0'),
@@ -116,8 +126,9 @@ local function save()
 end
 local function fresh(level,unlocked,difficulty)
   local prefs=S and {S.autoClean,S.highlight,S.showConflicts} or {true,true,true}
-  P=Generator.generate(level,difficulty,2)
-  S={level=level,unlocked=unlocked,difficulty=difficulty,generation=2,
+  local seed=new_seed(level)
+  P=Generator.generate(seed,difficulty,2)
+  S={level=level,unlocked=unlocked,difficulty=difficulty,generation=2,seed=seed,
     board=copy(P.given),notes=zeros(),
     history={},selected=0,noteMode=false,submitted=false,
     autoClean=prefs[1],highlight=prefs[2],showConflicts=prefs[3],
@@ -127,7 +138,8 @@ local function load_level(level,unlocked)
   local f=fields(Store.get(C.storage,'sudoku',level))
   local difficulty=integer(f.difficulty,1,5)
   local generation=integer(f.generation or '1',1,2)
-  if f.version~='1' or not difficulty or not generation then return false end
+  local seed=integer(f.seed or tostring(level),1,2147483646)
+  if f.version~='1' or not difficulty or not generation or not seed then return false end
   local board,notes=parse_board(f.board),parse_notes(f.notes)
   local selected=integer(f.selected,0,81)
   local locked=integer(f.locked or '0',0,9)
@@ -135,7 +147,7 @@ local function load_level(level,unlocked)
   if not board or not notes or not selected or not locked or not multi or
       (f.noteMode~='0' and f.noteMode~='1') or
       (f.submitted~='0' and f.submitted~='1') then return false end
-  P=Generator.generate(level,difficulty,generation)
+  P=Generator.generate(seed,difficulty,generation)
   if not consistent(board,notes) or (f.submitted=='1' and not solved(board)) then return false end
   local history={}
   for part in (f.history or ''):gmatch('[^;]+') do
@@ -144,7 +156,7 @@ local function load_level(level,unlocked)
     if not b or not n or not consistent(b,n) or #history>=100 then return false end
     history[#history+1]={board=b,notes=n}
   end
-  S={level=level,unlocked=unlocked,difficulty=difficulty,generation=generation,
+  S={level=level,unlocked=unlocked,difficulty=difficulty,generation=generation,seed=seed,
     board=board,notes=notes,history=history,selected=selected,
     noteMode=f.noteMode=='1',submitted=f.submitted=='1',
     autoClean=flag(f.autoClean,true),highlight=flag(f.highlight,true),

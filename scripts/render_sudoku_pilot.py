@@ -65,7 +65,7 @@ def geometry(text):
 
 
 def capture(source, scene):
-    fixture = """dofile(SOURCE)
+    fixture = r"""dofile(SOURCE)
 on_load(ctx)
 local A=__TEST.api
 -- Both generations display the same historical board for a fair visual diff.

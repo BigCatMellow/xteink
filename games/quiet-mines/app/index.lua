@@ -391,7 +391,12 @@ local function geometry()
   return UI.grid_geometry(n,118,586,460)
 end
 local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
-local function button(g,x,y,w,h,s,marked) UI.button(g,C,x,y,w,h,s,marked) end
+local function button(g,x,y,w,h,s,marked)
+  -- Two restrained offset strokes create a tactile shadow, not a second box.
+  g:rect(x+3,y+h+1,w-4,1,{fill=true,radius=0})
+  g:rect(x+w+1,y+3,1,h-4,{fill=true,radius=0})
+  UI.button(g,C,x,y,w,h,s,false,{line_width=marked and 5 or 3})
+end
 local function draw_help(g)
   text(g,240,163,'QUIET MINES','large','center',425)
   UI.paragraph(g,C,28,230,424,110,
@@ -414,7 +419,8 @@ local function render(g)
   if HELP then draw_help(g);return end
   local bx,by,cell=geometry()
   UI.region(bx,by,cell*b.n,cell*b.n)
-  UI.grid(g,bx,by,b.n,b.n,cell,{minor=2,frame=5,every=5,major=4})
+  -- Equal-sized Mines tiles have no 5x5 subregions: one clean shared grid.
+  UI.grid(g,bx,by,b.n,b.n,cell,{minor=2,frame=4})
   local tiles=S.marks[S.level]
   for y=1,b.n do
     for x=1,b.n do
@@ -422,7 +428,10 @@ local function render(g)
       local px,py=bx+(x-1)*cell,by+(y-1)*cell
       local v=tiles[i]
       if v==0 then
-        g:rect(px+4,py+4,cell-8,cell-8,{line_width=2,radius=2})
+        -- One-pixel right/bottom bevel distinguishes unopened tiles from
+        -- revealed blanks without the previous distracting inner squares.
+        g:rect(px+3,py+cell-4,cell-6,1,{fill=true,radius=0})
+        g:rect(px+cell-4,py+3,1,cell-6,{fill=true,radius=0})
         if i==1 and revealed(S.level)==0 then
           text(g,px+cell/2,py+math.floor((cell-20)/2),'S','small','center',cell-12)
         end

@@ -440,7 +440,7 @@ local function draw(g)
   end
   g:rect(bx,by,cell*p.n,cell*p.n,{line_width=5,radius=STYLE.board_radius})
   if SELECTED>0 and SELECTED<=p.n*p.n then
-    local row=math.floor((SELECTED-1)/p.n),col=(SELECTED-1)%p.n
+    local row,col=math.floor((SELECTED-1)/p.n),(SELECTED-1)%p.n
     g:rect(bx,by+row*cell,cell*p.n,cell,{line_width=2})
     g:rect(bx+col*cell,by,cell,cell*p.n,{line_width=2})
     if HINTED==SELECTED then

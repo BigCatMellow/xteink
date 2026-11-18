@@ -515,3 +515,34 @@ Sudoku already generates every game from a fresh, saved seed. Nonogram v0.9.0 an
 `legacy_pictures.lua` and `legacy_levels.lua` contain original fixed layouts **only** for compatibility with previously saved games. These are not choices for new players and are not authored levels in the active campaign. Removing the compatibility data entirely would corrupt installed saves, violating AGENTS.md. Historical tests verify this data's integrity separately from generated-puzzle gameplay and browser parity.
 
 The acceptance gate now asserts generated-first navigation, only generated preview seeds, original-save recovery, solver acceptance, installed font geometry and refreshed Games Hub source fingerprints. The code remains source-only until device installation and on-reader save/latency/touch review.
+
+## Playschool portrait cleanup — 2026-11-18
+
+The user's photographed physical X4 Pro shows the two main pain points:
+Quiet Mines' inset outline in **every** unopened tile looks busy, while
+Sudoku's full-row/full-column selection rails muddy the puzzle. The approved
+portrait concept uses a very large board, bold single-purpose controls, a
+clear selected cell, gentle background contrast and restrained relief; the
+requested aesthetic is simple and intuitive, **not** childish. On-device
+implementation is 480×800 and static grayscale is not assumed available.
+
+| Game | Play space and UI decision | State preserved |
+| --- | --- | --- |
+| Sudoku 0.5.1 | Board remains (6,100), 468×468, 52px cells. A staggered 2×2px 1-bit dot every 12px gives the selected row/column a quiet wash *behind* grid and glyphs; remove rails and 3×3 corner brackets. One 4px selected cell border remains. 60px keys and Notes/Undo/Erase unchanged. | Fixed/generated numbers, notes, match underlines, check and menus |
+| Quiet Mines 0.5.1 | Normal 10×10 uses 460px board with 46px cells (8×8 and 12×12 recomputed from the same 118–586 band). Remove individual inset boxes and false five-cell boundaries. One 2px shared interior rule, 4px frame, and two 1px right/bottom bevels on unopened cells distinguish tile state. | Safe opening, mines, flags, clue/hint deductions, history, difficulty and save archive |
+| Nonogram 0.9.1 | Keep the measured clue + square-board centered; 10×10 cap grows to 37px if fit permits, 2px minor grid / 3px fifth separators / 4px frame. Replace thick crosshair rails with the same sparse focus wash and one selected-cell border; remove decorative header symbol. | Generated puzzle seed/solution, clues, checked rows, X/fill, hint, history and legacy restores |
+
+All three: primary controls gain a *single* outlined rounded body with a
+restrained **1px bottom and right shadow offset**. The active Flag/X/Notes
+states have a thicker border **instead of** a distracting secondary inset.
+This avoids gradients and full gray fills that have unreliable firmware
+behavior. No color is essential to identifying state; saved records and touch
+hitboxes do not change.
+
+Visual review covers empty/first, selected, in-progress, dense/large, solved,
+help and enlarged-glyph frames in CI, including additional assertions on
+absence of old guide rails and inset Mines cells. Command use is deliberately
+bounded (Sudoku selection approximately 300 extra 2px stipple dots; Mines
+maximum 288 1px bevel strokes for a 12×12 field); physical ghosting and actual
+refresh latency must still be checked on the X4 Pro. The small additional
+padding around control silhouettes is purely painted, not tappable.

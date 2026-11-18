@@ -302,8 +302,12 @@ end
 local function text(g,x,y,s,font,align,width) UI.text(g,C,x,y,s,font,align,width) end
 local function button(g,x,y,w,h,s,decorated,options)
   options=options or {}
-  options.line_width=options.line_width or 4 -- local Sudoku-only stronger strokes
-  UI.button(g,C,x,y,w,h,s,decorated,options)
+  -- A 1-bit, two-pixel offset reads as depth without a second inset frame.
+  -- Every shadow stays inside the existing 480x800 layout and hitbox.
+  g:rect(x+3,y+h+1,w-4,1,{fill=true,radius=0})
+  g:rect(x+w+1,y+3,1,h-4,{fill=true,radius=0})
+  options.line_width=decorated and 5 or options.line_width or 4
+  UI.button(g,C,x,y,w,h,s,false,options)
 end
 local function control(g,key,label,marked)
   local b=CONTROLS[key];button(g,b[1],b[2],b[3],b[4],label,marked)
@@ -339,30 +343,35 @@ local function highlight_geometry(i)
   local col=(i-1)%9
   return {row=row,col=col,boxrow=math.floor(row/3)*3,boxcol=math.floor(col/3)*3}
 end
-local function draw_guides(g)
+-- Sparse 1-bit stipple reads as a pale gray wash on e-ink. Unlike
+-- full-size row/column outlines it does not double any grid rule, and at
+-- 12px spacing the two bands consume fewer than 350 canvas commands.
+local function light_wash(g,x,y,w,h)
+  local row=0
+  for yy=y+5,y+h-5,12 do
+    local offset=(row%2)*6
+    for xx=x+5+offset,x+w-5,12 do
+      g:rect(xx,yy,2,2,{fill=true,radius=0})
+    end
+    row=row+1
+  end
+end
+local function draw_focus_wash(g)
   if not S.highlight or S.selected==0 then return end
   local h=highlight_geometry(S.selected)
   if not h then return end
   local x,y,cell,size=BOARD.x,BOARD.y,BOARD.cell,BOARD.size
-  -- Full row and column outlines produce a monochrome crosshair, never a
-  -- solid fill over numbers and candidates.
-  g:rect(x,y+h.row*cell,size,cell,{line_width=2})
-  g:rect(x+h.col*cell,y,cell,size,{line_width=2})
-  -- Brackets indicate the selected 3x3 box without extra filled panels.
-  local bx,by=x+h.boxcol*cell+7,y+h.boxrow*cell+7
-  local ex,ey=bx+3*cell-14,by+3*cell-14
-  g:line(bx,by+12,bx,by,{line_width=2})
-  g:line(bx,by,bx+12,by,{line_width=2})
-  g:line(ex-12,ey,ex,ey,{line_width=2})
-  g:line(ex,ey,ex,ey-12,{line_width=2})
+  -- The crosshair uses texture rather than extra horizontal/vertical lines.
+  -- Grid and digits are drawn later, above this quiet background.
+  light_wash(g,x+3,y+h.row*cell+3,size-6,cell-6)
+  light_wash(g,x+h.col*cell+3,y+3,cell-6,size-6)
 end
-
 local function draw_help(g)
   text(g,240,111,'HOW TO PLAY','large','center',420)
   UI.paragraph(g,C,26,158,428,85,
     'Fill each row, column and 3 by 3 box with digits 1 to 9. No repeats.', 'medium')
   UI.paragraph(g,C,26,259,428,107,
-    'Tap a square. Guides show its row, column and box. Matches are underlined.', 'medium')
+    'Tap a square. Light shading shows its row and column; the selected cell has a bold outline.', 'medium')
   UI.paragraph(g,C,26,387,428,137,
     'NOTES: tap a filled number to lock it, then tap empty squares to mark that number.', 'medium')
   UI.paragraph(g,C,26,546,428,132,
@@ -404,12 +413,13 @@ local function draw(g)
   if MENU then draw_menu(g);return end
   local bx,by,cell,size=BOARD.x,BOARD.y,BOARD.cell,BOARD.size
   UI.region(bx,by,size,size)
+  draw_focus_wash(g)
   local remaining,clashes=0,0
   for i=1,81 do
     local x=bx+(i-1)%9*cell
     local y=by+math.floor((i-1)/9)*cell
     if S.selected==i or S.multiMode and S.multi[i] then
-      g:rect(x+4,y+4,cell-8,cell-8,{line_width=S.selected==i and 3 or 2,radius=6})
+      g:rect(x+4,y+4,cell-8,cell-8,{line_width=S.selected==i and 4 or 2,radius=6})
     end
     if S.board[i]>0 then
       local role=P.given[i]>0 and 'strong' or 'clue'
@@ -427,7 +437,6 @@ local function draw(g)
     end
   end
   UI.grid(g,bx,by,9,9,cell,{every=3,minor=2,major=5,frame=5})
-  draw_guides(g)
   local status=MSG
   if not status and S.selected>0 and S.notes[S.selected]>0 then
     local values={}

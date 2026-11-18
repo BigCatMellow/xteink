@@ -12,7 +12,11 @@ local ctx={storage={read=function(_,k)return save[k]end,write=function(_,k,v)sav
  invalidate=function()redraws=redraws+1 end}
 on_load(ctx)
 local S=A.state()
-eq(S.level,1);eq(#A.levels,24);assert(not A.next())
+eq(S.level,25);eq(#A.levels,24);assert(not A.next())
+local firstGenerated=A.board(25)
+assert(firstGenerated.n==10 and firstGenerated.total==18)
+assert(not firstGenerated.mines[1]);eq(A.nearby(firstGenerated,1),0)
+assert(A.visit(1));S=A.state()
 local first=A.board(1)
 assert(not first.mines[1]);eq(A.nearby(first,1),0)
 assert(A.apply(2)) -- Before safe START, other cells are not revealed.
@@ -56,7 +60,7 @@ local function reveal_safe(level)
   end
  end
  assert(A.solved(level,S.marks[level]))
- eq(S.unlocked,math.min(24,level+1))
+ assert(S.unlocked>=math.min(24,level+1))
  local open=0
  for _,v in ipairs(S.marks[level]) do if v==2 then open=open+1 end end
  eq(open,safe,'all safe cells exposed')
@@ -70,7 +74,7 @@ for level=1,24 do
  measured(ctx,on_draw,'mines cleared '..level)
  on_leave();on_load(ctx);S=A.state()
  assert(A.solved(level,S.marks[level]),'completed state preserved')
- if level<24 then assert(A.next()) else assert(not A.next()) end
+ assert(A.next())
 end
 -- Level changes do not destroy an incomplete board or flags.
 assert(A.visit(4));A.restart()
@@ -80,7 +84,7 @@ assert(A.mode());assert(A.apply(mine))
 assert(A.visit(5))
 on_leave();on_load(ctx);S=A.state()
 assert(A.prev());eq(S.marks[4][mine],1,'flag persisted after visit')
-eq(S.unlocked,24)
+assert(S.unlocked>=25)
 -- Physical touch pointer release only.
 assert(A.visit(2));A.restart()
 local x0,y0,cell=A.geometry()
@@ -153,6 +157,6 @@ assert(A.solved(12,S.marks[12]),'completed original board retained')
 assert(A.next());eq(S.level,13)
 eq(#S.marks[13],100,'new fields are appended with empty state')
 save['quiet-mines.txt']='version=1\nlevel=999\nunlocked=999\n'
-on_load(ctx);eq(A.state().level,1)
+on_load(ctx);eq(A.state().level,25)
 assert(type(on_tick)=='nil','no frame animation')
-print('Quiet Mines: 12 no-guess boards, flood reveal, flags, loss, save and layout PASS')
+print('Quiet Mines: legacy 24 boards, random field, no-guess solver, save and layout PASS')

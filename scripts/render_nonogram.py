@@ -63,6 +63,7 @@ end
 if SCENE=='solved' then A.check() end
 if SCENE=='help' then A.tap(443,34) end
 if SCENE=='wrong' then A.check() end
+if SCENE=='hint' then A.hint() end
 local function emit(kind,...)
   local values={kind}
   for _,v in ipairs({...}) do values[#values+1]=tostring(v) end
@@ -152,7 +153,8 @@ def main():
     args.out.mkdir(parents=True, exist_ok=True)
     source = project_path('nonogram') / 'app/index.lua'
     scenes = [('5x5', 1, 'partial'), ('7x7', 5, 'partial'), ('8x8', 9, 'partial'),
-              ('generated', 15, 'partial'), ('solved', 9, 'solved'),
+              ('generated', 15, 'partial'), ('10x10', 14, 'partial'),
+              ('hint', 14, 'hint'), ('solved', 9, 'solved'),
               ('help', 1, 'help'), ('wrong', 9, 'wrong')]
     previews = []
     for name, level, scene in scenes:
@@ -160,7 +162,7 @@ def main():
         shot.save(args.out / f'{name}.png')
         previews.append((name, shot))
     label_font = ImageFont.truetype(FONT, 20)
-    sheet = Image.new('RGB', (4*504, 2*852), '#e9e9e9')
+    sheet = Image.new('RGB', (4*504, 3*852), '#e9e9e9')
     for index, (name, shot) in enumerate(previews):
         x, y = index % 4 * 504 + 12, index // 4 * 852 + 38
         sheet.paste(shot.convert('RGB'), (x, y))
@@ -173,8 +175,8 @@ def main():
         compare.paste(before.convert('RGB'), (12, 38))
         compare.paste(previews[2][1].convert('RGB'), (516, 38))
         pen = ImageDraw.Draw(compare)
-        pen.text((12, 9), 'Before / v0.2.0', font=label_font, fill='black')
-        pen.text((516, 9), 'After / v0.4.0' if args.bitmap else 'After / v0.3.0', font=label_font, fill='black')
+        pen.text((12, 9), 'Before / v0.6.0', font=label_font, fill='black')
+        pen.text((516, 9), 'After / v0.7.0', font=label_font, fill='black')
         compare.save(args.out / 'before-after.png')
     if args.bitmap:
         compare = Image.new('RGB', (1008, 852), '#e9e9e9')

@@ -41,6 +41,7 @@ do
   g:reset();on_draw(ctx,g);g:verify('Mines clean unopened grid')
   assert(nested==0,'per-tile inset squares must not return')
   assert(bevelBottom and bevelRight,'hidden tiles retain subtle 1-bit depth')
+  eq(x,20,'approved 10x10 board x');eq(y,152,'approved 10x10 board y');eq(cell,44,'approved 10x10 cell')
 end
 assert(not firstGenerated.mines[1]);eq(A.nearby(firstGenerated,1),0)
 local function signature(level)

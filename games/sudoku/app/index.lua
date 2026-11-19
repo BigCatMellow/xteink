@@ -608,3 +608,11 @@ if rawget(_G,'__TEST') then
     guides=highlight_geometry,select_add=function(x,y) return select_cell(x,y,true) end,
     solved=function() return solved(S.board) end}
 end
+
+-- Crash reports: errors are saved to crash.txt and shown on a recovery screen.
+do
+  local guarded=UI.guard{id='sudoku',test=rawget(_G,'__TEST'),
+    state=function() return S and ('level='..tostring(S.level)..' unlocked='..tostring(S.unlocked)) end,
+    load=on_load,draw=on_draw,input=on_input,leave=on_leave}
+  on_load,on_draw,on_input,on_leave=guarded.load,guarded.draw,guarded.input,guarded.leave
+end

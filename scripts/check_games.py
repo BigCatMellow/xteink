@@ -50,6 +50,7 @@ def main():
     run([sys.executable, ROOT / 'tests/test_release_games.py'])
     run(['lua', ROOT / 'tests/test_game_hub.lua'])
     run(['lua', ROOT / 'tests/test_game_ui.lua'])
+    run(['lua', ROOT / 'tests/test_crash_guard.lua'])
     run(['lua', ROOT / 'tests/test_puzzle_store.lua'])
     run(['lua', ROOT / 'tests/test_game_theme.lua'])
     for game in GAMES:

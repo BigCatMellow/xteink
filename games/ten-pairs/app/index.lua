@@ -298,3 +298,11 @@ if rawget(_G,'__TEST') then __TEST.api={
  hint=hint,undo=undo,restart=restart,visit=visit,next=next_level,
  prev=previous,complete=complete,geometry=geometry,tap=tap
 } end
+
+-- Crash reports: errors are saved to crash.txt and shown on a recovery screen.
+do
+  local guarded=UI.guard{id='tenpairs',test=rawget(_G,'__TEST'),
+    state=function() return S and ('level='..tostring(S.level)..' unlocked='..tostring(S.unlocked)) end,
+    load=on_load,draw=on_draw,input=on_input,leave=on_leave}
+  on_load,on_draw,on_input,on_leave=guarded.load,guarded.draw,guarded.input,guarded.leave
+end

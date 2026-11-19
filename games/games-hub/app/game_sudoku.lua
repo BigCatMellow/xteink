@@ -145,13 +145,12 @@ local HELP,MENU=false,false
 local CHOICE=2
 local KEY_MS=-1000
 -- One geometry contract for drawing and taps. Values are device pixels.
--- Approved portrait mockup geometry, on the actual 480x800 screen.
--- One 441px square board, 49px cells, no phone-style extra chrome.
-local BOARD={x=19,y=126,cell=49,size=441}
-local CONTROLS={new={229,18,75,46},check={311,18,93,46},help={412,18,49,46},
-  notes={19,620,121,53},undo={19,680,121,53},erase={19,740,121,53}}
+-- Full-width board (6px margins); header and keypad packed around it.
+local BOARD={x=6,y=102,cell=52,size=468}
+local CONTROLS={new={226,20,88,46},check={322,20,96,46},help={426,20,48,46},
+  notes={6,612,146,56},undo={6,674,146,56},erase={6,736,146,56}}
 local function digit_box(n)
-  return 148+(n-1)%3*107,620+math.floor((n-1)/3)*60,99,53
+  return 160+(n-1)%3*107,612+math.floor((n-1)/3)*62,100,56
 end
 local function copy(a) local b={};for i,v in ipairs(a) do b[i]=v end;return b end
 local function zeros() local a={};for i=1,81 do a[i]=0 end;return a end
@@ -436,16 +435,10 @@ local function conflicts(i)
 end
 local function text(g,x,y,s,font,align,width) UI.text(g,C,x,y,s,font,align,width) end
 local function button(g,x,y,w,h,s,decorated,options)
-  options=options or {}
-  -- A 1-bit, two-pixel offset reads as depth without a second inset frame.
-  -- Every shadow stays inside the existing 480x800 layout and hitbox.
-  g:rect(x+4,y+h+2,w-4,2,{fill=true,radius=0})
-  g:rect(x+w+2,y+4,2,h-4,{fill=true,radius=0})
-  options.line_width=decorated and 5 or options.line_width or 4
-  UI.button(g,C,x,y,w,h,s,false,options)
+  UI.button(g,C,x,y,w,h,s,decorated,options)
 end
-local function control(g,key,label,marked)
-  local b=CONTROLS[key];button(g,b[1],b[2],b[3],b[4],label,marked)
+local function control(g,key,label,marked,font)
+  local b=CONTROLS[key];button(g,b[1],b[2],b[3],b[4],label,marked,font and {font=font})
 end
 -- Seven-segment pencil digits: tiny legible ink with at most seven strokes.
 -- Packaged 20px bitmap glyphs cannot fit the 3x3 pencil subcells.
@@ -478,35 +471,24 @@ local function highlight_geometry(i)
   local col=(i-1)%9
   return {row=row,col=col,boxrow=math.floor(row/3)*3,boxcol=math.floor(col/3)*3}
 end
--- Sparse 1-bit stipple reads as a pale gray wash on e-ink. Unlike
--- full-size row/column outlines it does not double any grid rule, and at
--- 12px spacing the two bands consume fewer than 350 canvas commands.
-local function light_wash(g,x,y,w,h)
-  local row=0
-  for yy=y+4,y+h-4,9 do
-    for xx=x+4+(row%2)*4,x+w-4,9 do
-      -- A 1px halftone point, not a visible 2px checker dot.
-      g:rect(xx,yy,1,1,{fill=true,radius=0})
-    end
-    row=row+1
-  end
-end
-local function draw_focus_wash(g)
+-- Clean grey shading under the selected row and column, drawn before digits
+-- and grid lines so neither is covered. No outline bars.
+local function shade_guides(g)
   if not S.highlight or S.selected==0 then return end
   local h=highlight_geometry(S.selected)
-  if not h then return end
-  local x,y,cell,size=BOARD.x,BOARD.y,BOARD.cell,BOARD.size
-  -- The crosshair uses texture rather than extra horizontal/vertical lines.
-  -- Grid and digits are drawn later, above this quiet background.
-  light_wash(g,x+3,y+h.row*cell+3,size-6,cell-6)
-  light_wash(g,x+h.col*cell+3,y+3,cell-6,size-6)
+  local x,y,cell=BOARD.x,BOARD.y,BOARD.cell
+  for k=0,8 do
+    if k~=h.col then UI.shade(g,x+k*cell,y+h.row*cell,cell) end
+    if k~=h.row then UI.shade(g,x+h.col*cell,y+k*cell,cell) end
+  end
 end
+
 local function draw_help(g)
-  text(g,240,111,'HOW TO PLAY','large','center',420)
+  text(g,240,118,'How to play','large','center',420)
   UI.paragraph(g,C,26,158,428,85,
     'Fill each row, column and 3 by 3 box with digits 1 to 9. No repeats.', 'medium')
   UI.paragraph(g,C,26,259,428,107,
-    'Light shading marks the row and column. A bold frame marks the selected cell.', 'medium')
+    'Tap a square. Guides show its row, column and box. Matches are underlined.', 'medium')
   UI.paragraph(g,C,26,387,428,137,
     'NOTES: tap a filled number to lock it, then tap empty squares to mark that number.', 'medium')
   UI.paragraph(g,C,26,546,428,132,
@@ -514,7 +496,7 @@ local function draw_help(g)
   button(g,76,710,328,62,'BACK TO GAME')
 end
 local function draw_menu(g)
-  text(g,240,106,'NEW PUZZLE','large','center',420)
+  text(g,240,114,'New puzzle','large','center',420)
   text(g,240,157,'Difficulty','small','center',430)
   for j,difficulty in ipairs(ORDER) do
     local x,y
@@ -536,28 +518,29 @@ local function draw_menu(g)
 end
 local function draw(g)
   g:clear(0)
-  text(g,22,22,'Sudoku','large',nil,194)
+  text(g,6,22,'Sudoku','title',nil,210)
   if not HELP and not MENU then
-    control(g,'new','NEW');control(g,'check',S.submitted and 'DONE' or 'CHECK')
+    control(g,'new','New');control(g,'check',S.submitted and 'Done' or 'Check')
   end
   control(g,'help',(HELP or MENU) and 'X' or '?')
-  text(g,22,78,'Puzzle '..S.level,'small',nil,248)
+  text(g,8,72,'Puzzle '..S.level,'medium',nil,260)
   local difficulty=NAMES[S.difficulty]:sub(1,1)..NAMES[S.difficulty]:sub(2):lower()
-  text(g,402,78,difficulty,'small','center',120)
+  local dw=UI.width(C,difficulty,'medium')
+  text(g,472-math.min(dw,150),72,difficulty,'medium',nil,150)
   if HELP then draw_help(g);return end
   if MENU then draw_menu(g);return end
   local bx,by,cell,size=BOARD.x,BOARD.y,BOARD.cell,BOARD.size
   UI.region(bx,by,size,size)
-  draw_focus_wash(g)
   local remaining,clashes=0,0
+  shade_guides(g)
   for i=1,81 do
     local x=bx+(i-1)%9*cell
     local y=by+math.floor((i-1)/9)*cell
     if S.selected==i or S.multiMode and S.multi[i] then
-      g:rect(x+4,y+4,cell-8,cell-8,{line_width=S.selected==i and 4 or 2,radius=6})
+      g:rect(x+3,y+3,cell-6,cell-6,{line_width=S.selected==i and 2 or 1,radius=7})
     end
     if S.board[i]>0 then
-      local role=P.given[i]>0 and 'strong' or 'clue'
+      local role=P.given[i]>0 and 'digit' or 'digit_light'
       text(g,x+cell/2,y+math.floor((cell-UI.height(C,role))/2),tostring(S.board[i]),role,'center',cell-14)
     elseif S.notes[i]>0 then show_notes(g,x,y,S.notes[i]) end
     if S.board[i]==0 then remaining=remaining+1 end
@@ -568,28 +551,35 @@ local function draw(g)
     end
     if S.highlight and S.selected>0 and i~=S.selected and
        S.board[i]>0 and S.board[i]==S.board[S.selected] then
-      g:line(x+16,y+cell-8,x+cell-16,y+cell-8,{line_width=3})
+      UI.stroke(g,x+16,y+cell-8,x+cell-16,y+cell-8,3)
     end
   end
-  UI.grid(g,bx,by,9,9,cell,{every=3,minor=2,major=5,frame=5})
+  UI.grid(g,bx,by,9,9,cell,{every=3,minor=1,major=3,frame=3})
   local status=MSG
   if not status and S.selected>0 and S.notes[S.selected]>0 then
     local values={}
     for n=1,9 do if has(S.notes[S.selected],n) then values[#values+1]=n end end
-    status='NOTES: '..table.concat(values,' ')
+    status='Notes: '..table.concat(values,' ')
   end
   if not status and S.noteMode and S.locked>0 then
     status='NOTE '..S.locked..'  '..note_total(S.notes)..'/'..NOTE_CAP[S.difficulty]
   end
-  text(g,240,583,status or (S.submitted and 'Solved' or
-    'Left '..remaining..(S.showConflicts and ' / Clashes '..clashes or '')),'small','center',448)
-  control(g,'notes','NOTES',S.noteMode)
-  control(g,'undo','UNDO');control(g,'erase','ERASE')
+  text(g,240,578,status or (S.submitted and 'Solved' or
+    'Left '..remaining..(S.showConflicts and ' / Clashes '..clashes or '')),'body','center',448)
+  control(g,'notes','Notes',S.noteMode,'body')
+  control(g,'undo','Undo',false,'body');control(g,'erase','Erase',false,'body')
+  local placed={0,0,0,0,0,0,0,0,0}
+  for i=1,81 do if S.board[i]>0 then placed[S.board[i]]=placed[S.board[i]]+1 end end
   for n=1,9 do
     local marked=S.noteMode and (S.locked==n or S.selected>0 and has(S.notes[S.selected],n))
-      or S.highlight and S.selected>0 and S.board[S.selected]==n
     local x,y,w,h=digit_box(n)
-    button(g,x,y,w,h,tostring(n),marked,{font='strong'})
+    -- A finished digit is drawn light; others show how many are still to place.
+    local left=math.max(0,9-placed[n])
+    button(g,x,y,w,h,tostring(n),marked,{font=left==0 and 'digit_light' or 'digit'})
+    if left>0 then
+      local label=tostring(left)
+      text(g,x+w-8-UI.width(C,label,'small'),y+6,label,'small',nil,24)
+    end
   end
 end
 local function hit(x,y,bx,by,w,h) return x>=bx and x<bx+w and y>=by and y<by+h end

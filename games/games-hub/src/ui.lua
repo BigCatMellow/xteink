@@ -5,7 +5,10 @@ local inset=0
 function UI.header(enabled) inset=enabled and 52 or 0 end
 function UI.text(g,c,x,y,s,name,align,w)
   if inset>0 and y<65 and x<80 and align~='center' then
-    w=math.max(0,(w or (464-x))-inset);x=x+inset
+    -- Clear the HUB key whatever the game's own left margin is.
+    local nx=math.max(x+inset,74)
+    w=math.max(0,(w or (464-x))-(nx-x));x=nx
+    if name=='title' and Core.width(c,s,name)>w then name='large' end
     if name=='large' then
       s=tostring(s)
       if s==s:upper() then s=s:lower():gsub('(%a)([%w]*)',function(a,b) return a:upper()..b end) end
@@ -20,7 +23,7 @@ function UI.error(g,c,title,message)
   Core.paragraph(g,c,24,80,432,640,tostring(message),'small')
 end
 function UI.game_canvas(raw)
-  -- Only the Nonogram brand mark occupies this reserved menu-icon area.
+  -- Nothing may draw in this reserved menu-icon area.
   return setmetatable({rect=function(_,x,y,w,h,o)
     if x>=0 and y>=0 and x+w<=72 and y+h<=65 then return end
     return raw:rect(x,y,w,h,o)

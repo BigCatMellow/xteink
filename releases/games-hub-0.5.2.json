@@ -1,0 +1,28 @@
+{
+  "game": "games-hub",
+  "app_id": "gameshub",
+  "name": "Games Hub",
+  "version": "0.5.2",
+  "file": "games-hub-0.5.2.xtapp",
+  "bytes": 336192,
+  "sha256": "e069c254479319869f74224f0f602daad08ffa53382de75e726497a99d0e36d7",
+  "source_sha256": "581681a595011f14119a2cce0e399f7da27a9e07bce3b8900ea4ad445b487612",
+  "metadata_file": "games-hub-0.5.2.json",
+  "personal_data": false,
+  "device_tested": false,
+  "code_files": 25,
+  "code_container_bytes": 334110,
+  "games": {
+    "summit-putt": "0.6.2",
+    "lantern-logic": "0.4.2",
+    "ray-vault": "0.4.3",
+    "island-links": "0.4.2",
+    "nonogram": "0.9.1",
+    "rectangle-rooms": "0.3.2",
+    "sudoku": "0.6.1",
+    "crown-fields": "0.2.2",
+    "quiet-mines": "0.5.2",
+    "sum-cross": "0.2.3",
+    "ten-pairs": "0.2.2"
+  }
+}

@@ -17,31 +17,21 @@ assert(not A.prev(),'PREV must not lead to fixed historical fields')
 eq(S.level,25,'first generated field remains selected')
 local firstGenerated=A.board(25)
 assert(firstGenerated.n==10 and firstGenerated.total==18)
--- Playschool portrait style: a single grid, no inner rectangle per tile.
--- A tiny right/bottom bevel differentiates unopened tiles at low ink cost.
+-- Closed squares are small raised keys (user request): a rounded outline
+-- inside each closed square with a 1px lower edge; opened squares stay flat.
 do
   local x,y,cell=A.geometry()
   local g=require('game_canvas').canvas()
   local old=g.rect
-  local nested=0
-  local bevelBottom,bevelRight=false,false
+  local key,edge=false,false
   function g:rect(px,py,w,h,opt)
-    if px==x+4 and py==y+4 and w==cell-8 and h==cell-8 and
-       not (opt and opt.fill) then nested=nested+1 end
-    if opt and opt.fill then
-      if px==x+3 and py==y+cell-4 and w==cell-6 and h==1 then
-        bevelBottom=true
-      end
-      if px==x+cell-4 and py==y+3 and w==1 and h==cell-6 then
-        bevelRight=true
-      end
-    end
+    if px==x+5 and py==y+5 and w==cell-9 and h==cell-9 and not (opt and opt.fill) then key=true end
+    if opt and opt.fill and px==x+7 and py==y+cell-4 and w==cell-13 and h==1 then edge=true end
     return old(self,px,py,w,h,opt)
   end
-  g:reset();on_draw(ctx,g);g:verify('Mines clean unopened grid')
-  assert(nested==0,'per-tile inset squares must not return')
-  assert(bevelBottom and bevelRight,'hidden tiles retain subtle 1-bit depth')
-  eq(x,20,'approved 10x10 board x');eq(y,152,'approved 10x10 board y');eq(cell,44,'approved 10x10 cell')
+  g:reset();on_draw(ctx,g);g:verify('Mines raised closed squares')
+  assert(key and edge,'closed squares are raised keys')
+  eq(cell,46,'10x10 field uses the full width');assert(x>=6 and x+10*cell<=474,'field inside the screen')
 end
 assert(not firstGenerated.mines[1]);eq(A.nearby(firstGenerated,1),0)
 local function signature(level)

@@ -21,6 +21,7 @@ function T.canvas()
     _G.__LAYOUT=function(kind,box)
       audit(kind,box)
       if kind=='button' then pending=box
+      elseif kind=='shade' then current=box
       elseif kind=='text' then
         if pending then
           assert(not box.s:find('...',1,true),'control label truncated: '..pending.s)
@@ -36,7 +37,7 @@ function T.canvas()
   end
   function g:image(im,x,y,options)
     count=count+1
-    assert(not im.released,'released font image used')
+    assert(not im.released,'released font or shade image used')
     assert(options==nil,'font images cannot use cropping or scaling')
     assert(current and x>=current.x and y>=current.y and x+im.width<=current.x+current.w and y+im.height<=current.y+current.h,
       'glyph ink crosses its measured bounds: '..tostring(current and current.s))

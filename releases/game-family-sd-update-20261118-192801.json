@@ -1,0 +1,41 @@
+{
+  "card": "/media/mellow/4A21-0000",
+  "backup": "/home/mellow/Backups/xteink-family-update-20261118-192612",
+  "updates": [
+    {
+      "app_id": "nonogram",
+      "from": "0.8.0",
+      "to": "0.9.0",
+      "sha256": "7a27a80e0bc5e103578c4ac9abeed58a0dc9e3cc0733e1b71a0bfc512db00fb5"
+    },
+    {
+      "app_id": "sudoku",
+      "from": "0.5.0",
+      "to": "0.6.0",
+      "sha256": "03d18a914feb0785210182cb257e3d41edbfaab3356a0dfd2b84dc6d7737b106"
+    },
+    {
+      "app_id": "quietmines",
+      "from": "0.4.0",
+      "to": "0.5.0",
+      "sha256": "2557d6cd5689efa286641ca17c023df306d54621bc5d8e048f28647ebb5a3a14"
+    }
+  ],
+  "app_data_files_preserved": 631,
+  "installed_files_verified": 639,
+  "new_games_available_in_hub": [],
+  "standalone_apps_requiring_initial_registration": [
+    "summitputt",
+    "lanternlogic",
+    "rayvault",
+    "islandlinks",
+    "rectrooms",
+    "crownfields",
+    "sumcross",
+    "tenpairs"
+  ],
+  "firmware_install_required": [],
+  "recovery_installers_verified": 12,
+  "flushed": true,
+  "device_launch_verified": false
+}

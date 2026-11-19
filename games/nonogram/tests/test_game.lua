@@ -25,34 +25,26 @@ eq(s.level,13);eq(s.unlocked,13)
 assert(not A.prev(),'PREV must not expose any historical prebuilt pictures')
 eq(s.level,13,'generated puzzle is still active')
 assert(A.shape(13).n>=7,'first fresh Nonogram must be generated')
--- Row/column selection uses a light stipple under the marks and exactly
--- one selected-cell frame, not double-width crosshair rails.
+-- Row/column selection is grey shading only (user request): exactly one
+-- selected-cell frame and no full-axis outline rails.
 do
   local n=A.shape(13).n
   assert(A.paint(1,1))
   eq(select(1,A.cursor()),1,'painting selects the active square')
   local g=require('game_canvas').canvas()
   local old=g.rect
-  local dots,rectangles=0,{}
+  local rectangles={}
   function g:rect(x,y,w,h,o)
-    if o and o.fill and w==1 and h==1 then dots=dots+1 end
-    if not(o and o.fill) then
-      rectangles[#rectangles+1]={x=x,y=y,w=w,h=h}
-    end
+    if not(o and o.fill) then rectangles[#rectangles+1]={x=x,y=y,w=w,h=h,lw=o and o.line_width} end
     return old(self,x,y,w,h,o)
   end
-  g:reset();on_draw(ctx,g);g:verify('Nonogram light focus and clean grid')
+  g:reset();on_draw(ctx,g);g:verify('Nonogram grey focus and clean grid')
   local bx,by,cell=A.geometry()
   local selection,rails=false,0
   for _,q in ipairs(rectangles) do
-    if q.x==bx+4 and q.y==by+4 and q.w==cell-8 and q.h==cell-8 then
-      selection=true
-    end
-    if (q.w==n*cell and q.h==cell) or (q.w==cell and q.h==n*cell) then
-      rails=rails+1
-    end
+    if q.x==bx+1 and q.y==by+1 and q.w==cell-1 and q.h==cell-1 and q.lw==3 then selection=true end
+    if (q.w==n*cell and q.h==cell) or (q.w==cell and q.h==n*cell) then rails=rails+1 end
   end
-  assert(dots>=80 and dots<500,'fine stipple is bounded')
   assert(selection,'the selected cell needs a single strong border')
   eq(rails,0,'no full-axis outline rails')
   assert(A.reset())
@@ -97,7 +89,7 @@ for _,level in ipairs({1,5,9}) do
   assert(cell>=34,'touch cells must stay usable with extended 10x10 puzzles')
   assert(n*cell>=345,'the puzzle must receive meaningful screen area')
   assert(math.abs(((bx-gutter)+(bx+n*cell))/2-240)<=.5,'clues and board centered horizontally')
-  assert(math.abs(((by-clueArea)+(by+n*cell))/2-346)<=.5,'clues and board centered vertically')
+  assert(math.abs(((by-clueArea)+(by+n*cell))/2-334)<=.5,'clues and board centered vertically')
   assert(by+n*cell<=592,'board leaves room for feedback and controls')
   assert(not A.tap(bx-1,by+cell/2),'clue gutter must not paint a square')
   assert(A.tap(bx+1,by+1));eq(s.boards[level][1],1,'top-left touch matches drawn cell')
@@ -306,14 +298,12 @@ assert(A.hint());eq(table.concat(emptyMarks),prior,'hint never changes player ma
 local selected,hinted=A.cursor()
 eq(hinted,(forced.y-1)*p.n+forced.x,'hint highlights its precise square')
 measured(ctx,on_draw,'nonogram selected row and column')
-local mode=A.controls.mode
-local help=A.controls.help
-assert(A.tap(help[1]+help[3]/2,help[2]+help[4]/2))
+local mode=A.controls.cross
 assert(A.tap(mode[1]+mode[3]/2,mode[2]+mode[4]/2))
 assert(A.tap(1+select(1,A.geometry()),1+select(2,A.geometry())),
   'X mode paints from real board touch position')
 eq(s.boards[1][1],2,'X mode marks an unknown as empty')
-assert(A.tap(help[1]+help[3]/2,help[2]+help[4]/2))
+mode=A.controls.fill
 assert(A.tap(mode[1]+mode[3]/2,mode[2]+mode[4]/2))
 local gx,gy=A.geometry()
 assert(A.tap(gx+1,gy+1))

@@ -1,7 +1,7 @@
 {
   "app_id": "nonogram",
   "display_name": "Nonogram",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "BigCatMellow",
   "description": "Generated-only nonograms with no-guess hints and saved progress",
   "entry": "index.lua",

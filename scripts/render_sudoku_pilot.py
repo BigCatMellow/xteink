@@ -96,13 +96,13 @@ def main():
     )
     new_source = APP.read_text()
     before, after = geometry(old_source.decode("utf-8")), geometry(new_source)
-    # The approved reference intentionally moves and sizes both areas.
-    assert after["board"] == [19, 126, 441, 441]
-    assert after["cell"] == 49
-    assert after["number_key"] == [99, 53]
-    assert after["number_key_start"] == 620
-    assert after["number_key_step"] == 60
-    assert after["numeric_touch_area"] >= 9 * 95 * 50
+    # Full-width board (user: negative space is the enemy) and larger keys.
+    assert after["board"] == [6, 102, 468, 468]
+    assert after["cell"] == 52
+    assert after["number_key"] == [100, 56]
+    assert after["number_key_start"] == 612
+    assert after["number_key_step"] == 62
+    assert after["numeric_touch_area"] >= 9 * 100 * 56
     with tempfile.TemporaryDirectory(prefix="xteink-sudoku-") as temp:
         baseline = Path(temp) / "sudoku-before.lua"
         baseline.write_bytes(old_source)

@@ -1,0 +1,13 @@
+{
+  "game": "quiet-mines",
+  "app_id": "quietmines",
+  "name": "Quiet Mines",
+  "version": "0.5.1",
+  "file": "quiet-mines-0.5.1.xtapp",
+  "bytes": 135232,
+  "sha256": "e470f33dd87723a771042d413c83fba1e1017b94994da5c9210498ac50606ac6",
+  "source_sha256": "acc7ea3cb93a78a49e2c2ea33f48d63dd2a9f0562bfcf2218a1494fa24a7899b",
+  "metadata_file": "quiet-mines-0.5.1.json",
+  "personal_data": false,
+  "device_tested": false
+}

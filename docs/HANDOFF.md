@@ -1,5 +1,31 @@
 # Project handoff — 2026-11-10
 
+## Mockup redesign: Sudoku 0.6.1, Minesweeper 0.5.1, Nonogram 0.9.1 — 2026-11-18
+
+The user's device photos of 0.6.0/0.5.0/0.9.0 showed the system font: the bitmap
+pack failed on the reader. 0.6.1/0.5.1/0.9.1 decode glyphs lazily, shrink the pack
+below the last known-good size, log the reason to `XTApps/<id>/files/font-status.txt`,
+and draw selection guides as grey only (no outline bars). Deployed the same way;
+backup `~/Backups/xteink-family-update-20261118-194347`. If the font still fails,
+read that file first. Minesweeper 0.5.2 (Hub 0.5.2) adds raised-key closed squares
+at the user's request; backup `~/Backups/xteink-family-update-20261118-195322`.
+Sudoku 0.6.2 / Minesweeper 0.5.3 / Nonogram 0.9.2 (Hub 0.5.3, other games patch
+bumps for the shared UI) widen every board to the screen width and add pressed
+toggles, keypad counts, grey hint/satisfied clues and the Nonogram Fill/X switch; see
+GAME_DESIGN.md. Backup `~/Backups/xteink-family-update-20261118-202855`.
+
+The user asked for the three on-card games to match their mockups in
+`~/Desktop/XTEink/Games/`. Shared fonts are now Inter (SemiBold/Bold), controls
+are thinner with a 1px lower edge, and selected rows/columns get a one-bit dot
+screen. Details and comparisons: GAME_DESIGN.md change record of 2026-11-18.
+All 11 games were rebuilt for the shared font change; Hub 0.5.0; wallpaper
+0.7.3 only re-syncs `ui.lua` (no visible change) and was not redeployed.
+Card: the three games were updated in place (631 save files preserved; backup
+`~/Backups/xteink-family-update-20261118-192612`). The release script also staged
+nine installers for removed games in `Apps/`; those were deleted again, per the
+user's earlier choice to keep only these games and the wallpaper on the card.
+Device check needed: dot-screen tone, Inter weight, Nonogram mode-line tap.
+
 ## Wallpaper quote orientation correction — 2026-11-15
 
 Actual sample wallpapers are 480×800 files but are intended to be viewed

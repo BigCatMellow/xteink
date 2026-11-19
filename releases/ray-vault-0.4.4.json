@@ -1,0 +1,13 @@
+{
+  "game": "ray-vault",
+  "app_id": "rayvault",
+  "name": "Ray Vault",
+  "version": "0.4.4",
+  "file": "ray-vault-0.4.4.xtapp",
+  "bytes": 120624,
+  "sha256": "8fa614a51486339ef269a9e7a06bc9d3654f933aebc7624fad4600f67d6b067e",
+  "source_sha256": "4ac270389ba0ca5aa14319182d7fe39f55a4521eb6614ce210200e7b24def591",
+  "metadata_file": "ray-vault-0.4.4.json",
+  "personal_data": false,
+  "device_tested": false
+}

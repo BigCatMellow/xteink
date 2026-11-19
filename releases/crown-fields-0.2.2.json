@@ -1,0 +1,13 @@
+{
+  "game": "crown-fields",
+  "app_id": "crownfields",
+  "name": "Crown Fields",
+  "version": "0.2.2",
+  "file": "crown-fields-0.2.2.xtapp",
+  "bytes": 116080,
+  "sha256": "c7b338a7ba1cdc59b7188cf562e0a8e4954ec57e61b11b8ababd9dba2bdd2cb5",
+  "source_sha256": "f94d6e0c1cb65ac1a60272d4ddb35458e567521cf1121ced519762906312e047",
+  "metadata_file": "crown-fields-0.2.2.json",
+  "personal_data": false,
+  "device_tested": false
+}

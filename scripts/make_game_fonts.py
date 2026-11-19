@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bake licensed Poppins/Inter into small 1-bit PNG glyphs and exact metrics.
+"""Bake licensed Inter into small 1-bit PNG glyphs and exact metrics.
 
 The firmware cannot crop runtime images, so glyphs are independent PNGs.
 Only their tight ink bounds are stored. Per-glyph images stay inside their
@@ -19,14 +19,36 @@ FONTS = ROOT/'assets/fonts/game-ui'
 ASCII = ''.join(chr(c) for c in range(32, 127) if chr(c) not in '[]{}|')
 CONTROLS = ASCII
 HEADINGS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 !?-:.'
+DIGITS = ' 0123456789'
+# Only the three redesigned games draw their names in the display title face.
+TITLES = ''.join(sorted(set('Sudoku Minesweeper Nonogram')))
 SPECS = {
-    'small': ('Inter.ttf', 20, 500, ASCII, 0),
-    'medium': ('Poppins-Medium.ttf', 24, 500, CONTROLS, 0),
-    'large': ('Poppins-SemiBold.ttf', 30, 600, HEADINGS, 0),
-    'body': ('Inter.ttf', 24, 500, ASCII, 0),
-    'clue_small': ('Inter.ttf', 20, 500, ' 0123456789', 20),
-    'clue': ('Inter.ttf', 24, 500, ' 0123456789', 24),
+    'small': ('Inter.ttf', 20, 600, ASCII, 0),
+    'large': ('Inter.ttf', 30, 700, HEADINGS, 0),
+    'body': ('Inter.ttf', 24, 600, ASCII, 0),
+    'clue_small': ('Inter.ttf', 20, 600, DIGITS, 20),
+    'clue': ('Inter.ttf', 24, 600, DIGITS, 24),
+    'clue_large': ('Inter.ttf', 26, 600, DIGITS, 26),
+    'digit': ('Inter.ttf', 30, 600, DIGITS, 30),
+    'digit_light': ('Inter.ttf', 30, 400, DIGITS, 30),
+    'title': ('Inter.ttf', 42, 700, TITLES, 0),
 }
+
+# Square cell tiles for the light row/column guides. The panel is one-bit, so
+# the grey is a fixed dot screen; tiles are decoded only when drawn.
+SHADE_SIZES = range(34, 85)
+
+
+def shade_tile(size):
+    tile = Image.new('1', (size, size), 1)
+    # 25% staggered screen: every other pixel on every other row, offset row
+    # to row, which reads as an even light grey rather than separate specks.
+    for y in range(0, size, 2):
+        for x in range((y // 2) % 2, size, 2):
+            tile.putpixel((x, y), 0)
+    out = BytesIO()
+    tile.save(out, format='PNG', optimize=True)
+    return out.getvalue()
 
 
 def build():
@@ -81,6 +103,9 @@ def build():
         for code, glyph in role['glyphs'].items():
             lines.append(f'    [{code}]={{{",".join(map(str, glyph))}}},')
         lines.append('  }},')
+    lines.append('},shades={')
+    for size in SHADE_SIZES:
+        lines.append(f'  [{size}]="{shade_tile(size).hex()}",')
     lines.append('}}')
     source = '\n'.join(lines) + '\n'
     pixels = sum(i['width']*i['height'] for i in images)

@@ -557,7 +557,7 @@ local function hint()
   local n=board(S.level).n
   local row=math.floor((HINTED-1)/n)+1
   local col=(HINTED-1)%n+1
-  MSG='Hint: '..found.kind..' R'..row..' C'..col..' ('..found.rule..')'
+  MSG='Hint: '..found.kind:lower()..' row '..row..', column '..col
   return true
 end
 local function apply(i)
@@ -570,14 +570,14 @@ local function apply(i)
   if S.mode=='FLAG' then
     record()
     tiles[i]=tiles[i]==1 and 0 or 1
-    MSG=tiles[i]==1 and 'Flag placed' or 'Flag removed'
+    MSG=nil
     save();return true
   end
-  if tiles[i]==1 then MSG='Switch to FLAG to clear this marker';return true end
+  if tiles[i]==1 then MSG='Switch to Flag to clear this flag';return true end
   if revealed(n)==0 and i~=1 then MSG='Open the marked S first';return true end
   record()
   if b.mines[i] then
-    S.failed[n]=true;MSG='MINE! Reset this field'
+    S.failed[n]=true;MSG='Mine! Reset this field'
     save();return true
   end
   local queue={i}
@@ -593,11 +593,11 @@ local function apply(i)
       end
     end
   end
-  MSG='Area revealed'
+  MSG=nil
   if solved(n,tiles) then
     -- Generated fields unlock only after New archives their layout.
     if n<TOTAL then S.unlocked=math.min(MAX,math.max(S.unlocked,n+1)) end
-    MSG='FIELD CLEARED!'
+    MSG='Field cleared!'
   end
   save();return true
 end
@@ -605,13 +605,13 @@ local function mode()
   if not S then return false end
   S.mode=S.mode=='OPEN' and 'FLAG' or 'OPEN'
   HINTED=0
-  MSG='Mode: '..S.mode;save();return true
+  MSG=nil;save();return true
 end
 local function undo()
   if not S or S.failed[S.level] or solved(S.level,S.marks[S.level]) then return false end
   local hist=S.history[S.level]
   if #hist==0 then return false end
-  S.marks[S.level]=table.remove(hist);HINTED=0;MSG='Last action restored'
+  S.marks[S.level]=table.remove(hist);HINTED=0;MSG=nil
   save();return true
 end
 local function restart()
@@ -621,92 +621,131 @@ local function restart()
   S.mode='OPEN';HINTED=0
   MSG='Open S to begin';save();return true
 end
+-- One geometry contract for drawing and touch. The field takes the full
+-- 468px width; spare height goes to the status lines and larger keys.
+local BUTTONS={new={320,20,96,48},help={424,20,50,48},
+  prev={6,668,88,82},flag={101,668,88,82},hint={196,668,88,82},
+  undo={291,668,88,82},reset={386,668,88,82},
+  difficulty={75,610,330,54},back={75,684,330,62}}
 local function geometry()
   local n=board(S.level).n
-  return UI.grid_geometry(n,118,586,460)
+  return UI.grid_geometry(n,114,582,468)
 end
 local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
-local function button(g,x,y,w,h,s,marked) UI.button(g,C,x,y,w,h,s,marked) end
+local function button(g,key,s,marked)
+  local b=BUTTONS[key];UI.button(g,C,b[1],b[2],b[3],b[4],s,marked)
+end
+local DIFFICULTY={'Easy','Normal','Hard'}
 local function draw_help(g)
-  text(g,240,163,'QUIET MINES','large','center',425)
-  UI.paragraph(g,C,28,230,424,110,
-    'Open safe squares. Numbers tell how many mines touch that square, including diagonals.', 'medium')
-  UI.paragraph(g,C,28,358,424,111,
-    'Open S first on a random field. Every accepted field has a no-guess route. FLAG marks mines.', 'medium')
-  UI.paragraph(g,C,28,488,424,115,
-    'Opening a mine loses that field. RESET restarts. All numbers appear at once; no animation.', 'medium')
-  button(g,75,706,330,69,'BACK TO FIELD')
+  text(g,240,110,'How to play','large','center',425)
+  UI.paragraph(g,C,28,160,424,126,
+    'Open safe squares. Numbers tell how many mines touch that square, including diagonals.', 'body')
+  UI.paragraph(g,C,28,298,424,126,
+    'Open S first on a random field. Every accepted field has a no-guess route. Flag marks mines.', 'body')
+  UI.paragraph(g,C,28,436,424,96,
+    'Opening a mine loses that field. Reset restarts it. Hint finds a certain move.', 'body')
+  text(g,240,552,'Field '..S.level..'  -  New uses this level','small','center',424)
+  button(g,'difficulty','Difficulty: '..DIFFICULTY[S.difficulty])
+  button(g,'back','Back to field')
+end
+-- Small monochrome symbols drawn from rectangles and strokes only.
+local function mine_icon(g,cx,cy,r)
+  for _,d in ipairs({{1,0},{0,1},{1,1},{1,-1}}) do
+    local k=d[1]~=0 and d[2]~=0 and math.floor(r*.8) or r+3
+    g:line(cx-d[1]*k,cy-d[2]*k,cx+d[1]*k,cy+d[2]*k,{line_width=1})
+  end
+  g:rect(cx-r+2,cy-r+2,2*r-3,2*r-3,{fill=true,radius=r-2})
+end
+local function flag_icon(g,cx,cy)
+  UI.stroke(g,cx-8,cy-13,cx-8,cy+12,3)
+  UI.stroke(g,cx-13,cy+13,cx-1,cy+13,2)
+  for k=0,15 do
+    local h=math.max(1,math.floor((16-k)*15/16))
+    g:rect(cx-7+k,cy-13+math.floor((15-h)/2),1,h,{fill=true,radius=0})
+  end
 end
 local function render(g)
   g:clear(0)
-  text(g,23,15,'QUIET MINES','large',nil,320)
-  button(g,416,12,48,48,HELP and 'X' or '?')
-  button(g,308,12,101,46,'New')
+  text(g,6,22,'Minesweeper','title',nil,300)
+  button(g,'new','New')
+  button(g,'help',HELP and 'X' or '?')
   local b=board(S.level)
-  text(g,23,76,'FIELD '..S.level..'   MINES '..b.total,'medium',nil,320)
-  button(g,348,76,116,40,({'Easy','Normal','Hard'})[S.difficulty])
   if HELP then draw_help(g);return end
+  local tiles=S.marks[S.level]
+  local safe=b.n*b.n-b.total
+  mine_icon(g,22,90,13)
+  text(g,46,75,'Mines '..(b.total-marked(S.level)),'large',nil,180)
+  g:rect(244,77,26,26,{line_width=1,radius=4})
+  text(g,282,75,'Safe '..(safe-revealed(S.level)),'large',nil,190)
   local bx,by,cell=geometry()
   UI.region(bx,by,cell*b.n,cell*b.n)
-  UI.grid(g,bx,by,b.n,b.n,cell,{minor=2,frame=5,every=5,major=4})
-  local tiles=S.marks[S.level]
   for y=1,b.n do
     for x=1,b.n do
       local i=(y-1)*b.n+x
       local px,py=bx+(x-1)*cell,by+(y-1)*cell
+      local cx,cy=px+math.floor(cell/2),py+math.floor(cell/2)
       local v=tiles[i]
+      if HINTED==i and not S.failed[S.level] then UI.shade(g,px,py,cell) end
+      if v~=2 then
+        -- Closed squares are small raised keys, like the controls: a 1px
+        -- rounded outline with a 2px lower edge. Opened squares stay flat.
+        g:rect(px+5,py+5,cell-9,cell-9,{line_width=0,radius=4})
+        g:rect(px+7,py+cell-4,cell-13,1,{fill=true,radius=0})
+      end
       if v==0 then
-        g:rect(px+4,py+4,cell-8,cell-8,{line_width=2,radius=2})
-        if i==1 and revealed(S.level)==0 then
-          text(g,px+cell/2,py+math.floor((cell-20)/2),'S','small','center',cell-12)
+        if S.failed[S.level] and b.mines[i] then
+          mine_icon(g,cx,cy,math.floor(cell/4))
+        elseif i==1 and revealed(S.level)==0 then
+          text(g,cx,py+math.floor((cell-UI.height(C,'body'))/2),'S','body','center',cell-12)
         end
       elseif v==1 then
-        local cx=px+cell/2
-        g:line(cx-11,py+cell-13,cx-11,py+13,{line_width=3})
-        g:line(cx-11,py+13,cx+12,py+21,{line_width=2})
-        g:line(cx+12,py+21,cx-11,py+30,{line_width=2})
+        flag_icon(g,cx,cy)
       elseif b.mines[i] then
-        text(g,px+cell/2,py+math.floor((cell-24)/2),'*','large','center',cell-8)
+        mine_icon(g,cx,cy,math.floor(cell/4))
+        g:rect(px+4,py+4,cell-8,cell-8,{line_width=2,radius=3})
       else
         local count=nearby(b,i)
-        if count>0 then text(g,px+cell/2,py+math.floor((cell-24)/2),count,'medium','center',cell-8) end
-      end
-      if HINTED==i and not S.failed[S.level] then
-        g:rect(px+6,py+6,cell-12,cell-12,{line_width=3,radius=3})
-      end
-      if S.failed[S.level] and b.mines[i] and v==0 then
-        g:circle(px+cell/2,py+cell/2,10,{line_width=2})
-        g:line(px+cell/2-8,py+cell/2-8,px+cell/2+8,py+cell/2+8)
+        if count>0 then
+          text(g,cx,py+math.floor((cell-UI.height(C,'strong'))/2),count,'strong','center',cell-8)
+        else
+          -- An opened empty square keeps a small dot, so it differs from a closed one.
+          g:rect(cx-2,cy-2,4,4,{fill=true,radius=0})
+        end
       end
     end
   end
-  local safe=b.n*b.n-b.total
-  text(g,24,600,'SAFE '..revealed(S.level)..' / '..safe,'medium',nil,200)
-  text(g,260,600,'FLAGS '..marked(S.level)..' / '..b.total,'medium',nil,210)
-  text(g,240,650,MSG or (S.failed[S.level] and 'Mine found'
+  UI.grid(g,bx,by,b.n,b.n,cell,{minor=2,frame=3})
+  -- Progress always stays visible; messages and the mode use their own line.
+  text(g,8,594,'Safe '..revealed(S.level)..' / '..safe,'body',nil,220)
+  local flags='Flags '..marked(S.level)..' / '..b.total
+  local fw=math.min(UI.width(C,flags,'body'),220)
+  text(g,472-fw,594,flags,'body',nil,220)
+  local status=MSG or (S.failed[S.level] and 'Mine found - Reset this field'
     or solved(S.level,tiles) and 'Field cleared'
-    or S.mode=='FLAG' and 'Flag mode: mark mines'
-    or 'Open mode: reveal safe squares'),'small','center',440)
-  button(g,8,710,85,66,S.level>1 and 'Prev' or 'Start')
-  button(g,102,710,85,66,S.mode=='FLAG' and 'Open' or 'Flag',S.mode=='FLAG')
-  button(g,196,710,85,66,'Hint',HINTED>0)
-  button(g,290,710,85,66,'Undo')
-  button(g,384,710,88,66,'Reset')
+    or S.mode=='FLAG' and 'Flag mode: tap squares to mark mines'
+    or 'Open mode: tap a square to open it')
+  text(g,240,632,status,'small','center',464)
+  button(g,'prev','Prev')
+  button(g,'flag','Flag',S.mode=='FLAG')
+  button(g,'hint','Hint',HINTED>0)
+  button(g,'undo','Undo')
+  button(g,'reset','Reset')
 end
 local function hit(x,y,bx,by,w,h)return x>=bx and x<bx+w and y>=by and y<by+h end
+local function at(key,x,y) local b=BUTTONS[key];return hit(x,y,b[1],b[2],b[3],b[4]) end
 local function tap(x,y)
-  if hit(x,y,416,12,48,48) then HELP=not HELP;return true end
+  if at('help',x,y) then HELP=not HELP;return true end
+  if at('new',x,y) then return new_game() end
   if HELP then
-    if hit(x,y,75,706,330,69) then HELP=false;return true end
+    if at('back',x,y) then HELP=false;return true end
+    if at('difficulty',x,y) then return cycle_difficulty() end
     return false
   end
-  if hit(x,y,308,12,101,46) then return new_game() end
-  if hit(x,y,348,76,116,40) then return cycle_difficulty() end
-  if hit(x,y,8,710,85,66) then return prev() end
-  if hit(x,y,102,710,85,66) then return mode() end
-  if hit(x,y,196,710,85,66) then return hint() end
-  if hit(x,y,290,710,85,66) then return undo() end
-  if hit(x,y,384,710,88,66) then return restart() end
+  if at('prev',x,y) then return prev() end
+  if at('flag',x,y) then return mode() end
+  if at('hint',x,y) then return hint() end
+  if at('undo',x,y) then return undo() end
+  if at('reset',x,y) then return restart() end
   local b=board(S.level)
   local bx,by,cell=geometry()
   if hit(x,y,bx,by,cell*b.n,cell*b.n) then
@@ -755,7 +794,7 @@ if rawget(_G,'__TEST') then __TEST.api={
  state=function()return S end,apply=apply,mode=mode,undo=undo,
  restart=restart,visit=visit,next=next_level,prev=prev,
  new=new_game,difficulty=cycle_difficulty,
- solved=solved,geometry=geometry,tap=tap,hint=hint,infer_hint=infer_hint,
+ solved=solved,geometry=geometry,tap=tap,hint=hint,infer_hint=infer_hint,controls=BUTTONS,
  hinted=function()return HINTED end
 } end
 

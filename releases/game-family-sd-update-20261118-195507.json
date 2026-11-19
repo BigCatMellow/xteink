@@ -1,0 +1,29 @@
+{
+  "card": "/media/mellow/4A21-0000",
+  "backup": "/home/mellow/Backups/xteink-family-update-20261118-195322",
+  "updates": [
+    {
+      "app_id": "quietmines",
+      "from": "0.5.1",
+      "to": "0.5.2",
+      "sha256": "cca3a60ef30a55e664d05682cab860575db7ae01a7a9305a1dceeba14cdbafec"
+    }
+  ],
+  "app_data_files_preserved": 631,
+  "installed_files_verified": 639,
+  "new_games_available_in_hub": [],
+  "standalone_apps_requiring_initial_registration": [
+    "summitputt",
+    "lanternlogic",
+    "rayvault",
+    "islandlinks",
+    "rectrooms",
+    "crownfields",
+    "sumcross",
+    "tenpairs"
+  ],
+  "firmware_install_required": [],
+  "recovery_installers_verified": 12,
+  "flushed": true,
+  "device_launch_verified": false
+}

@@ -1,7 +1,9 @@
 -- Canonical game typography. Run scripts/sync_game_ui.py after changing this.
 local UI={}
-local heights={small=20,medium=24,large=30,body=24,clue=24,clue_small=20,strong=30}
-local aliases={body='medium',clue='medium',clue_small='small',control='medium',strong='large'}
+local heights={small=20,medium=24,large=30,body=24,clue=24,clue_small=20,strong=30,
+  clue_large=26,digit=30,digit_light=30,title=30}
+local aliases={body='medium',clue='medium',clue_small='small',control='medium',strong='large',
+  clue_large='medium',digit='large',digit_light='large',title='large'}
 local theme_fonts,themed=nil,false
 function UI.set_theme(fonts,enabled) theme_fonts=fonts;themed=enabled end
 local function observe(kind,box)
@@ -11,7 +13,7 @@ end
 function UI.font(c,name)
   name=name or 'medium'
   if theme_fonts then
-    if name=='control' then return theme_fonts.fonts.medium end
+    if name=='control' then return theme_fonts.fonts.body end
     if name=='strong' then return theme_fonts.fonts.large end
     return theme_fonts.fonts[name=='medium' and 'body' or name]
   end
@@ -68,15 +70,29 @@ function UI.button(g,c,x,y,w,h,s,decorated,options)
   local primary=themed and (s=='Next' or s=='Check' or s:match('^Next ') or s:match('^Back to '))
   local weight=family and ((primary and family.primary_stroke or family.control_stroke)-family.stroke_increment) or (primary and 3 or 2)
   g:rect(x,y,w,h,{line_width=options.line_width or weight,radius=radius})
-  if decorated then
+  local pressed=0
+  if themed and w>2*radius then
+    if decorated then
+      -- An active toggle looks pressed in: grey inside, a shadow along its
+      -- upper edge, no raised lower edge, and the label one pixel lower.
+      UI.shade_rect(g,x+4,y+4,w-8,h-8,h-8)
+      g:rect(x+radius,y+3,w-2*radius,2,{fill=true,radius=0})
+      pressed=1
+    else
+      -- A one-pixel lower edge gives themed keys their slight raised depth.
+      g:rect(x+radius,y+h,w-2*radius,1,{fill=true,radius=0})
+    end
+  elseif decorated then
     g:rect(x+4,y+4,w-8,h-8,{line_width=1,radius=math.max(0,radius-4)})
-    g:line(x+11,y+4,x+20,y+4)
-    g:line(x+w-20,y+h-4,x+w-11,y+h-4)
+    if not themed then
+      g:line(x+11,y+4,x+20,y+4)
+      g:line(x+w-20,y+h-4,x+w-11,y+h-4)
+    end
   end
   local pad=themed and math.min(10,math.floor(w/5)) or 10
   local preferred=options.font or (themed and 'control' or 'medium')
   local name=UI.width(c,s,preferred)<=w-2*pad and UI.height(c,preferred)<=h-12 and preferred or 'small'
-  UI.text(g,c,x+w/2,y+math.floor((h-UI.height(c,name))/2),s,name,'center',w-2*pad)
+  UI.text(g,c,x+w/2,y+pressed+math.floor((h-UI.height(c,name))/2),s,name,'center',w-2*pad)
 end
 function UI.paragraph(g,c,x,y,w,h,s,name,align)
   name=name or 'small'
@@ -98,6 +114,36 @@ function UI.paragraph(g,c,x,y,w,h,s,name,align)
   end
 end
 function UI.region(x,y,w,h) observe('region',{x=x,y=y,w=w,h=h}) end
+-- Light grey guide shading for a square cell (a fine dot screen on the one-bit
+-- panel). The game frame sets the tile source; without one nothing is drawn.
+local shade_source=nil
+function UI.set_shade(source) shade_source=source end
+function UI.shade(g,x,y,size)
+  local im=shade_source and shade_source(size)
+  if not im then return false end
+  observe('shade',{x=x,y=y,w=size,h=size,s='shade'})
+  g:image(im,x,y)
+  return true
+end
+-- Shade any rectangle at least `size` square with tiles of that size. Tile
+-- overlaps keep the dot screen's 2x4 phase; up to 3px at the far edges may stay
+-- white, under the grid rules drawn afterwards.
+function UI.shade_rect(g,x,y,w,h,size)
+  if w<size or h<size then return false end
+  local xs,ys={},{}
+  for k=0,math.floor(w/size)-1 do xs[#xs+1]=x+k*size end
+  local lx=x+math.floor((w-size)/2)*2
+  if lx>xs[#xs] then xs[#xs+1]=lx end
+  for k=0,math.floor(h/size)-1 do ys[#ys+1]=y+k*size end
+  local ly=y+math.floor((h-size)/4)*4
+  if ly>ys[#ys] then ys[#ys+1]=ly end
+  for _,ty in ipairs(ys) do
+    for _,tx in ipairs(xs) do
+      if not UI.shade(g,tx,ty,size) then return false end
+    end
+  end
+  return true
+end
 -- Shared board geometry; drawing and hit testing must use the same result.
 function UI.grid_geometry(n,top,bottom,width)
   width=width or 448

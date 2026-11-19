@@ -53,13 +53,17 @@ local CROSS_MODE=false
 local SELECTED=0
 local HINTED=0
 -- One geometry contract for visible controls and touch. See docs/DESIGN.md.
+-- 'fill'/'cross' form the mode switch; 'hint' lives on the help screen.
 local BUTTONS={
-  help={408,20,48,48},mode={332,20,64,48},
-  hint={272,78,76,44},next={352,78,104,44},
-  prev={24,708,96,68},undo={132,708,96,68},
-  reset={240,708,96,68},check={348,708,108,68},
-  back={24,708,432,68}
+  next={312,20,104,48},help={424,20,50,48},
+  fill={6,664,231,58},cross={243,664,231,58},
+  prev={6,730,111,62},undo={125,730,111,62},
+  reset={244,730,111,62},check={363,730,111,62},
+  hint={24,640,432,58},back={24,730,432,62}
 }
+-- Clue header + board composition band, between the title row and counters.
+-- 472px wide (4px margins); small puzzles may use cells up to 84px.
+local TOP,BAND,SPAN=76,516,472
 local STYLE=Family
 local function copy(arr)
   local dst={}
@@ -361,145 +365,140 @@ local function check()
   save()
   return true
 end
-local function geometry()
-  local p=current()
-  local n=p.n
-  local font=n==5 and 'clue' or 'clue_small'
-  local widest,maxColumn=0,0
-  for _,clue in ipairs(p.rowClues) do
-    local values={};for i,v in ipairs(clue) do values[i]=tostring(v) end
-    widest=math.max(widest,UI.width(D or C,table.concat(values,' '),font))
-  end
-  for _,clue in ipairs(p.colClues) do maxColumn=math.max(maxColumn,#clue) end
-  local gutter=widest+16
-  local height=UI.height(D or C,font)
-  local clueArea=14+height+(maxColumn-1)*(height+6)
-  -- Measure the whole clue+board object. 10x10 uses 35px targets,
-  -- unlike 15/20 grids, which would be unusably small on 480px.
-  local cap=n==5 and 70 or n==7 and 50 or n==8 and 45 or 35
-  local cell=math.min(cap,math.floor((456-gutter)/n),
-    math.floor((518-clueArea)/n))
-  assert(cell>=34,'Nonogram clue density exceeds readable screen')
-  local x=math.floor((480-(n*cell+gutter))/2)+gutter
-  local y=112+math.floor((518-(n*cell+clueArea))/2)+clueArea
-  return x,y,cell,gutter,clueArea
-end
-local function button(g,key,label,primary,enabled)
-  local b=BUTTONS[key]
-  UI.button(g,D or C,b[1],b[2],b[3],b[4],label,
-    key=='mode' and CROSS_MODE or false,{
-    font=(key=='mode' or key=='hint') and 'small' or nil,
-    radius=STYLE.control_radius,
-    line_width=enabled==false and STYLE.inactive_stroke
-      or primary and STYLE.primary_stroke or STYLE.control_stroke
-  })
-end
-local function text(g,x,y,s,style,align,width)
-  UI.text(g,D or C,x,y,s,style,align,width)
-end
 local function format_run(list)
   local result={}
   for i,v in ipairs(list) do result[i]=tostring(v) end
   return table.concat(result,' ')
 end
-local function help_screen(g)
-  text(g,240,164,'How to solve','large','center',432)
-  UI.paragraph(g,D or C,24,222,432,118,
-    'Each number is a run of filled cells. Leave at least one empty cell between runs.', 'body')
-  UI.paragraph(g,D or C,24,350,432,120,
-    'FILL taps to shade a square; X mode marks known empty cells. Tap the mode button to switch.', 'body')
-  UI.paragraph(g,D or C,24,484,432,116,
-    'Hint uses the clues to find a certain move, without seeing the picture. Undo and Reset keep your progress.', 'body')
-  UI.paragraph(g,D or C,24,614,432,72,
-    'New no-guess logic puzzles follow the twelve picture puzzles.', 'small')
-  button(g,'back','Back to puzzle',true)
+-- Boxed row clues on the left and boxed column clues above, centered together.
+-- The largest clue face that keeps 34px+ touch cells is chosen.
+local function geometry()
+  local p=current()
+  local n=p.n
+  local maxColumn=0
+  for _,clue in ipairs(p.colClues) do maxColumn=math.max(maxColumn,#clue) end
+  local cell,gutter,clueArea,font
+  for _,face in ipairs({'clue_large','clue','clue_small'}) do
+    local widest=0
+    for _,clue in ipairs(p.rowClues) do
+      widest=math.max(widest,UI.width(D or C,format_run(clue),face))
+    end
+    font=face
+    clueArea=14+maxColumn*UI.height(D or C,face)
+    for _,pad in ipairs({28,20}) do
+      gutter=widest+pad
+      cell=math.min(84,math.floor((SPAN-gutter)/n),math.floor((BAND-clueArea)/n))
+      if cell>=34 then break end
+    end
+    if cell>=34 then break end
+  end
+  assert(cell>=34,'Nonogram clue density exceeds readable screen')
+  local x=math.floor((480-(n*cell+gutter))/2)+gutter
+  local y=TOP+math.floor((BAND-(n*cell+clueArea))/2)+clueArea
+  return x,y,cell,gutter,clueArea,font
 end
-local function tick(g,x,y)
-  g:line(x,y+3,x+3,y+6,{line_width=3})
-  g:line(x+3,y+6,x+8,y,{line_width=3})
+local function button(g,key,label,pressed)
+  local b=BUTTONS[key]
+  UI.button(g,D or C,b[1],b[2],b[3],b[4],label,pressed,{
+    radius=STYLE.control_radius,line_width=STYLE.control_stroke})
+end
+local function text(g,x,y,s,style,align,width)
+  UI.text(g,D or C,x,y,s,style,align,width)
+end
+local function help_screen(g)
+  text(g,240,100,'How to solve','large','center',432)
+  UI.paragraph(g,D or C,24,148,432,118,
+    'Each number is a run of filled cells. Leave at least one empty cell between runs.', 'body')
+  UI.paragraph(g,D or C,24,276,432,120,
+    'Use the Fill and X switch under the board. X marks squares you know are empty.', 'body')
+  UI.paragraph(g,D or C,24,406,432,116,
+    'Hint uses the clues to find a certain move, without seeing the picture. Undo and Reset keep your progress.', 'body')
+  text(g,240,540,'Puzzle '..S.level..'  -  '..current().n..' x '..current().n,'small','center',432)
+  if not S.submitted[S.level] then button(g,'hint','Show a hint') end
+  button(g,'back','Back to puzzle')
 end
 local function draw(g)
   g:clear(0)
-  -- A small tile mark supplies identity; the puzzle remains the dominant shape.
-  g:rect(24,26,32,32,{radius=6,line_width=2})
-  for _,a in ipairs({{1,0},{0,1},{1,1},{2,1},{1,2}}) do
-    g:rect(30+a[1]*7,32+a[2]*7,5,5,{fill=true,radius=1})
-  end
-  text(g,72,25,'Nonogram','large',nil,258)
-  if not HELP then button(g,'mode',CROSS_MODE and 'X' or 'FILL') end
+  text(g,6,22,'Nonogram','title',nil,290)
+  if not HELP then button(g,'next',S.level<S.unlocked and 'Next' or 'New') end
   button(g,'help',HELP and 'X' or '?')
-  local p=current()
-  text(g,24,89,'Puzzle '..S.level,'small',nil,230)
-  -- A nine-digit puzzle index would collide with size metadata.
-  if S.level<1000000 then text(g,177,89,p.n..' x '..p.n,'small',nil,90) end
-  if not HELP and not S.submitted[S.level] then
-    button(g,'hint','Hint')
-  end
-  if not HELP and not S.submitted[S.level] then
-    button(g,'next',S.level<S.unlocked and 'Next' or 'New')
-  end
   if HELP then help_screen(g);return end
-  local bx,by,cell=geometry()
-  UI.region(bx,by,cell*p.n,cell*p.n)
+  local p=current()
+  local bx,by,cell,gutter,clueArea,clueFont=geometry()
+  local n=p.n
+  UI.region(bx,by,cell*n,cell*n)
   local board=S.boards[S.level]
   local rows,cols,rowMatches,colMatches=counters()
-  local clueFont=p.n==5 and 'clue' or 'clue_small'
-  local clueHeight=UI.height(D or C,clueFont)
-  for x=1,p.n do
-    local clue=p.colClues[x]
-    local cx=bx+(x-.5)*cell
-    for j=1,#clue do
-      text(g,cx,by-14-clueHeight+(j-#clue)*(clueHeight+6),tostring(clue[j]),clueFont,'center',cell-8)
-    end
-    if colMatches[x] then tick(g,cx-4,by-10) end
+  -- A satisfied clue turns grey, so finished lines stand out.
+  for y=1,n do
+    local size=math.min(cell,gutter)
+    if rowMatches[y] and size>=34 then UI.shade_rect(g,bx-gutter,by+(y-1)*cell,gutter,cell,size) end
   end
-  for y=1,p.n do
+  for x=1,n do
+    local size=math.min(cell,clueArea)
+    if colMatches[x] and size>=34 then UI.shade_rect(g,bx+(x-1)*cell,by-clueArea,cell,clueArea,size) end
+  end
+  -- Light guides under the selected row and column, before any ink.
+  if SELECTED>0 and SELECTED<=n*n then
+    local row,col=math.floor((SELECTED-1)/n),(SELECTED-1)%n
+    for k=0,n-1 do
+      if k~=col then UI.shade(g,bx+k*cell,by+row*cell,cell) end
+      if k~=row then UI.shade(g,bx+col*cell,by+k*cell,cell) end
+    end
+  end
+  local clueHeight=UI.height(D or C,clueFont)
+  for x=1,n do
+    local clue=p.colClues[x]
+    local cx=bx+math.floor((x-.5)*cell)
+    for j=1,#clue do
+      text(g,cx,by-6-clueHeight-(#clue-j)*clueHeight,tostring(clue[j]),clueFont,'center',cell-6)
+    end
+  end
+  for y=1,n do
     local cy=by+(y-1)*cell+math.floor((cell-clueHeight)/2)
     local label=format_run(p.rowClues[y])
     local labelWidth=UI.width(D or C,label,clueFont)
-    text(g,bx-16-labelWidth,cy,label,clueFont,nil,labelWidth)
-    if rowMatches[y] then tick(g,bx-12,by+(y-.5)*cell-3) end
+    text(g,bx-math.min(12,math.floor((gutter-labelWidth)/2))-labelWidth,cy,label,clueFont,nil,labelWidth)
   end
-  for y=1,p.n do
-    for x=1,p.n do
-      local i=(y-1)*p.n+x
+  for y=1,n do
+    for x=1,n do
+      local i=(y-1)*n+x
       local px=bx+(x-1)*cell
       local py=by+(y-1)*cell
       if board[i]==1 then
-        g:rect(px+4,py+4,cell-8,cell-8,{fill=true,radius=STYLE.ink_radius})
+        g:rect(px+3,py+3,cell-5,cell-5,{fill=true,radius=STYLE.ink_radius})
       elseif board[i]==2 then
-        local inset=math.floor(cell*.32)
+        local inset=math.floor(cell*.3)
         g:line(px+inset,py+inset,px+cell-inset,py+cell-inset,{line_width=STYLE.mark_stroke})
         g:line(px+cell-inset,py+inset,px+inset,py+cell-inset,{line_width=STYLE.mark_stroke})
       end
     end
   end
-  for i=1,p.n-1 do
-    local weight=i%5==0 and 5 or 4
-    UI.stroke(g,bx+i*cell,by,bx+i*cell,by+p.n*cell,weight)
-    UI.stroke(g,bx,by+i*cell,bx+p.n*cell,by+i*cell,weight)
+  -- Board, column-clue header and row-clue column share continuous rules.
+  UI.grid(g,bx,by,n,n,cell,{minor=2,frame=3})
+  UI.grid(g,bx,by-clueArea,n,1,cell,{minor=2,frame=3,row_height=clueArea})
+  UI.grid(g,bx-gutter,by,1,n,gutter,{minor=2,frame=3,row_height=cell})
+  if SELECTED>0 and SELECTED<=n*n then
+    local row,col=math.floor((SELECTED-1)/n),(SELECTED-1)%n
+    local px,py=bx+col*cell,by+row*cell
+    g:rect(px+1,py+1,cell-1,cell-1,{line_width=3,radius=7})
   end
-  g:rect(bx,by,cell*p.n,cell*p.n,{line_width=5,radius=STYLE.board_radius})
-  if SELECTED>0 and SELECTED<=p.n*p.n then
-    local row,col=math.floor((SELECTED-1)/p.n),(SELECTED-1)%p.n
-    g:rect(bx,by+row*cell,cell*p.n,cell,{line_width=2})
-    g:rect(bx+col*cell,by,cell,cell*p.n,{line_width=2})
-    if HINTED==SELECTED then
-      g:rect(bx+col*cell+5,by+row*cell+5,cell-10,cell-10,
-        {line_width=3,radius=3})
-    end
-  end
-  text(g,24,636,'Rows '..rows..' / '..p.n,'small',nil,200)
-  text(g,264,636,'Cols '..cols..' / '..p.n,'small',nil,192)
+  text(g,8,598,'Rows '..rows..' / '..n,'body',nil,200)
+  local colsLabel='Cols '..cols..' / '..n
+  local cw=math.min(UI.width(D or C,colsLabel,'body'),200)
+  text(g,472-cw,598,colsLabel,'body',nil,200)
   local won=S.submitted[S.level]
   local status=MSG or (won and 'Revealed: '..display_name(p.name)
-    or CROSS_MODE and 'X mode: mark confirmed empties'
-    or 'Fill mode: tap to mark squares')
-  text(g,240,670,status,'small','center',432)
-  button(g,'prev','Prev',false,S.level>1)
-  button(g,'undo','Undo',false,not won and #S.history[S.level]>0)
+    or CROSS_MODE and 'X marks squares you know are empty'
+    or 'Fill the squares the clues describe')
+  text(g,240,634,status,'small','center',464)
+  -- The mode switch: the active half looks pressed in.
+  button(g,'fill','Fill',not CROSS_MODE)
+  button(g,'cross','X',CROSS_MODE)
+  button(g,'prev','Prev')
+  button(g,'undo','Undo')
   button(g,'reset','Reset')
-  button(g,'check',won and (S.level<S.unlocked and 'Next' or 'Done') or 'Check',true,not won or S.level<S.unlocked)
+  button(g,'check',won and (S.level<S.unlocked and 'Next' or 'Done') or 'Check')
 end
 local function hit(x,y,bx,by,w,h)
   return x>=bx and x<bx+w and y>=by and y<by+h
@@ -512,11 +511,12 @@ local function tap(x,y)
   if control_hit('help',x,y) then HELP=not HELP;return true end
   if HELP then
     if control_hit('back',x,y) then HELP=false;return true end
+    if control_hit('hint',x,y) and not S.submitted[S.level] then HELP=false;return hint() end
     return false
   end
-  if control_hit('mode',x,y) then return toggle_mode() end
-  if control_hit('hint',x,y) then return hint() end
-  if control_hit('next',x,y) and not S.submitted[S.level] then
+  if control_hit('fill',x,y) then if CROSS_MODE then return toggle_mode() end return true end
+  if control_hit('cross',x,y) then if not CROSS_MODE then return toggle_mode() end return true end
+  if control_hit('next',x,y) then
     return S.level<S.unlocked and next_level() or new_puzzle()
   end
   if control_hit('prev',x,y) then return prev() end
@@ -539,6 +539,7 @@ end
 function on_load(context)
   if FONTSET then FONTSET:release() end
   if FAILED_FONTSET then FAILED_FONTSET:release();FAILED_FONTSET=nil end
+  Typefaces.release_shades()
   FONTSET=nil;D=nil;NEEDS_FONTS=true;FONT_ERROR=nil
   C=context or ctx;S=nil;ERR=nil;KEY_MS=-1000;generated=nil
   CROSS_MODE=false;SELECTED=0;HINTED=0
@@ -553,20 +554,28 @@ function on_draw(context,g)
     NEEDS_FONTS=false
     local ok,fonts,reason=pcall(function() return Typefaces.open(C) end)
     if ok then FONTSET=fonts;FONT_ERROR=reason else FONT_ERROR=tostring(fonts) end
-    if not FONTSET and C and C.image then MSG='System fonts active' end
+    -- The fallback is recorded on the card, not shown over the status line.
+    if not FONTSET and C and C.image then Typefaces.report(C,FONT_ERROR) end
   end
   if FONTSET and type(g.image)~='function' then
     FONT_ERROR='Image drawing unavailable'
-    FONTSET:release();FONTSET=nil;MSG='System fonts active'
+    FONTSET:release();FONTSET=nil
   end
   D=FONTSET or C
-  local ok,e=pcall(function() draw(g) end)
+  local function themed_draw()
+    UI.set_theme(FONTSET,STYLE)
+    UI.set_shade(type(g.image)=='function' and function(size) return Typefaces.shade(C,size) end or nil)
+    local done,err=pcall(draw,g)
+    UI.set_theme(nil,false);UI.set_shade(nil)
+    if not done then error(err,0) end
+  end
+  local ok,e=pcall(themed_draw)
   if not ok and D==FONTSET then
     FONT_ERROR=tostring(e)
     -- Keep images alive until leave: earlier commands in this frame may own them.
     FAILED_FONTSET=FONTSET;FONTSET=nil;D=C
-    MSG='System fonts active'
-    ok,e=pcall(function() draw(g) end)
+    Typefaces.report(C,FONT_ERROR)
+    ok,e=pcall(themed_draw)
   end
   if not ok then ERR=tostring(e);UI.error(g,C,'NONOGRAM',ERR) end
 end
@@ -599,6 +608,7 @@ function on_leave()
   if S then save() end
   if FONTSET then FONTSET:release();FONTSET=nil end
   if FAILED_FONTSET then FAILED_FONTSET:release();FAILED_FONTSET=nil end
+  Typefaces.release_shades()
   D=nil;NEEDS_FONTS=true
 end
 if rawget(_G,'__TEST') then

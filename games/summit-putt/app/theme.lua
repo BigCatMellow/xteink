@@ -32,6 +32,7 @@ end
 function Theme.release()
   if fonts then fonts:release() end
   if retired then retired:release() end
+  Typefaces.release_shades()
   fonts,retired,initialized,reason=nil,nil,false,nil
 end
 function Theme.state() return fonts,reason end
@@ -39,18 +40,22 @@ function Theme.draw(context,raw,draw)
   if not initialized and type(raw.image)=='function' then
     initialized=true
     fonts,reason=Typefaces.open(context)
+    if reason then Typefaces.report(context,reason) end
   end
   local usable=fonts and type(raw.image)=='function'
+  UI.set_shade(type(raw.image)=='function' and function(size) return Typefaces.shade(context,size) end or nil)
   UI.set_theme(usable and fonts or nil,Style)
   local ok,err=pcall(draw,Theme.canvas(raw))
   UI.set_theme(nil,false)
   if not ok and usable then
     -- Earlier queued commands may still reference the images in this frame.
     retired=fonts;fonts=nil;reason=tostring(err)
+    Typefaces.report(context,reason)
     UI.set_theme(nil,Style)
     ok,err=pcall(draw,Theme.canvas(raw))
     UI.set_theme(nil,false)
   end
+  UI.set_shade(nil)
   if not ok then error(err,0) end
 end
 return Theme

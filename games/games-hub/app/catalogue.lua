@@ -1,14 +1,14 @@
 -- Generated source versions and fingerprints.
 return {
-{id="summitputt",name="Summit Putt",version="0.6.0",description="A little mountain golf",source="fe765d9a908a11c584174898477d0a48f70ec54a3057ee983bfa47c47e68c1eb"},
-{id="lanternlogic",name="Lantern Logic",version="0.4.0",description="Light up a logic puzzle",source="1d98daa5891c3cc4ef12f5eadcbce54487f3694841d26af8c23c856952717764"},
-{id="rayvault",name="Ray Vault",version="0.4.1",description="Guide the beam home",source="8cedb182e115c2eb9f2f51ec2ca43f301b9dc52b9e7cfd3cbb915ad62ed90d1a"},
-{id="islandlinks",name="Island Links",version="0.4.0",description="Bridge a quiet archipelago",source="b86f32e6b66ac512e409976c422e16ab90e7784832612233ceb9708eae97263d"},
-{id="nonogram",name="Nonogram",version="0.8.0",description="Reveal a picture in ink",source="19ec89c388b575640c8981d04d47561a83e92bfcabebc585cb0a44e3669e041c"},
-{id="rectrooms",name="Rectangle Rooms",version="0.3.0",description="Divide the board into rooms",source="c440acfc9415a0feadacbae9d7bc502ab7dd1a9e15a5b393f4d873dd62fd84d9"},
-{id="sudoku",name="Sudoku",version="0.5.0",description="Nine numbers, endless puzzles",source="4349dff0c9e5cbc9320ee09048b554af79ae8d73067e4305fa8f1936cae1b5f1"},
-{id="crownfields",name="Crown Fields",version="0.2.0",description="One crown in every region",source="923197ee2b593e238ca9bea1362b7198fd5e4ecd1e7c290b703d0ed082bacfc3"},
-{id="quietmines",name="Quiet Mines",version="0.4.0",description="Deduce every safe square",source="298dea376942e82099ad711b5038b722e738718cf92a0cd46ae7e3ad56a59cab"},
-{id="sumcross",name="Sum Cross",version="0.2.1",description="Solve the crossing sums",source="ffa06f1a218e68b90d0a85479b33feeb976683df8b8ca29b44341b1e2e8e571d"},
-{id="tenpairs",name="Ten Pairs",version="0.2.0",description="Pair numbers, clear the sheet",source="838c62e46e652a5e36337a076cc3f2e1c1f82bd4e71a1016eb71e745b4afa1f0"}
+{id="summitputt",name="Summit Putt",version="0.6.3",description="A little mountain golf",source="9dde37806919eecfca2ac9084528ef068f29ebed76b5c7847ca9428141c49d9a"},
+{id="lanternlogic",name="Lantern Logic",version="0.4.3",description="Light up a logic puzzle",source="c33886bb0a553ee674812125ba126578f801be095b68ae79d06802c2333f45d4"},
+{id="rayvault",name="Ray Vault",version="0.4.4",description="Guide the beam home",source="c20da203f5a305947eb7cbf35a50484750f2213c1816f39098c3aa14eefedeef"},
+{id="islandlinks",name="Island Links",version="0.4.3",description="Bridge a quiet archipelago",source="b0b3b94855f9b57b1a3410d6c1e43ae9aef2cb50996aa212f747366295a194e6"},
+{id="nonogram",name="Nonogram",version="0.9.2",description="Reveal a picture in ink",source="e2469bc48e20b6d68dd53b2c8205d535f22e6f69cae7aeb311ad0c2138fc24d9"},
+{id="rectrooms",name="Rectangle Rooms",version="0.3.3",description="Divide the board into rooms",source="2403cf91504cc2582e4f1ae809332aa57bfa06e474210f9c7f70c33759ae4cd0"},
+{id="sudoku",name="Sudoku",version="0.6.2",description="Nine numbers, endless puzzles",source="5603933cf5a39db3df4a54135db06c2a9175b03bb48b595b9c8292a47dfb9bbc"},
+{id="crownfields",name="Crown Fields",version="0.2.3",description="One crown in every region",source="704e04ce1f618ac7da2b3a5e2d2cfb4cd46b398f4361a557ed6d428fba40fc34"},
+{id="quietmines",name="Quiet Mines",version="0.5.3",description="Deduce every safe square",source="f144dc6651e994b5ee6c5c45784d15a99e5823f99304ad5f594ef4747ffc190d"},
+{id="sumcross",name="Sum Cross",version="0.2.4",description="Solve the crossing sums",source="0274aec7896026dffce267ae2ff342a6357ed1e8d06ed81eea09e18705c82c15"},
+{id="tenpairs",name="Ten Pairs",version="0.2.3",description="Pair numbers, clear the sheet",source="b9f352f28182dc590fdbb6a42ce1da7fcf918c12e0894cf1c08b91692af3db4f"}
 }

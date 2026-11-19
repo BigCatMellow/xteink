@@ -128,21 +128,21 @@ do
  for _,r in ipairs(reports) do
   eq(#r.regions,1,'one Sudoku puzzle region')
   local board=r.regions[1]
-  eq(board.x,6);eq(board.y,100);eq(board.w,468);eq(board.h,468)
+  eq(board.x,6);eq(board.y,102);eq(board.w,468);eq(board.h,468)
   assert(r.largest_gap.pixels<48,'unused band between screen elements '..r.largest_gap.pixels)
   eq(#r.number_keys,9,'all nine numeric buttons must be visible')
   for _,b in ipairs(r.number_keys) do
-   eq(b.w,98);eq(b.h,60)
+   eq(b.w,100);eq(b.h,56)
    assert(b.x>=0 and b.x+b.w<=480 and b.y>=0 and b.y+b.h<=800,'off-screen number key')
   end
  end
  for _,name in ipairs({'notes','undo','erase'}) do
-  local b=A.controls[name];eq(b[4],60,'tall adjacent button')
+  local b=A.controls[name];eq(b[4],56,'keypad-height adjacent button')
  end
  for n=1,9 do
   local x,y,w,h=A.digit_box(n)
-  eq(y,604+math.floor((n-1)/3)*64,'adaptive keypad row')
-  eq(w,98);eq(h,60)
+  eq(y,612+math.floor((n-1)/3)*62,'adaptive keypad row')
+  eq(w,100);eq(h,56)
  end
  local _,y,_,h=A.digit_box(9)
  eq(y+h,792,'reserve eight pixels at bottom')
@@ -158,17 +158,17 @@ do
   return rect(self,x,y,w,h,o)
  end
  g:reset();on_draw(ctx,g);g:verify('sudoku solid divisions')
- assert(grid.size>=468 and grid.cell==52,'board must use the available width')
+ assert(grid.size==468 and grid.cell==52,'board uses the full width')
  local function bar(x,y,w,h)
   for _,b in ipairs(bars) do if b.x==x and b.y==y and b.w==w and b.h==h and b.radius==0 then return true end end
   return false
  end
  for _,i in ipairs({3,6}) do
-  assert(bar(grid.x+i*52-2,grid.y,5,468),'missing solid vertical 3x3 separator')
-  assert(bar(grid.x,grid.y+i*52-2,468,5),'missing solid horizontal 3x3 separator')
+  assert(bar(grid.x+i*52-1,grid.y,3,468),'missing solid vertical 3x3 separator')
+  assert(bar(grid.x,grid.y+i*52-1,468,3),'missing solid horizontal 3x3 separator')
  end
- assert(bar(grid.x,grid.y,5,468) and bar(grid.x+463,grid.y,5,468),'outer frame must be solid')
- assert(bar(grid.x+51,grid.y,2,468),'interior lines must be 2px')
+ assert(bar(grid.x,grid.y,3,468) and bar(grid.x+465,grid.y,3,468),'outer frame must be solid')
+ assert(bar(grid.x+52,grid.y,1,468),'interior lines must be 1px')
  for n=1,9 do
   local x,y,w,h=A.digit_box(n)
   assert(w>=48 and h>=48,'comfortable number-key touch target')
@@ -211,15 +211,36 @@ do
     if not(options and options.fill) then outlines[#outlines+1]={x=x,y=y,w=w,h=h} end
     return original(self,x,y,w,h,options)
   end
-  g:reset();on_draw(ctx,g);g:verify('selection guides and 2px cell rules')
+  local tiles={}
+  if g.image then
+    local image=g.image
+    function g:image(im,x,y,o) tiles[x..','..y]=true;return image(self,im,x,y,o) end
+  end
+  g:reset();on_draw(ctx,g);g:verify('selection guides and 1px cell rules')
   local function hasRect(x,y,w,h)
     for _,q in ipairs(outlines) do
       if q.x==x and q.y==y and q.w==w and q.h==h then return true end
     end
     return false
   end
-  assert(hasRect(6,100+geometry.row*52,468,52),'row guide missing')
-  assert(hasRect(6+geometry.col*52,100,52,468),'column guide missing')
+  -- Guides are grey shading only: never row/column outline bars (user
+  -- feedback 2026-11-18: the lines were confusing on the reader).
+  local function shaded(cells)
+    for _,c in ipairs(cells) do if not tiles[(6+c[1]*52)..','..(102+c[2]*52)] then return false end end
+    return true
+  end
+  local row,col={},{}
+  for k=0,8 do
+    if k~=geometry.col then row[#row+1]={k,geometry.row} end
+    if k~=geometry.row then col[#col+1]={geometry.col,k} end
+  end
+  assert(not hasRect(6,102+geometry.row*52,468,52),'row guide must not be an outline')
+  assert(not hasRect(6+geometry.col*52,102,52,468),'column guide must not be an outline')
+  if g.image then
+    assert(shaded(row),'row guide shading missing')
+    assert(shaded(col),'column guide shading missing')
+    assert(not tiles[(6+geometry.col*52)..','..(102+geometry.row*52)],'selected cell stays unshaded')
+  end
   -- Pencil digits are drawn inside the cells as monochrome segments,
   -- not represented solely by a dot or a status caption.
   assert(tap_control('notes'))
@@ -252,8 +273,8 @@ do
   s=reload()
   assert(not s.autoClean and not s.highlight and not s.showConflicts and s.multiMode,
     'save and reload all Meditation settings')
-  assert(A.tap(6+((firstBlank-1)%9)*52+26,100+math.floor((firstBlank-1)/9)*52+26))
-  assert(A.tap(6+((secondBlank-1)%9)*52+26,100+math.floor((secondBlank-1)/9)*52+26))
+  assert(A.tap(6+((firstBlank-1)%9)*52+26,102+math.floor((firstBlank-1)/9)*52+26))
+  assert(A.tap(6+((secondBlank-1)%9)*52+26,102+math.floor((secondBlank-1)/9)*52+26))
   assert(s.multi[firstBlank] and s.multi[secondBlank],'multi-select contains both squares')
   assert(tap_control('notes'))
   assert(A.put(5))

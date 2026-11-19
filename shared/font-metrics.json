@@ -1,45 +1,63 @@
 {
-  "images": 333,
-  "decoded_pixels": 64384,
-  "decoded_rgb_bytes": 193152,
-  "png_bytes": 33413,
-  "lua_bytes": 80048,
+  "images": 290,
+  "decoded_pixels": 68106,
+  "decoded_rgb_bytes": 204318,
+  "png_bytes": 30245,
+  "lua_bytes": 82261,
   "roles": {
     "small": {
       "name": "Inter",
       "size": 20,
-      "weight": 500,
+      "weight": 600,
       "line_height": 22
     },
-    "medium": {
-      "name": "Poppins-Medium",
-      "size": 24,
-      "weight": 500,
-      "line_height": 31
-    },
     "large": {
-      "name": "Poppins-SemiBold",
+      "name": "Inter",
       "size": 30,
-      "weight": 600,
-      "line_height": 32
+      "weight": 700,
+      "line_height": 30
     },
     "body": {
       "name": "Inter",
       "size": 24,
-      "weight": 500,
+      "weight": 600,
       "line_height": 26
     },
     "clue_small": {
       "name": "Inter",
       "size": 20,
-      "weight": 500,
+      "weight": 600,
       "line_height": 20
     },
     "clue": {
       "name": "Inter",
       "size": 24,
-      "weight": 500,
+      "weight": 600,
       "line_height": 24
+    },
+    "clue_large": {
+      "name": "Inter",
+      "size": 26,
+      "weight": 600,
+      "line_height": 26
+    },
+    "digit": {
+      "name": "Inter",
+      "size": 30,
+      "weight": 600,
+      "line_height": 30
+    },
+    "digit_light": {
+      "name": "Inter",
+      "size": 30,
+      "weight": 400,
+      "line_height": 30
+    },
+    "title": {
+      "name": "Inter",
+      "size": 42,
+      "weight": 700,
+      "line_height": 41
     }
   },
   "source_sha256": {

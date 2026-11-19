@@ -43,15 +43,17 @@ entrypoint for the shared exporter, not a second font-system owner.
 
 ### Type roles
 
-| Role | Typeface | Use |
+All bitmap roles are Inter (SIL OFL) since the 2026-11-18 mockup redesign; see
+the change record below. `shared/font-metrics.json` is authoritative.
+
+| Role | Face | Use |
 | --- | --- | --- |
-| Game/help heading | Poppins SemiBold, 30px | Clear family identity; game headings use title case |
-| Normal controls | Poppins Medium, 24px | Round, welcoming action labels |
-| Compact controls | Inter Medium, 20px | Preserve full labels inside compact targets |
-| Body/game data | Inter Medium, 24px | Rules, counters, word cards and readable game data |
-| Metadata/status | Inter Medium, 20px | Secondary information without competing with the board |
-| Numeric clues | Inter Medium, 20/24px, tabular digits | Stable clue alignment and distinct numbers |
-| Emphasized numbers (`strong`) | Existing Poppins SemiBold, 30px | Sudoku fixed clues and large number keys; aliases the shipped heading face without extra glyph images |
+| `title` | Inter Bold 42px, title letters only | Sudoku, Minesweeper and Nonogram screen titles |
+| `large` / `strong` | Inter Bold 30px | Help headings, Minesweeper numbers, emphasized numbers |
+| `body` (also `medium` / control) | Inter SemiBold 24px | Button labels, rules, counters, status lines |
+| `small` | Inter SemiBold 20px | Metadata and secondary status |
+| `clue` / `clue_small` / `clue_large` | Inter SemiBold 24/20/26px, tabular digits | Numeric clues; Nonogram picks the largest that keeps 34px cells |
+| `digit` / `digit_light` | Inter SemiBold / Regular 30px digits | Sudoku givens / entered values and keypad digits |
 
 Line heights are **generated ink metrics**, not guessed from pixel size. The
 current pack uses 22/26px for small/body text, 31px for the control font and
@@ -70,12 +72,19 @@ drawing failures use a native-font frame. This fallback does not reset a game.
 
 The code tokens own exact values. Current roles are:
 
-- Controls: 12px radius, 3px ordinary outline, 4px Check/Next/continuation outline.
-- Large square play-area frames: 10px radius, generally 4px emphasis.
+- Controls: 9px radius, 3px outline for every control, plus a 1px lower edge
+  (pressed-paper depth from the mockups). Check/Next are no longer heavier.
+- Large square play-area frames: 6px radius where rounded; grids use 3px frames.
 - Connected grid interiors: straight shared edges. `UI.grid` uses 1px cell
   edges and a 4px frame; semantic regions/box boundaries stay visibly stronger.
   Nonogram retains its approved 3px grid and 4px frame.
-- Filled marks: 3px corner radius. Nonogram's X marks use 4px strokes.
+- Filled marks: 2px corner radius. Nonogram's X marks use 2px strokes.
+- Selection guides: the selected row and column are shaded grey only, never
+  outlined (user feedback after the device photos: the bars were confusing).
+  The grey is a fine 25% staggered one-bit screen (`UI.shade`, tiles baked by
+  `make_game_fonts.py`), decoded on first use and independent of the glyph set,
+  so it still draws when the fonts fall back. The selected cell keeps its 3px
+  rounded outline.
 - Inactive Nonogram controls: 2px outline. Selected controls may use an inset
   outline; an inner corner follows the outer radius minus the inset.
 
@@ -169,7 +178,7 @@ within half a pixel using the active measured fonts.
 
 | Game | Decision / why |
 | --- | --- |
-| Nonogram | Center measured clues and board together; 3px grid, 4px frame/marks; preserve correct-but-unsubmitted boards and the solved Next action |
+| Nonogram | Boxed column-clue header and row-clue column sharing the board's 2px rules and 3px frame, centered together in y=76-592 over 472px (cells up to 84px); shaded row/column guides; satisfied clue cells turn grey; header has only New/Next and ?; a Fill/X two-part switch above the action row (active half pressed in) and Hint on the help screen; preserve correct-but-unsubmitted boards and the solved Next action |
 | Line Lift | Strong rounded frame and rods; keep interrupted-line gaps and paired rings, which convey puzzle rules. Remove decorative double control outlines and shorten metadata to `Puzzle` so its number stays visible |
 | Summit Putt | 424px terrain composition, rounded cards, larger Undo/Restart targets below the hand; retain terrain caps, ramps and flag geometry |
 | Link Grid | Full-width 448px board; fine cell grid and solid 5px network lines preserve the network/grid distinction; fixed anchors remain marked |
@@ -181,15 +190,48 @@ within half a pixel using the active measured fonts.
 | Word Hunt | Rounded outer grid/list controls; retain letter spacing and readable found/hint rings on the dense 13×13 FOX grid |
 | Word Bridge | Rounded word cards and controls; preserve NOW/GOAL word case, dots, route state and word selection targets |
 | Rectangle Rooms | Straight connected grid with stronger room/selection outlines; rectangle extents and area clues remain exact |
-| Sudoku | v0.3 uses a 468px board, solid 4px box separators against 1px cell edges, bold givens and a three-column keypad. Remove per-given boxes and passive legends; retain note dots, active Notes/key outlines, explicit Check and saved undo |
+| Sudoku | Mockup layout: 441px board at (19,114) with 3px box separators/frame and 1px cell edges, SemiBold givens and Regular entries, shaded row/column guides with a box corner mark, 91x50 keys beside Notes/Undo/Erase; retain note digits, active Notes outline, explicit Check and saved undo |
 | Crown Fields | Large board, corner region letters and solid 5px region boundaries; keep crown/X marks independent of color |
 | Ten Pairs | Full-width 8-column sheet; rectangular row heights adapt to 4–11 rows while preserving reading order and usable digits |
-| Quiet Mines | Large field, clear open/closed/flag states, outlined active Flag mode and persistent mode/count feedback |
+| Quiet Mines | Shown as "Minesweeper". Mockup layout: mine/safe counters with icons, 440px field with 2px rules, Prev/Flag/Hint/Undo/Reset; closed squares are small raised keys (1px rounded outline, 2px lower edge, user request 2026-11-18) and opened squares are flat, with a small dot when empty; messages replace the Safe/Flags line until the next move; difficulty moved to Help |
 | Sum Cross | Larger clue grid, filled inactive cells and a backslash separator between down/top-right and across/bottom-left clues; retain the 10-key number/Clear pad |
 
 These are scoped exceptions, not permission to create a different theme.
 Pocket Golf remains shelved and off the card. Wallpaper Randomizer is a utility
 and does not receive this game-theme rollout.
+
+## Change record — 2026-11-18 / user mockups for Sudoku, Minesweeper, Nonogram
+
+The user supplied target images (`~/Desktop/XTEink/Games/*.png`) and asked for
+the three on-card games to look exactly like them. They were measured after
+cropping the screens to 480x800 and fitted with Inter: titles ~Bold 42,
+labels/buttons ~SemiBold 21-25. Comparisons:
+[Sudoku](design/mockup-2026-11-18/sudoku.png),
+[Minesweeper](design/mockup-2026-11-18/minesweeper.png),
+[Nonogram](design/mockup-2026-11-18/nonogram.png) (mockup left, host bitmap render right).
+
+| Change | Why |
+| --- | --- |
+| Poppins roles replaced with Inter SemiBold/Bold; new `title`, `digit`, `digit_light`, `clue_large` roles | Every mockup label is a heavy Inter-like sans; 378 images, 245 KB decoded, inside the existing budget |
+| Thinner 3px controls with a 1px lower edge, 9px radius | Mockup buttons; Check no longer differs from other controls |
+| One-bit dot-screen guide tiles (`UI.shade`) | The mockups' grey row/column highlight; the panel is one-bit and the canvas has no grey fill, so a fixed 11% screen is drawn as baked PNG tiles |
+| Sudoku board 468 -> 441px | The mockup keeps ~19px side margins; hub minimum updated |
+| Departures kept on purpose | Minesweeper's opened-empty dot (mockup cannot show open vs closed), bottom line shows progress (Safe opened / Flags placed) rather than the mockup's static totals, Nonogram puzzles keep their own clue counts so header/gutter size varies |
+
+The other eight games receive the new fonts and control style through the shared
+copies; their layouts and tests are unchanged.
+
+**Device photos of 0.6.0 / 0.5.0 / 0.9.0 (same day):** all three drew in the
+system font ("System fonts active" in Nonogram), so the bitmap pack failed on the
+reader and Sudoku showed its outline fallback bars. The pack had grown to 378
+images / 82k decoded pixels / 101 KB source, past the last confirmed-good 333 /
+64k / 80 KB, and every glyph was decoded eagerly in the first draw. The exact
+firmware limit is unknown. Fixes in 0.6.1 / 0.5.1 / 0.9.1: glyphs decode lazily
+(only what a screen shows), the separate 22px control role is gone (controls
+use `body`), shade tiles 34-70 only (290 images, 80 KB source), the last
+fallback reason is written to the app's `files/font-status.txt`, Nonogram no
+longer covers its mode line with "System fonts active", and the guide outlines
+were removed in favour of grey only. Device check still needed.
 
 ## Change record — 2026-11-07
 
@@ -507,3 +549,20 @@ this 480×800 native-device update. Visual shape styles and better
 human technique/difficulty scoring are possible follow-ons, but
 must be verified against clue gutter size and physical touch
 targets, not treated as silently completed in this change.
+
+### Change record — 2026-11-18 / board size and touches
+
+User: "negative space is the enemy" — maximize board size without losing function.
+Boards now take the full width: Sudoku 468px (52px cells, 6px margins), Minesweeper
+468px field from y=114, Nonogram a 472px composition with no 70px cell cap. Headers
+start at x=6; the Hub shifts any header text that starts left of x=74 past its HUB key.
+Spare height went to taller keys (Sudoku 56px, Minesweeper 82px) and useful lines:
+Minesweeper always shows Safe/Flags plus a mode or message line.
+
+Touches: active toggles (Notes, Flag, Hint, the Nonogram Fill/X switch) look pressed
+in — grey fill, a shadow along the top edge and no raised lower edge; Sudoku digit keys
+show how many of that digit are left (a finished digit turns light); Minesweeper's
+hinted square is grey instead of outlined; Nonogram's satisfied clues are grey.
+`UI.shade_rect` tiles non-square areas with the 34-84px shade tiles, keeping the dot
+phase. Font data is 82 KB (shade tiles 34-84); device check still needed.
+

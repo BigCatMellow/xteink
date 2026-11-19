@@ -1,33 +1,70 @@
--- Poppins/Inter as whole PNG glyphs: no TTF loader and no image cropping.
+-- Inter as whole PNG glyphs: no TTF loader and no image cropping.
+-- Glyphs are decoded on first use, so a screen holds only the images it shows.
 local Data=require('font_data')
 local Typefaces={}
-local aliases={small='small',medium='medium',large='large',body='medium',clue='medium',clue_small='small'}
+local aliases={small='small',medium='medium',large='large',body='medium',clue='medium',clue_small='small',
+  clue_large='medium',digit='large',digit_light='large',title='large'}
 local function supported(role,s)
   for i=1,#s do if not role.glyphs[s:byte(i)] then return false end end
   return true
+end
+local function bytes(hex)
+  return (hex:gsub('..',function(pair) return string.char(tonumber(pair,16)) end))
+end
+-- Guide shading is independent of the glyph set: it still draws when the
+-- bitmap fonts fall back to the system font.
+local shades,shade_context={},nil
+function Typefaces.shade(context,size)
+  if shade_context~=context then Typefaces.release_shades();shade_context=context end
+  local cached=shades[size]
+  if cached~=nil then return cached or nil end
+  local hex=Data.shades and Data.shades[size]
+  local im=false
+  if hex and context and context.image and type(context.image.decode)=='function' then
+    local ok,decoded=pcall(function() return context.image:decode(bytes(hex)) end)
+    if ok and decoded then im=decoded end
+  end
+  shades[size]=im
+  return im or nil
+end
+function Typefaces.release_shades()
+  for _,im in pairs(shades) do
+    if im then pcall(function() im:release() end) end
+  end
+  shades={};shade_context=nil
+end
+-- Keep the last bitmap-font failure on the card for diagnosis (one small file).
+function Typefaces.report(context,reason)
+  if not context or not context.storage or type(context.storage.write)~='function' then return end
+  pcall(function() context.storage:write('font-status.txt',tostring(reason)) end)
 end
 function Typefaces.open(context)
   if not context or not context.image or type(context.image.decode)~='function' then
     return nil,'Image decoding unavailable'
   end
-  local result={fonts={},images={},decoded_pixels=0}
+  local result={fonts={},images={},count=0,decoded_pixels=0}
   function result:release()
-    for _,im in ipairs(self.images) do pcall(function() im:release() end) end
-    self.images={}
+    for _,im in pairs(self.images) do pcall(function() im:release() end) end
+    self.images={};self.count=0
     self.released=true
   end
-  for index,item in ipairs(Data.images) do
-    local raw=item[3]:gsub('..',function(pair) return string.char(tonumber(pair,16)) end)
-    local ok,im=pcall(function() return context.image:decode(raw) end)
-    if not ok or not im then result:release();return nil,'Font image decoding failed' end
-    result.images[index]=im
-    result.decoded_pixels=result.decoded_pixels+item[1]*item[2]
+  function result:image(index)
+    local im=self.images[index]
+    if im then return im end
+    assert(not self.released,'Font images were released')
+    local item=Data.images[index]
+    local ok,decoded=pcall(function() return context.image:decode(bytes(item[3])) end)
+    if not ok or not decoded then error('Font image decoding failed: '..index) end
     local sized,valid=pcall(function()
-      return (not im.width or im.width==item[1]) and (not im.height or im.height==item[2])
+      return (not decoded.width or decoded.width==item[1]) and (not decoded.height or decoded.height==item[2])
     end)
     if not sized or not valid then
-      result:release();return nil,'Font image dimensions changed'
+      pcall(function() decoded:release() end)
+      error('Font image dimensions changed: '..index)
     end
+    self.images[index]=decoded;self.count=self.count+1
+    self.decoded_pixels=self.decoded_pixels+item[1]*item[2]
+    return decoded
   end
   for name,role in pairs(Data.roles) do
     local font={name=role.name,line_height=role.line_height,
@@ -47,7 +84,7 @@ function Typefaces.open(context)
       for i=1,#s do
         local glyph=role.glyphs[s:byte(i)]
         if glyph[4]>0 then
-          local ok,err=g:image(result.images[glyph[4]],x+glyph[2],y+glyph[3])
+          local ok,err=g:image(result:image(glyph[4]),x+glyph[2],y+glyph[3])
           if ok==false or (ok==nil and err) then error('Font image draw failed: '..tostring(err)) end
         end
         x=x+glyph[1]

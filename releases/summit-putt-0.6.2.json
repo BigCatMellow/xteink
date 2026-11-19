@@ -1,0 +1,13 @@
+{
+  "game": "summit-putt",
+  "app_id": "summitputt",
+  "name": "Summit Putt",
+  "version": "0.6.2",
+  "file": "summit-putt-0.6.2.xtapp",
+  "bytes": 120576,
+  "sha256": "a4ad939291ad6b4aa004ad1143288c9518fb10064365018246921ac33131f3b6",
+  "source_sha256": "8eb62cce60f46280b44e92aa517e61272efdd774b34764d0de3192bc816e416a",
+  "metadata_file": "summit-putt-0.6.2.json",
+  "personal_data": false,
+  "device_tested": false
+}

@@ -161,7 +161,8 @@ local function draw_line(g,line,u,v,scale)
  local step=6*scale
  line=line:upper()
  for i=1,#line do
-  local glyph=COMPILED[line:sub(i,i)] or COMPILED['?']
+  local ch=line:sub(i,i)
+  local glyph=ch~=' ' and (COMPILED[ch] or COMPILED['?'])
   if glyph then
    for _,stroke in ipairs(glyph) do
     local pts,thick={},{}
@@ -205,7 +206,7 @@ local function fit(text,preferred,limit)
  end
  return result,scale
 end
-function Q.draw(g,c,quote)
+local function draw_strokes(g,quote)
  if not quote or not quote.text then return end
  -- The supplied 480x800 pictures rotate CW into an 800x480 landscape
  -- view. Their illustrations occupy the right side; preserve them untouched.
@@ -227,5 +228,106 @@ function Q.draw(g,c,quote)
   local width=#line*6*author_scale
   draw_line(g,line,50+(428-width)/2,top+#lines*line_height+14+(i-1)*9*author_scale,author_scale)
  end
+end
+-- Preferred renderer: Inter SemiBold glyphs baked by tools/make_quote_font.py
+-- as rotated 1-bit PNGs. Decoded glyphs stay cached until Q.release(), since
+-- the host may draw image commands after on_draw returns.
+local okfont,Font=pcall(require,'quote_font')
+if not okfont or type(Font)~='table' then Font=nil end
+local cache,cache_ctx={},nil
+function Q.release()
+ for _,im in pairs(cache) do pcall(function() im:release() end) end
+ cache,cache_ctx={},nil
+end
+local function chars(s) return s:gmatch('[\1-\127\194-\244][\128-\191]*') end
+local function smart(s)
+ -- Straight quotes become curly ones; apostrophes inside words stay right-closing.
+ s=s:gsub('^"','\226\128\156'):gsub('([%s%(%[])"','%1\226\128\156'):gsub('"','\226\128\157')
+ s=s:gsub("^'",'\226\128\152'):gsub("([%s%(%[])'",'%1\226\128\152'):gsub("'",'\226\128\153')
+ return s
+end
+local function glyph_of(role,ch)
+ local key=#ch==1 and ch:byte() or ch
+ return role.glyphs[key] or role.glyphs[63]
+end
+local function width(role,s)
+ local w=0
+ for ch in chars(s) do w=w+glyph_of(role,ch)[1] end
+ return w
+end
+local function wrap_px(role,text,cap)
+ local out,line={},''
+ for token in text:gmatch('%S+') do
+  local word=token
+  if width(role,word)>cap then -- an unbreakable run: split by characters
+   if #line>0 then out[#out+1]=line;line='' end
+   local piece=''
+   for ch in chars(word) do
+    if width(role,piece..ch)>cap then out[#out+1]=piece;piece=ch else piece=piece..ch end
+   end
+   word=piece
+  end
+  local joined=#line>0 and (line..' '..word) or word
+  if width(role,joined)<=cap then line=joined else out[#out+1]=line;line=word end
+ end
+ if #line>0 then out[#out+1]=line end
+ return out
+end
+local LEFT,SPAN,HEIGHT=50,428,480 -- landscape text column, clear of the art
+local function layout(quote)
+ local q,a=Font.roles.quote,Font.roles.author
+ local lines=wrap_px(q,smart('"'..quote.text..'"'),SPAN)
+ local author=(quote.author and quote.author~='') and ('\226\128\148 '..quote.author) or nil
+ local alines=author and wrap_px(a,author,SPAN) or {}
+ local height=#lines*q.line+(#alines>0 and (12+#alines*a.line) or 0)
+ if height>HEIGHT-24 then return nil end
+ local rows,top={},math.floor((HEIGHT-height)/2)
+ for i,line in ipairs(lines) do
+  rows[#rows+1]={role=q,text=line,base=top+(i-1)*q.line+math.floor(q.line*0.74)}
+ end
+ top=top+#lines*q.line+12
+ for i,line in ipairs(alines) do
+  rows[#rows+1]={role=a,text=line,base=top+(i-1)*a.line+math.floor(a.line*0.74)}
+ end
+ return rows
+end
+local function draw_baked(g,c,quote)
+ if not Font or not c or not c.image or type(c.image.decode)~='function' then return false end
+ local rows=layout(quote)
+ if not rows then return false end
+ if cache_ctx~=c then Q.release();cache_ctx=c end
+ -- Decode every glyph first so a decoder failure falls back before any ink.
+ for _,row in ipairs(rows) do
+  for ch in chars(row.text) do
+   local gl=glyph_of(row.role,ch)
+   local id=gl[6]
+   if id and not cache[id] then
+    local ok,im=pcall(function() return c.image:decode(Font.images[id]) end)
+    if not ok or not im then return false end
+    cache[id]=im
+   end
+  end
+ end
+ for _,row in ipairs(rows) do
+  local pen=LEFT+(SPAN-width(row.role,row.text))/2
+  for ch in chars(row.text) do
+   local gl=glyph_of(row.role,ch)
+   if gl[6] then
+    local u=round(pen+gl[2])
+    local v=round(row.base+gl[3])
+    -- Landscape (u,v) is native (x=v, y=799-u); the PNG is pre-rotated.
+    local ok,err=g:image(cache[gl[6]],v,799-(u+gl[4]-1))
+    if ok==false or (ok==nil and err) then error('Quote glyph draw failed: '..tostring(err)) end
+   end
+   pen=pen+gl[1]
+  end
+ end
+ return true
+end
+function Q.draw(g,c,quote)
+ if not quote or not quote.text then return end
+ if draw_baked(g,c,quote) then return 'baked' end
+ draw_strokes(g,quote)
+ return 'strokes'
 end
 return Q

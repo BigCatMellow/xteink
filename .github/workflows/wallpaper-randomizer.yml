@@ -23,14 +23,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install Lua and build prerequisites
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y lua5.4
-          python -m pip install cryptography pillow
+          python -m pip install cryptography pillow==10.2.0
       - name: Test rotation logic
         run: |
           python scripts/sync_game_ui.py --check
+          python wallpaper-randomizer/tools/make_quote_font.py --check
           cd wallpaper-randomizer && lua tests/test_wallpaper.lua
       - name: Verify XTH renderer pixels and image lifecycle
         run: python wallpaper-randomizer/tests/test_xth.py
@@ -51,6 +55,7 @@ jobs:
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/cache.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/wallpaper.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/quotes.lua
+          python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/quote_font.lua
           python /tmp/xtapp-tools/tools/lualint55.py wallpaper-randomizer/app/ui.lua
       - name: Build XTApp
         run: |

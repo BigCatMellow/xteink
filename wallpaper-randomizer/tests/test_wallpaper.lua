@@ -52,6 +52,12 @@ local function runtime(disk)
     end
   }
   c.image={decode=function(_,bytes)
+    if bytes:sub(1,4)=='\137PNG' then -- a baked quote glyph, not a wallpaper
+      stats.glyph_decodes=(stats.glyph_decodes or 0)+1
+      local w=bytes:byte(17)*16777216+bytes:byte(18)*65536+bytes:byte(19)*256+bytes:byte(20)
+      local h=bytes:byte(21)*16777216+bytes:byte(22)*65536+bytes:byte(23)*256+bytes:byte(24)
+      return {glyph=true,width=w,height=h,release=function() end}
+    end
     stats.decodes=stats.decodes+1
     if bytes:find('BROKEN',1,true) then return nil,'native rejected JPEG' end
     stats.alive=stats.alive+1;stats.peak=math.max(stats.peak,stats.alive)
@@ -79,6 +85,13 @@ local function runtime(disk)
       end
     end,
     image=function(_,image,x,y)
+      if image.glyph then
+        assert(stats.draws>0,'wallpaper must be drawn before the quote')
+        stats.overlays=stats.overlays+1
+        assert(x>=0 and x+image.width<=480 and y>=0 and y+image.height<=800,'rotated quote outside native screen')
+        assert(799-(y+image.height-1)>=45 and 799-y<=485,'quote must remain in landscape left-side whitespace')
+        return true
+      end
       assert(x==0 and y==0);stats.draws=stats.draws+1;stats.last=image.bytes
       if c.fail_draw then return nil,'native draw rejected' end
     end}
@@ -249,9 +262,21 @@ c.fail_quote_write=false
 -- The user's original art is upright when the 480x800 JPEG rotates CW
 -- to landscape. Render black strokes directly in the empty LEFT side; never
 -- cover the original drawings with an opaque band or native sideways text.
-local function check_quote_geometry(q,reason)
+local function check_quote_geometry(q,reason,expect)
   local strokes,top,bottom,minimum,maximum=0,9999,-1,9999,-1
-  local geom={polyline=function(_,pts)
+  local function point(x,y)
+    assert(x>=0 and x<480 and y>=0 and y<800,reason..': outside 480x800')
+    local u=799-y
+    assert(u>=40 and u<500,reason..': overlaps illustration side')
+    minimum=math.min(minimum,u);maximum=math.max(maximum,u)
+    top=math.min(top,x);bottom=math.max(bottom,x)
+  end
+  local geom={image=function(_,im,x,y)
+    assert(im.glyph,reason..': only glyph images belong to the quote')
+    strokes=strokes+1
+    point(x,y);point(x+im.width-1,y+im.height-1)
+    return true
+  end,polyline=function(_,pts)
     strokes=strokes+1
     for i=1,#pts,2 do
       local x,y=pts[i],pts[i+1]
@@ -262,16 +287,25 @@ local function check_quote_geometry(q,reason)
       top=math.min(top,x);bottom=math.max(bottom,x)
     end
   end}
-  Q.draw(geom,c,q)
+  local mode=Q.draw(geom,c,q)
+  if expect then assert(mode==expect,reason..': expected '..expect..' renderer, got '..tostring(mode)) end
   assert(strokes>10 and strokes<950,reason..': drawing exceeds practical command budget')
   assert(top>=0 and bottom<480,reason..': landscape vertical bounds')
   assert(minimum>=40 and maximum<500,reason..': landscape horizontal bounds')
 end
-check_quote_geometry({text='The world is full of wonder if we are willing to see it.',author='A Reader'},'ordinary landscape quote')
+check_quote_geometry({text='The world is full of wonder if we are willing to see it.',author='A Reader'},'ordinary landscape quote','baked')
 check_quote_geometry({text=string.rep('Every little discovery matters. ',3)..'Keep looking.',author='A very thoughtful author and traveler'},'long quote and author')
 check_quote_geometry({text=string.rep('W',118),author=string.rep('M',42)},'worst-length words')
 for _,q in ipairs(built) do
-  check_quote_geometry(q,'built-in quote geometry: '..q.text)
+  check_quote_geometry(q,'built-in quote geometry: '..q.text,'baked')
+end
+
+do -- stroke fallback (no decoder): a space advances without drawing a '?' glyph
+  local n=0
+  Q.draw({polyline=function() n=n+1 end},{},{text='A A',author=''})
+  local m=0
+  Q.draw({polyline=function() m=m+1 end},{},{text='AA',author=''})
+  assert(n==m,'stroke fallback must not draw anything for spaces')
 end
 
 -- Main app: preserve enabled state; preview never changes the sleep deck.

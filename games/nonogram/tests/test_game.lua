@@ -1,4 +1,4 @@
--- Nonogram: 12 unique pixel pictures, undo, CHECK, saved stages, touch & layout.
+-- Nonogram: generated-only new sessions; archive tests protect historical saves.
 package.path='app/?.lua;../../tests/?.lua;'..package.path
 local measured=require('game_canvas').check
 _G.__TEST={}
@@ -22,9 +22,35 @@ local ctx={
 on_load(ctx)
 local s=A.state()
 eq(s.level,13);eq(s.unlocked,13)
+assert(not A.prev(),'PREV must not expose any historical prebuilt pictures')
+eq(s.level,13,'generated puzzle is still active')
 assert(A.shape(13).n>=7,'first fresh Nonogram must be generated')
+-- Row/column selection is grey shading only (user request): exactly one
+-- selected-cell frame and no full-axis outline rails.
+do
+  local n=A.shape(13).n
+  assert(A.paint(1,1))
+  eq(select(1,A.cursor()),1,'painting selects the active square')
+  local g=require('game_canvas').canvas()
+  local old=g.rect
+  local rectangles={}
+  function g:rect(x,y,w,h,o)
+    if not(o and o.fill) then rectangles[#rectangles+1]={x=x,y=y,w=w,h=h,lw=o and o.line_width} end
+    return old(self,x,y,w,h,o)
+  end
+  g:reset();on_draw(ctx,g);g:verify('Nonogram grey focus and clean grid')
+  local bx,by,cell=A.geometry()
+  local selection,rails=false,0
+  for _,q in ipairs(rectangles) do
+    if q.x==bx+1 and q.y==by+1 and q.w==cell-1 and q.h==cell-1 and q.lw==3 then selection=true end
+    if (q.w==n*cell and q.h==cell) or (q.w==cell and q.h==n*cell) then rails=rails+1 end
+  end
+  assert(selection,'the selected cell needs a single strong border')
+  eq(rails,0,'no full-axis outline rails')
+  assert(A.reset())
+end
 assert(A.visit(1));s.unlocked=1
-eq(#A.pictures,12)
+eq(#A.legacy_pictures,12)
 assert(store['nonogram.txt']:find('version=2',1,true))
 assert(not A.next(),'cannot skip unopened puzzle')
 assert(not A.correct(1,s.boards[1]))
@@ -154,7 +180,7 @@ for level=2,12 do
   if level<12 then assert(A.next()) end
 end
 assert(A.next(),'generated puzzles follow the authored pictures')
-eq(s.level,13);assert(A.prev())
+eq(s.level,13);assert(not A.prev(),'First generated puzzle must not navigate into authored boards')
 
 -- Revisit earlier stages; reset does not discard global unlocks.
 assert(A.visit(5))
@@ -222,7 +248,12 @@ for number=13,24 do
   local signature=table.concat(p.rows)
   measured(ctx,on_draw,'generated nonogram blank '..number)
   assert(A.paint(1,1));assert(A.paint(2,1))
-  assert(A.prev());on_leave();on_load(ctx);s=A.state();assert(A.next())
+  if number==13 then
+    assert(not A.prev(),'first generated puzzle does not expose picture 12')
+    on_leave();on_load(ctx);s=A.state()
+  else
+    assert(A.prev());on_leave();on_load(ctx);s=A.state();assert(A.next())
+  end
   eq(s.boards[number][1],1);eq(s.boards[number][2],1)
   assert(A.undo(),'generated undo survives navigation and relaunch')
   eq(s.boards[number][2],0)

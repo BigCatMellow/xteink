@@ -95,8 +95,8 @@ const canvas=document.getElementById('screen'),g=canvas.getContext('2d');
 let level=24,marks=[],history=[],mode='OPEN',failed=false,hinted=0,msg='',help=false;
 let currentSeed=0,currentDiff=2;const sessions=new Map();
 let board=null,neighbors=null,clues=null;
-const controls=[['Prev',8,710,85,66],['Mode',102,710,85,66],['Hint',196,710,85,66],['Undo',290,710,85,66],['Reset',384,710,88,66]];
-function geometry(){const n=board.n,cell=Math.floor(Math.min(460,468)/n);return{x:Math.floor((480-cell*n)/2),y:118+Math.floor((468-cell*n)/2),cell}}
+const controls=[['Prev',10,701,86,62],['Mode',102,701,86,62],['Hint',194,701,86,62],['Undo',286,701,86,62],['Reset',378,701,89,62]];
+function geometry(){const n=board.n,cell=Math.floor(440/n);return{x:Math.floor((480-cell*n)/2),y:152+Math.floor((440-cell*n)/2),cell}}
 function freshSeed(){return Math.floor(Math.random()*2147483646)+1}
 function saveSession(){if(board)sessions.set(level,{board,marks:marks.slice(),history:history.map(a=>a.slice()),mode,failed,hinted,msg,currentSeed,currentDiff})}
 function setSession(k){const p=sessions.get(k);if(!p)return;level=k;board=p.board;marks=p.marks.slice();history=p.history.map(a=>a.slice());mode=p.mode;failed=p.failed;hinted=p.hinted;msg=p.msg;currentSeed=p.currentSeed;currentDiff=p.currentDiff;refreshBoard()}
@@ -106,18 +106,26 @@ const p=generateRandom(seed,difficulty);
 if(!p){document.getElementById('details').textContent='Could not generate a verified no-guess board for that seed. Try another.';return false}
 if(next){saveSession();level++}
 board=p;currentSeed=seed;currentDiff=difficulty;
-marks=Array(p.n*p.n).fill(0);history=[];mode='OPEN';failed=false;hinted=0;help=false;msg='Open S first';refreshBoard();return true}
+marks=Array(p.n*p.n).fill(0);history=[];mode='OPEN';failed=false;hinted=0;help=false;msg='';refreshBoard();return true}
 function strokeRect(x,y,w,h,thick=2){g.lineWidth=thick;g.strokeStyle='#111';g.strokeRect(x+thick/2,y+thick/2,w-thick,h-thick)}
 function text(s,x,y,size=20,align='left',bold=false){g.fillStyle='#111';g.font=(bold?'700 ':'500 ')+size+'px Arial,sans-serif';g.textAlign=align;g.textBaseline='top';g.fillText(String(s),x,y)}
-function button(label,x,y,w,h,active=false){strokeRect(x,y,w,h,active?4:3);if(active)strokeRect(x+7,y+7,w-14,h-14,2);text(label,x+w/2,y+(h-24)/2,20,'center',true)}
+function button(label,x,y,w,h,active=false){
+g.fillStyle='#333';g.fillRect(x+4,y+h+2,w-4,2);g.fillRect(x+w+2,y+4,2,h-4);
+g.strokeStyle='#111';g.lineWidth=active?5:3;g.beginPath();
+if(g.roundRect)g.roundRect(x+2,y+2,w-4,h-4,12);
+else g.rect(x+2,y+2,w-4,h-4);
+g.stroke();text(label,x+w/2,y+(h-24)/2,20,'center',true)}
 function drawn(){const {x,y,cell}=geometry(),n=board.n;let revealed=0,flags=0;
 for(const v of marks){if(v===2)revealed++;if(v===1)flags++}
-text('QUIET MINES',24,17,28,'left',true);button('?',416,12,48,48);
-button('New',308,12,101,46);
-text('FIELD '+level+'   MINES '+board.mines.length,24,80,20);
-button(['','Easy','Normal','Hard'][currentDiff],348,76,116,40);
+text('Minesweeper',22,21,30,'left',true);
+button('New',305,18,94,49);button('?',408,18,54,49);
+g.fillStyle='#111';g.beginPath();g.arc(37,110,9,0,Math.PI*2);g.fill();
+for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if(dx||dy){
+g.lineWidth=2;g.beginPath();g.moveTo(37+dx*11,110+dy*11);g.lineTo(37+dx*15,110+dy*15);g.stroke()}
+text('Mines '+board.mines.length,57,96,24);
+strokeRect(243,97,26,26,3);text('Safe '+(n*n-board.mines.length),286,96,24);
 for(let i=0;i<n*n;i++){const px=x+i%n*cell,py=y+Math.floor(i/n)*cell,v=marks[i];
-if(v===0){strokeRect(px+4,py+4,cell-8,cell-8,2);if(i===0&&revealed===0)text('S',px+cell/2,py+(cell-20)/2,22,'center',true)}
+if(v===0){g.fillStyle='#333';g.fillRect(px+3,py+cell-4,cell-6,1);g.fillRect(px+cell-4,py+3,1,cell-6);if(i===0&&revealed===0)text('S',px+cell/2,py+(cell-20)/2,22,'center',true)}
 else if(v===1){g.lineWidth=3;g.beginPath();g.moveTo(px+cell*.31,py+cell*.18);g.lineTo(px+cell*.31,py+cell*.82);g.stroke();
 g.lineWidth=2;g.beginPath();g.moveTo(px+cell*.31,py+cell*.18);g.lineTo(px+cell*.74,py+cell*.31);g.lineTo(px+cell*.31,py+cell*.48);g.stroke()}
 else if(board.mines.includes(i+1)){text('*',px+cell/2,py+(cell-24)/2,25,'center',true)}
@@ -125,22 +133,29 @@ else if(clues[i])text(clues[i],px+cell/2,py+(cell-24)/2,24,'center',true);
 if(hinted===i+1&&!failed)strokeRect(px+6,py+6,cell-12,cell-12,3);
 if(failed&&v===0&&board.mines.includes(i+1)){g.lineWidth=3;g.beginPath();g.arc(px+cell/2,py+cell/2,10,0,Math.PI*2);g.stroke()}
 }
-const minor=2,major=4;
-for(let j=0;j<=n;j++){const w=(j===0||j===n)?5:j%5===0?major:minor;g.fillStyle='#111';g.fillRect(x+j*cell-Math.floor(w/2),y,w,cell*n);g.fillRect(x,y+j*cell-Math.floor(w/2),cell*n,w)}
-text('SAFE '+revealed+' / '+(n*n-board.mines.length),24,600,20);
-text('FLAGS '+flags+' / '+board.mines.length,260,600,20);
-text(msg||(failed?'Mine found':won()?'Field cleared':'Mode '+mode),240,650,19,'center');
+for(let j=0;j<=n;j++){const w=(j===0||j===n)?4:2;g.fillStyle='#111';const at=j===0?0:j===n?n*cell-w:j*cell-Math.floor(w/2);g.fillRect(x+at,y,w,cell*n);g.fillRect(x,y+at,cell*n,w)}
+text('Safe '+revealed+' / '+(n*n-board.mines.length),22,612,24);
+text('Mines '+flags+' / '+board.mines.length,247,612,24);
+const status=msg||(failed?'Mine found':won()?'Field cleared':mode==='FLAG'?'Flag mode: mark mines':'');if(status)text(status,240,660,20,'center');
 for(const [name,bx,by,w,h] of controls){const label=name==='Mode'?(mode==='FLAG'?'Open':'Flag'):name;button(label,bx,by,w,h,name==='Mode'&&mode==='FLAG'||name==='Hint'&&hinted>0)}
 }
-function draw(){g.clearRect(0,0,480,800);g.fillStyle='white';g.fillRect(0,0,480,800);if(help){text('QUIET MINES',24,20,28,'left',true);button('X',416,12,48,48);
-text('How to play',240,150,28,'center',true);
-const lines=['Open S first. It is always a safe zero.',
-'Numbers count neighboring mines, including diagonals.',
-'Flag suspicious mines, then switch back to Open.',
-'Hints use numbered clues and your current flags.',
-'Overlapping clues unlock advanced fields.',
-'An incorrect flag may make a deduction unreliable.'];
-lines.forEach((s,i)=>text(s,24,232+i*57,16));button('Back to field',75,706,330,69);return}drawn()}
+function draw(){
+g.clearRect(0,0,480,800);g.fillStyle='white';g.fillRect(0,0,480,800);
+if(!help){drawn();return}
+text('Minesweeper',22,21,30,'left',true);button('X',408,18,54,49);
+text('HOW TO PLAY',240,137,30,'center',true);
+const lines=[
+ 'Open safe square S first. Numbers show mines nearby.',
+ 'FLAG marks a mine. HINT identifies a certain move.',
+ 'UNDO restores the last mark.',
+ 'Every New field is randomly generated.',
+ 'RESET restarts only this field.'
+];
+lines.forEach((line,i)=>text(line,28,204+i*74,19));
+text('Field '+Math.max(1,level-24),240,583,20,'center');
+button('Difficulty: '+['','Easy','Normal','Hard'][currentDiff],77,606,326,56);
+button('Back to field',77,704,326,62);
+}
 function won(){return marks.filter(v=>v===2).length===board.n*board.n-board.mines.length}
 function save(){history.push(marks.slice());if(history.length>10)history.shift();hinted=0}
 function nearMine(i){return board.mines.includes(i+1)}
@@ -164,10 +179,13 @@ return{error:'No certain move; check flags'}}
 function hint(){if(failed||won())return;if(!marks.includes(2)){msg='Open S first';draw();return}const o=infer();if(o.error){hinted=0;msg=o.error;draw();return}
 hinted=o.index+1;msg='Hint: '+o.kind+' R'+(Math.floor(o.index/board.n)+1)+' C'+(o.index%board.n+1)+' ('+o.rule+')';draw()}
 function inRect(x,y,bx,by,w,h){return x>=bx&&x<bx+w&&y>=by&&y<by+h}
-function tap(x,y){if(inRect(x,y,416,12,48,48)){help=!help;draw();return}
-if(help){if(inRect(x,y,75,706,330,69)){help=false;draw()}return}
-if(inRect(x,y,308,12,101,46)){setup(freshSeed(),currentDiff,true);return}
-if(inRect(x,y,348,76,116,40)){currentDiff=currentDiff%3+1;select.value=String(currentDiff);msg=['','Easy','Normal','Hard'][currentDiff]+' for next New';draw();return}
+function tap(x,y){if(inRect(x,y,408,18,54,49)){help=!help;draw();return}
+if(help){
+ if(inRect(x,y,77,704,326,62)){help=false;draw();return}
+ if(inRect(x,y,77,606,326,56)){currentDiff=currentDiff%3+1;select.value=String(currentDiff);draw()}
+ return
+}
+if(inRect(x,y,305,18,94,49)){setup(freshSeed(),currentDiff,true);return}
 const actions=[()=>{if(sessions.has(level-1)){saveSession();setSession(level-1)}},()=>{mode=mode==='OPEN'?'FLAG':'OPEN';hinted=0;msg='Mode: '+mode;draw()},hint,()=>{if(history.length&&!failed&&!won()){marks=history.pop();hinted=0;msg='Last action restored';draw()}},()=>setup(currentSeed,board.difficulty,false)];
 for(let k=0;k<controls.length;k++){const c=controls[k];if(inRect(x,y,c[1],c[2],c[3],c[4])){actions[k]();return}}
 const {x:bx,y:by,cell}=geometry(),n=board.n;

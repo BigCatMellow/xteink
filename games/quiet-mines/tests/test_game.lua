@@ -12,9 +12,27 @@ local ctx={storage={read=function(_,k)return save[k]end,write=function(_,k,v)sav
  invalidate=function()redraws=redraws+1 end}
 on_load(ctx)
 local S=A.state()
-eq(S.level,25);eq(#A.levels,24);assert(not A.next())
+eq(S.level,25);eq(#A.legacy_levels,24);assert(not A.next())
+assert(not A.prev(),'PREV must not lead to fixed historical fields')
+eq(S.level,25,'first generated field remains selected')
 local firstGenerated=A.board(25)
 assert(firstGenerated.n==10 and firstGenerated.total==18)
+-- Closed squares are small raised keys (user request): a rounded outline
+-- inside each closed square with a 1px lower edge; opened squares stay flat.
+do
+  local x,y,cell=A.geometry()
+  local g=require('game_canvas').canvas()
+  local old=g.rect
+  local key,edge=false,false
+  function g:rect(px,py,w,h,opt)
+    if px==x+5 and py==y+5 and w==cell-9 and h==cell-9 and not (opt and opt.fill) then key=true end
+    if opt and opt.fill and px==x+7 and py==y+cell-4 and w==cell-13 and h==1 then edge=true end
+    return old(self,px,py,w,h,opt)
+  end
+  g:reset();on_draw(ctx,g);g:verify('Mines raised closed squares')
+  assert(key and edge,'closed squares are raised keys')
+  eq(cell,46,'10x10 field uses the full width');assert(x>=6 and x+10*cell<=474,'field inside the screen')
+end
 assert(not firstGenerated.mines[1]);eq(A.nearby(firstGenerated,1),0)
 local function signature(level)
   local b=A.board(level)
@@ -52,7 +70,7 @@ else assert(first.mines[candidate.index]) end
 local count=0
 for _,v in ipairs(S.marks[1]) do if v==2 then count=count+1 end end
 assert(count>1,'zero-cell start floods neighbors')
-local mine=A.levels[1].mines[1]
+local mine=A.legacy_levels[1].mines[1]
 assert(A.mode());eq(S.mode,'FLAG')
 assert(A.apply(mine));eq(S.marks[1][mine],1)
 on_leave();on_load(ctx);S=A.state()
@@ -96,7 +114,7 @@ end
 -- Level changes do not destroy an incomplete board or flags.
 assert(A.visit(4));A.restart()
 assert(A.apply(1))
-local mine=A.levels[4].mines[1]
+local mine=A.legacy_levels[4].mines[1]
 assert(A.mode());assert(A.apply(mine))
 assert(A.visit(5))
 on_leave();on_load(ctx);S=A.state()

@@ -207,7 +207,8 @@ end
 return G
 
 end
-factories["levels"]=function()
+factories["legacy_levels"]=function()
+-- Legacy save compatibility only. Never used for new Mines fields.
 -- Original no-guess seeded Minesweeper boards; start at cell 1 (safe zero).
 return {
  {title="FIELD 01",n=6,mines={3,4,15,21,24,27}},
@@ -237,11 +238,11 @@ return {
 }
 
 end
--- Quiet Mines: offline, deterministic, zero-animation Minesweeper for X4 Pro.
--- Each authored board has a deduction-only solution when opened from S.
+-- Quiet Mines: procedurally generated no-guess Minesweeper for X4 Pro.
+-- Legacy fields remain only for compatibility with saved games.
 local UI=require('ui')
 local Theme=require('theme')
-local LEVELS=require('levels')
+local LEVELS=require('legacy_levels')
 local Generator=require('generator')
 local Store=require('puzzle_store')
 local TOTAL=#LEVELS
@@ -463,7 +464,11 @@ local function visit(n)
   save();return true
 end
 local function next_level()return S and visit(S.level+1) or false end
-local function prev()return S and visit(S.level-1) or false end
+local function prev()
+  -- Generated games never lead back to the old fixed-field campaign.
+  if not S or S.level==TOTAL+1 then return false end
+  return visit(S.level-1)
+end
 local function new_game()
   if not S or S.unlocked>=MAX then return false end
   if not save() then return true end
@@ -790,7 +795,7 @@ local function on_input(ctx,e) if ctx then C=ctx end
 end
 local function on_leave() Theme.release();if S then save() end end
 if rawget(_G,'__TEST') then __TEST.api={
- levels=LEVELS,board=board,neighbors=neighbors,nearby=nearby,
+ legacy_levels=LEVELS,board=board,neighbors=neighbors,nearby=nearby,
  state=function()return S end,apply=apply,mode=mode,undo=undo,
  restart=restart,visit=visit,next=next_level,prev=prev,
  new=new_game,difficulty=cycle_difficulty,

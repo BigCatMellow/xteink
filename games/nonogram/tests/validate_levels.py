@@ -6,7 +6,7 @@ import re
 import subprocess
 from pathlib import Path
 
-SRC=(Path(__file__).resolve().parents[1]/'app'/'pictures.lua').read_text(encoding='utf-8')
+SRC=(Path(__file__).resolve().parents[1]/'app'/'legacy_pictures.lua').read_text(encoding='utf-8')
 puzzles=re.findall(r'\{name="([A-Z]+)",rows=\{([^{}]+)\}\}',SRC)
 assert len(puzzles)==12,f'Expected 12 puzzles, found {len(puzzles)}'
 

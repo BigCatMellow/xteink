@@ -1,3 +1,4 @@
+-- Legacy save compatibility only. Never used to generate or select new puzzles.
 -- Original monochrome pixel drawings. Names appear only after submission.
 return {
   {name="HEART",rows={".#.#.","#####","#####",".###.","..#.."}},

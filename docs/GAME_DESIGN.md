@@ -202,6 +202,10 @@ and does not receive this game-theme rollout.
 
 ## Change record — 2026-11-18 / user mockups for Sudoku, Minesweeper, Nonogram
 
+> Current. Merged over PRs #23/#24 ("Playschool portrait cleanup" and "Approved
+> portrait mockups" below, an earlier attempt at the same mockups): where they disagree,
+> this record and "board size and touches" win. #22's generated-only navigation is kept.
+
 The user supplied target images (`~/Desktop/XTEink/Games/*.png`) and asked for
 the three on-card games to look exactly like them. They were measured after
 cropping the screens to 480x800 and fitted with Inter: titles ~Bold 42,
@@ -550,7 +554,90 @@ human technique/difficulty scoring are possible follow-ons, but
 must be verified against clue gutter size and physical touch
 targets, not treated as silently completed in this change.
 
-### Change record — 2026-11-18 / board size and touches
+## Generated-only active campaigns — 2026-11-18
+
+Sudoku already generates every game from a fresh, saved seed. Nonogram v0.9.0 and Quiet Mines v0.5.0 remove the authored campaign from fresh gameplay and from the Nonogram browser preview. Their random/generated board history begins at internal IDs 13 and 25 to avoid collisions with installed saves, but the visible count begins at Puzzle/Field 1. PREV from the first generated puzzle must **not** reveal older authored boards. New and regenerated-puzzle UI must never load an archived original or use an unverified puzzle fallback.
+
+`legacy_pictures.lua` and `legacy_levels.lua` contain original fixed layouts **only** for compatibility with previously saved games. These are not choices for new players and are not authored levels in the active campaign. Removing the compatibility data entirely would corrupt installed saves, violating AGENTS.md. Historical tests verify this data's integrity separately from generated-puzzle gameplay and browser parity.
+
+The acceptance gate now asserts generated-first navigation, only generated preview seeds, original-save recovery, solver acceptance, installed font geometry and refreshed Games Hub source fingerprints. The code remains source-only until device installation and on-reader save/latency/touch review.
+
+## Playschool portrait cleanup — 2026-11-18
+
+The user's photographed physical X4 Pro shows the two main pain points:
+Quiet Mines' inset outline in **every** unopened tile looks busy, while
+Sudoku's full-row/full-column selection rails muddy the puzzle. The approved
+portrait concept uses a very large board, bold single-purpose controls, a
+clear selected cell, gentle background contrast and restrained relief; the
+requested aesthetic is simple and intuitive, **not** childish. On-device
+implementation is 480×800 and static grayscale is not assumed available.
+
+| Game | Play space and UI decision | State preserved |
+| --- | --- | --- |
+| Sudoku 0.5.1 | Board remains (6,100), 468×468, 52px cells. A staggered 2×2px 1-bit dot every 12px gives the selected row/column a quiet wash *behind* grid and glyphs; remove rails and 3×3 corner brackets. One 4px selected cell border remains. 60px keys and Notes/Undo/Erase unchanged. | Fixed/generated numbers, notes, match underlines, check and menus |
+| Quiet Mines 0.5.1 | Normal 10×10 uses 460px board with 46px cells (8×8 and 12×12 recomputed from the same 118–586 band). Remove individual inset boxes and false five-cell boundaries. One 2px shared interior rule, 4px frame, and two 1px right/bottom bevels on unopened cells distinguish tile state. | Safe opening, mines, flags, clue/hint deductions, history, difficulty and save archive |
+| Nonogram 0.9.1 | Keep the measured clue + square-board centered; 10×10 cap grows to 37px if fit permits, 2px minor grid / 3px fifth separators / 4px frame. Replace thick crosshair rails with the same sparse focus wash and one selected-cell border; remove decorative header symbol. | Generated puzzle seed/solution, clues, checked rows, X/fill, hint, history and legacy restores |
+
+All three: primary controls gain a *single* outlined rounded body with a
+restrained **1px bottom and right shadow offset**. The active Flag/X/Notes
+states have a thicker border **instead of** a distracting secondary inset.
+This avoids gradients and full gray fills that have unreliable firmware
+behavior. No color is essential to identifying state; saved records and touch
+hitboxes do not change.
+
+Visual review covers empty/first, selected, in-progress, dense/large, solved,
+help and enlarged-glyph frames in CI, including additional assertions on
+absence of old guide rails and inset Mines cells. Command use is deliberately
+bounded (Sudoku selection approximately 300 extra 2px stipple dots; Mines
+maximum 288 1px bevel strokes for a 12×12 field); physical ghosting and actual
+refresh latency must still be checked on the X4 Pro. The small additional
+padding around control silhouettes is purely painted, not tappable.
+
+
+## Approved portrait mockups, direct code implementation — 2026-11-18
+
+**Authority:** the three portrait 480×800 device mockups the user approved
+(November 18, after rejecting the earlier preview layout). This supersedes
+the preceding light-touch "playschool portrait cleanup" where the actual
+screen hierarchy differs. "One for one" means match the *screen layout
+geometry and visual hierarchy* at device resolution, not that a 1-bit XTOS
+canvas can reproduce the photographic case, grayscale bevels, anti-aliasing,
+or paper texture from an AI-rendered image.
+
+### Native 480×800 coordinate specification
+
+| Part | Sudoku v0.6.0 | Minesweeper v0.6.0 | Nonogram v1.0.0 |
+| --- | --- | --- | --- |
+| Header | Sudoku at (22,22); New/Check/? at y18; Puzzle 1/Medium at y78 | Minesweeper (22,21); New/? at y18; mine/safe totals at y96 | Nonogram (22,21); New/? at y18; no second header/tool row |
+| Board | 9×9, **441×441** at **(19,126)**; **49px** cells; 5px 3×3 boundaries | n×n, **440px** maximum at **(20,152)** for 10×10; 44px cells; 8×8/12×12 centered in same region | Row and column clues + n×n square board centered within the **488px** region starting y102; cell cap 37px at 10×10 where all clues fit |
+| Selection or state | Light 1-bit stipple on selected row + column; **one bold active square** | Connected 2px grid, no double-box tiles; unobtrusive one-pixel cell relief; all random fields retained | 2px grid, subtle staggered stipple selection, one outlined square; row/column numbers have priority over size |
+| Progress/status | "Left n / Clashes m", y583 | "Safe n / target" and "Mines flags / total" at y612 | "Rows n / size" and "Cols n / size" at y608; mode text at y658 |
+| Primary controls | Notes/Undo/Erase + 3×3 numeric keys, y620/680/740, height53 | Prev/Flag/Hint/Undo/Reset across y701, height62 | Prev/Undo/Reset/Check across y704, height62 |
+
+The mockup intentionally **omits permanent administrative chrome**. In this
+native implementation Minesweeper difficulty is changed in the **? / Help**
+screen; Nonogram's **Fill/X** and **Hint** actions live in Help (with a
+tap on the footer mode text as a shortcut). This preserves all functionality
+while matching the approved idle frame. The **New** action always creates a
+procedurally generated board in all three games. Save IDs, legacy pictures,
+mine layouts, hint logic, no-guess guarantees and undo are unchanged.
+
+Button borders remain rounded, with measured Poppins/Inter bitmap text.
+The subtle photographic shadow is approximated by two small offset 1-bit
+rectangles (2px bottom/right) rather than a gray alpha shadow; fine one-pixel halftone
+approximates the reference's gray selection wash. Do not replace these
+with image backgrounds: display geometry, labels and hitboxes must remain
+live and responsive to screen state. The device is *actually* 480×800; do
+not implement the bezel photograph or photographic optical distortion.
+
+**Verification:** host layout tests assert board size, hit geometry,
+selected-cell structure, message bounds, flags and restored histories;
+full Games Hub bundling and installer builds still required. The host
+raster cannot prove anti-aliasing, ghosting, gray levels or refresh speed on
+the physical X4 Pro. A device-photo side-by-side at 480×800 is the final
+acceptance evidence for "identical" appearance.
+
+## Change record — 2026-11-18 / board size and touches
 
 User: "negative space is the enemy" — maximize board size without losing function.
 Boards now take the full width: Sudoku 468px (52px cells, 6px margins), Minesweeper

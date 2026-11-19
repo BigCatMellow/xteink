@@ -287,7 +287,8 @@ end
 return G
 
 end
-factories["pictures"]=function()
+factories["legacy_pictures"]=function()
+-- Legacy save compatibility only. Never used to generate or select new puzzles.
 -- Original monochrome pixel drawings. Names appear only after submission.
 return {
   {name="HEART",rows={".#.#.","#####","#####",".###.","..#.."}},
@@ -305,10 +306,11 @@ return {
 }
 
 end
--- Nonogram: original picture-logic puzzles for XTEINK X4 Pro.
+-- Nonogram: generated clue-logic puzzles for XTEINK X4 Pro.
+-- Historical pictures are kept only for already-saved games.
 -- Tap cells to cycle blank -> ink -> X. Static monochrome refresh only.
 local UI=require('ui')
-local Pictures=require('pictures')
+local Pictures=require('legacy_pictures')
 local Generator=require('generator')
 local Store=require('puzzle_store')
 local Typefaces=require('typefaces')
@@ -580,7 +582,11 @@ local function visit(level)
   save()
   return true
 end
-local function prev() return S and visit(S.level-1) or false end
+local function prev()
+  if not S or S.level==TOTAL+1 then return false end
+  -- Never walk from the first generated puzzle into old prebuilt content.
+  return visit(S.level-1)
+end
 local function next_level() return S and visit(S.level+1) or false end
 local function new_puzzle()
   if not S or S.unlocked>=MAX then return false end
@@ -720,7 +726,8 @@ local function help_screen(g)
     'Use the Fill and X switch under the board. X marks squares you know are empty.', 'body')
   UI.paragraph(g,D or C,24,406,432,116,
     'Hint uses the clues to find a certain move, without seeing the picture. Undo and Reset keep your progress.', 'body')
-  text(g,240,540,'Puzzle '..S.level..'  -  '..current().n..' x '..current().n,'small','center',432)
+  text(g,240,540,(S.level<=TOTAL and 'Saved '..S.level or 'Puzzle '..(S.level-TOTAL))
+    ..'  -  '..current().n..' x '..current().n,'small','center',432)
   if not S.submitted[S.level] then button(g,'hint','Show a hint') end
   button(g,'back','Back to puzzle')
 end
@@ -920,7 +927,7 @@ local function on_leave()
 end
 if rawget(_G,'__TEST') then
   __TEST.api={
-    pictures=Pictures,state=function() return S end,
+    legacy_pictures=Pictures,state=function() return S end,
     shape=shape,runs=runs,correct=picture_correct,paint=paint,
     mark=mark_cell,hint=hint,mode=toggle_mode,
     cursor=function() return SELECTED,HINTED end,

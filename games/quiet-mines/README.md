@@ -1,4 +1,4 @@
-# Quiet Mines — original no-guess Minesweeper on XTEINK X4 Pro
+# Quiet Mines — randomly generated no-guess Minesweeper on XTEINK X4 Pro
 
 Updates are applied directly from the computer while the SD card is mounted;
 see the [family release procedure](../../docs/GAME_UPDATES.md). All active games
@@ -12,7 +12,11 @@ The current release is also available inside Games Hub, with no separate
 installation needed when using the updated hub.
 
 
-A completely static, offline Minesweeper implementation for the X4 Pro. Twelve independently authored mine layouts, with four 6×6 fields (6 mines), four 7×7 fields (8 mines), and four 8×8 fields (10 mines).
+A static, offline Minesweeper implementation for the X4 Pro. **All new fields are generated from a randomized seed** and independently checked for a no-guess solution before being offered.
+
+## Current gameplay (v0.5.0): no prebuilt levels
+
+Fresh play opens with generated Field 1 (internal archive ID 25), with Easy 8×8, Normal 10×10, and Hard 12×12 available. **New** creates another verified board, and **Prev** from Field 1 cannot enter the old fixed campaign. Historical fields are stored only in `app/legacy_levels.lua` to keep previously installed saves readable, including their marks and history. They are not offered to new players. The older sections below describe those pre-v0.5.0 releases and legacy save support.
 
 ## Rules
 
@@ -104,3 +108,21 @@ Random selection guarantees different seeds, not mathematically perfect
 uniqueness across an unlimited number of boards. No-guess solvability is
 verified, but human challenge, real-device generation latency, save quota,
 12×12 finger targets and e-ink ghosting still require physical checks.
+
+## v0.5.1 — clean portrait field
+
+All generated 8×8/10×10/12×12 layouts keep their exact mine positions and
+solver guarantees. The grid is now one continuous shared 2px grid with a 4px
+frame, not separate inset rectangles in each unopened tile. The latter are
+identified by a minimal right/bottom one-pixel bevel, so opened blank cells
+remain distinguishable. The meaningless 5×5 boundary emphasis was removed.
+
+Large bottom controls have restrained one-pixel shadows and one emphasized
+outline for Flag mode/Hints, not a second decorative box. The browser
+preview mirrors these changes. No hitbox, hint, undo, or save format changed.
+
+## v0.6.0 — approved Minesweeper screen reproduced in native code
+
+The idle screen follows the approved 480×800 portrait reference: Minesweeper title; New/? only in the top controls; mine and safe totals; centered clean 440px grid starting at y152 (for 10×10); simple Safe/Mines progress beneath; five large Prev/Flag/Hint/Undo/Reset buttons at y701. The full grid is drawn from the generated mine layout and current save. The three difficulties remain accessible through Help to avoid cluttering the main play frame. App ID `quietmines` and all saves are unchanged even though the visible display name is now Minesweeper.
+
+The browser preview uses the same geometry and includes seed playback. One-bit offset strokes approximate the approved soft shadows. Photo-real gray shading is not a native e-ink capability; only on-reader comparison can confirm perceived fidelity.

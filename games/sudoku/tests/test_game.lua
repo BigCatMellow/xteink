@@ -68,7 +68,10 @@ measured(ctx,on_draw,'sudoku conflicting entry')
 s=reload();eq(s.board[first],clash)
 -- NEW is deliberate and retains the unfinished board and its undo.
 local oldHistory=#s.history
+local oldSeed=s.seed
+assert(type(oldSeed)=='number','first Sudoku was generated from a seed')
 assert(A.new(1));s=A.state();eq(s.level,2);eq(s.difficulty,1)
+assert(s.seed~=oldSeed,'New Sudoku must use a new generated seed')
 assert(A.visit(1));s=A.state();eq(s.board[first],clash);eq(#s.history,oldHistory)
 assert(A.undo());s=reload();eq(s.level,1)
 assert(A.visit(2));s=A.state();eq(s.level,2)

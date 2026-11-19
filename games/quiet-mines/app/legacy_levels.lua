@@ -1,3 +1,4 @@
+-- Legacy save compatibility only. Never used for new Mines fields.
 -- Original no-guess seeded Minesweeper boards; start at cell 1 (safe zero).
 return {
  {title="FIELD 01",n=6,mines={3,4,15,21,24,27}},

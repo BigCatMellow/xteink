@@ -14,8 +14,8 @@ def main():
         'notes': select+"local b=A.controls.notes;A.tap(b[1]+10,b[2]+10);A.put(1);A.put(2);A.put(3)",
         'entry': select+'A.put(p.solution[first])',
         'clash': select+"for _,i in ipairs(require('generator').peers[first]) do if p.given[i]>0 then A.put(p.given[i]);break end end;A.check()",
-        'menu': 'local b=A.controls.new;A.tap(b[1]+10,b[2]+10)',
-        'help': 'local b=A.controls.help;A.tap(b[1]+10,b[2]+10)',
+        'menu': 'local b=A.controls.menu;A.tap(b[1]+10,b[2]+10)',
+        'help': 'local b=A.controls.menu;A.tap(b[1]+10,b[2]+10);A.tap(350,630)',
         'solved': 'local p=A.puzzle();for i=1,81 do if p.given[i]==0 then A.select((i-1)%9+1,math.floor((i-1)/9)+1);A.put(p.solution[i]) end end;A.check()',
         'largest': 'A.state().level=999999999;A.state().unlocked=999999999',
     }
@@ -28,14 +28,14 @@ def main():
     # The real raster output must have four solid pixels across each box bar.
     # Adjacent cell lines are only one pixel wide; typography is tested separately.
     plain=shots['normal']
-    for offset in (162,318):
-        for delta in range(-2,2):
-            assert all(plain.getpixel((offset+delta,y))==0 for y in range(108,576))
-    for offset in (264,420):
-        for delta in range(-2,2):
-            assert all(plain.getpixel((x,offset+delta))==0 for x in range(6,474))
-    assert plain.getpixel((159,150))==255 and plain.getpixel((164,150))==255, 'box boundary must be exactly 4px, not a fat cell outline'
-    assert plain.getpixel((57,150))==255 and plain.getpixel((58,150))==0 and plain.getpixel((59,150))==255, 'fine grid must be exactly 1px'
+    for offset in (159,318):
+        for delta in range(3):
+            assert all(plain.getpixel((offset+delta,y))==0 for y in range(1,478))
+    for offset in (159,318):
+        for delta in range(3):
+            assert all(plain.getpixel((x,offset+delta))==0 for x in range(1,478))
+    assert plain.getpixel((54,100))==0, 'fine grid must remain 1px'
+    assert plain.getpixel((53,100))==255 and plain.getpixel((55,100))==255, 'fine grid should not have extra strokes'
     font=ImageFont.truetype(FONT,20)
     sheet=Image.new('RGB',(4*504,2*852),'#e9e9e9')
     for i,(name,shot) in enumerate(shots.items()):

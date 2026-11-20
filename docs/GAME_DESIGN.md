@@ -653,3 +653,22 @@ hinted square is grey instead of outlined; Nonogram's satisfied clues are grey.
 `UI.shade_rect` tiles non-square areas with the 34-84px shade tiles, keeping the dot
 phase. Font data is 82 KB (shade tiles 34-84); device check still needed.
 
+
+## Sudoku HTML port — 2026-11-20
+
+The attached HTML prototype puts the 9×9 board flush to the top of a
+480×800 canvas, followed by a calculator-order numeric pad and four stacked
+tools. The native 0.7.0 layout follows that hierarchy with a 477px integer
+board (53px cells, 1px margin) so all grid lines stay crisp in one-bit ink.
+A 24px feedback band is reserved for critical save/error status; keypad
+buttons are 108×90px, and tool targets 106×66px. The full-screen menu retains
+legacy operations and adds reveal/mistake-assist parity. It does not attempt
+to render the HTML/CSS or reproduce web-only anti-aliased shadows and colors.
+The source of truth is `games/sudoku/app/index.lua` and its measured UI tests.
+Physical appearance, touch accuracy and persistence are still to be checked.
+
+**Games Hub exception:** The Hub's reserved top-left return button must
+remain usable and unobstructed. Embedded Sudoku uses a 441px square board at
+(19,66); standalone Sudoku uses the 477px board at (1,1). The same hitbox
+geometry is used for drawing and taps in each host mode. The Hub provides an
+explicit internal host flag; no firmware API detection is assumed.

@@ -11,13 +11,15 @@ local C,S,P,ERR,MSG=nil,nil,nil,nil,nil
 local HELP,MENU=false,false
 local CHOICE=2
 local KEY_MS=-1000
--- One geometry contract for drawing and taps. Values are device pixels.
--- Full-width board (6px margins); header and keypad packed around it.
-local BOARD={x=6,y=102,cell=52,size=468}
-local CONTROLS={new={226,20,88,46},check={322,20,96,46},help={426,20,48,46},
-  notes={6,612,146,56},undo={6,674,146,56},erase={6,736,146,56}}
+-- The uploaded HTML reference has a square, top-flush board, 3x3 calculator
+-- keypad and four tools to its right. Integer geometry keeps 1-bit lines crisp.
+-- A 24px feedback strip is reserved for storage errors and other status.
+local BOARD={x=1,y=1,cell=53,size=477}
+local CONTROLS={notes={366,510,106,66},erase={366,582,106,66},
+  undo={366,654,106,66},menu={366,726,106,66},
+  help={246,607,210,46}}
 local function digit_box(n)
-  return 160+(n-1)%3*107,612+math.floor((n-1)/3)*62,100,56
+  return 8+(n-1)%3*118,510+math.floor((9-n)/3)*96,108,90
 end
 local function copy(a) local b={};for i,v in ipairs(a) do b[i]=v end;return b end
 local function zeros() local a={};for i=1,81 do a[i]=0 end;return a end
@@ -115,6 +117,7 @@ local function save()
     'autoClean='..(S.autoClean and '1' or '0'),
     'highlight='..(S.highlight and '1' or '0'),
     'showConflicts='..(S.showConflicts and '1' or '0'),
+    'showMistakes='..(S.showMistakes and '1' or '0'),
     'locked='..(S.locked or 0),
     'multiMode='..(S.multiMode and '1' or '0'),
     'multi='..selection_code(S.multi)},'\n')
@@ -126,14 +129,14 @@ local function save()
   return ok
 end
 local function fresh(level,unlocked,difficulty)
-  local prefs=S and {S.autoClean,S.highlight,S.showConflicts} or {true,true,true}
+  local prefs=S and {S.autoClean,S.highlight,S.showConflicts,S.showMistakes} or {true,true,true,false}
   local seed=new_seed(level)
   P=Generator.generate(seed,difficulty,2)
   S={level=level,unlocked=unlocked,difficulty=difficulty,generation=2,seed=seed,
     board=copy(P.given),notes=zeros(),
     history={},selected=0,noteMode=false,submitted=false,
     autoClean=prefs[1],highlight=prefs[2],showConflicts=prefs[3],
-    locked=0,multiMode=false,multi={}}
+    showMistakes=prefs[4],locked=0,multiMode=false,multi={}}
 end
 local function load_level(level,unlocked)
   local f=fields(Store.get(C.storage,'sudoku',level))
@@ -161,7 +164,8 @@ local function load_level(level,unlocked)
     board=board,notes=notes,history=history,selected=selected,
     noteMode=f.noteMode=='1',submitted=f.submitted=='1',
     autoClean=flag(f.autoClean,true),highlight=flag(f.highlight,true),
-    showConflicts=flag(f.showConflicts,true),locked=locked,
+    showConflicts=flag(f.showConflicts,true),showMistakes=flag(f.showMistakes,false),
+    locked=locked,
     multiMode=flag(f.multiMode,false),multi=multi}
   return true
 end
@@ -221,9 +225,12 @@ local function put(n)
     end
   else
     local i=S.selected
-    if i==0 or P.given[i]>0 or S.board[i]==n then return false end
-    remember();S.board[i]=n;S.notes[i]=0
-    if S.autoClean then
+    if i==0 or P.given[i]>0 then return false end
+    remember()
+    -- Like the HTML keypad, tapping the current value again clears it.
+    if S.board[i]==n then S.board[i]=0 else S.board[i]=n end
+    S.notes[i]=0
+    if S.autoClean and S.board[i]==n then
       for _,j in ipairs(Generator.peers[i]) do
         if has(S.notes[j],n) then S.notes[j]=S.notes[j]-2^(n-1) end
       end
@@ -241,6 +248,21 @@ local function erase()
   remember()
   for _,i in ipairs(touched) do S.board[i]=0;S.notes[i]=0 end
   MSG=nil;S.bad=nil;save();return true
+end
+-- HTML parity: reveal one selected editable cell without discarding puzzle history.
+local function reveal()
+  if not S or S.submitted then return false end
+  local i=S.selected
+  if i==0 or P.given[i]>0 then MENU=false;MSG='Select an empty or editable cell';return true end
+  remember()
+  local n=P.solution[i]
+  S.board[i]=n;S.notes[i]=0
+  if S.autoClean then
+    for _,j in ipairs(Generator.peers[i]) do
+      if has(S.notes[j],n) then S.notes[j]=S.notes[j]-2^(n-1) end
+    end
+  end
+  MENU=false;MSG='Selected value revealed';S.bad=nil;save();return true
 end
 local function clear_notes()
   if not S or S.submitted or note_total(S.notes)==0 then return false end
@@ -363,37 +385,33 @@ local function draw_help(g)
   button(g,76,710,328,62,'BACK TO GAME')
 end
 local function draw_menu(g)
-  text(g,240,114,'New puzzle','large','center',420)
-  text(g,240,157,'Difficulty','small','center',430)
+  text(g,24,20,'Menu','title',nil,300)
+  text(g,20,80,'New game','small')
   for j,difficulty in ipairs(ORDER) do
     local x,y
-    if j<=3 then x=12+(j-1)*155;y=193
-    else x=90+(j-4)*155;y=255 end
-    button(g,x,y,146,54,NAMES[difficulty],CHOICE==difficulty,{font='small'})
+    if j<=3 then x=12+(j-1)*155;y=110
+    else x=90+(j-4)*155;y=169 end
+    button(g,x,y,146,50,NAMES[difficulty],CHOICE==difficulty,{font='small'})
   end
-  button(g,76,323,328,62,'START NEW')
-  button(g,24,407,210,48,'AUTO CLEAN '..(S.autoClean and 'ON' or 'OFF'))
-  button(g,246,407,210,48,'HIGHLIGHT '..(S.highlight and 'ON' or 'OFF'))
-  button(g,24,463,210,48,'CONFLICTS '..(S.showConflicts and 'ON' or 'OFF'))
-  button(g,246,463,210,48,'MULTI '..(S.multiMode and 'ON' or 'OFF'))
-  button(g,24,519,210,48,'CLEAR NOTES')
-  button(g,246,519,210,48,'RESET PUZZLE')
-  button(g,24,590,210,54,'PREV PUZZLE')
-  button(g,246,590,210,54,'NEXT PUZZLE')
-  text(g,240,656,'Current puzzle stays saved','small','center',428)
-  button(g,76,710,328,62,'BACK TO GAME')
+  button(g,76,236,328,55,'Start new')
+  text(g,20,307,'This puzzle','small')
+  button(g,12,337,222,48,'Check')
+  button(g,246,337,222,48,'Reveal cell')
+  button(g,12,394,222,48,'Clear notes')
+  button(g,246,394,222,48,'Restart')
+  text(g,20,465,'Assists and navigation','small')
+  button(g,12,494,222,46,'Auto clean '..(S.autoClean and 'on' or 'off'))
+  button(g,246,494,222,46,'Highlight '..(S.highlight and 'on' or 'off'))
+  button(g,12,550,222,46,'Conflicts '..(S.showConflicts and 'on' or 'off'))
+  button(g,246,550,222,46,'Mistakes '..(S.showMistakes and 'on' or 'off'))
+  button(g,12,607,222,46,'Multi '..(S.multiMode and 'on' or 'off'))
+  button(g,246,607,222,46,'Help')
+  button(g,12,665,222,46,'Previous')
+  button(g,246,665,222,46,'Next')
+  button(g,76,724,328,60,'Resume')
 end
 local function draw(g)
   g:clear(0)
-  text(g,6,22,'Sudoku','title',nil,210)
-  if not HELP and not MENU then
-    control(g,'new','New');control(g,'check',S.submitted and 'Done' or 'Check')
-  end
-  control(g,'help',(HELP or MENU) and 'X' or '?')
-  text(g,8,72,'Puzzle '..S.level,'medium',nil,260)
-  local difficulty=NAMES[S.difficulty]:sub(1,1)..NAMES[S.difficulty]:sub(2):lower()
-  local dw=UI.width(C,difficulty,'medium')
-  text(g,472-math.min(dw,150),72,difficulty,'medium',nil,150)
   if HELP then draw_help(g);return end
   if MENU then draw_menu(g);return end
   local bx,by,cell,size=BOARD.x,BOARD.y,BOARD.cell,BOARD.size
@@ -412,7 +430,9 @@ local function draw(g)
     elseif S.notes[i]>0 then show_notes(g,x,y,S.notes[i]) end
     if S.board[i]==0 then remaining=remaining+1 end
     if conflicts(i) then clashes=clashes+1 end
-    if S.showConflicts and (conflicts(i) or S.bad and S.bad[i]) then
+    if (S.showConflicts and conflicts(i)) or (S.bad and S.bad[i])
+        or (S.showMistakes and P.given[i]==0 and S.board[i]>0
+            and S.board[i]~=P.solution[i]) then
       g:line(x+cell-13,y+7,x+cell-7,y+13,{line_width=3})
       g:line(x+cell-7,y+7,x+cell-13,y+13,{line_width=3})
     end
@@ -423,67 +443,83 @@ local function draw(g)
   end
   UI.grid(g,bx,by,9,9,cell,{every=3,minor=1,major=3,frame=3})
   local status=MSG
-  if not status and S.selected>0 and S.notes[S.selected]>0 then
-    local values={}
-    for n=1,9 do if has(S.notes[S.selected],n) then values[#values+1]=n end end
-    status='Notes: '..table.concat(values,' ')
-  end
   if not status and S.noteMode and S.locked>0 then
     status='NOTE '..S.locked..'  '..note_total(S.notes)..'/'..NOTE_CAP[S.difficulty]
   end
-  text(g,240,578,status or (S.submitted and 'Solved' or
-    'Left '..remaining..(S.showConflicts and ' / Clashes '..clashes or '')),'body','center',448)
-  control(g,'notes','Notes',S.noteMode,'body')
-  control(g,'undo','Undo',false,'body');control(g,'erase','Erase',false,'body')
-  local placed={0,0,0,0,0,0,0,0,0}
-  for i=1,81 do if S.board[i]>0 then placed[S.board[i]]=placed[S.board[i]]+1 end end
-  for n=1,9 do
-    local marked=S.noteMode and (S.locked==n or S.selected>0 and has(S.notes[S.selected],n))
-    local x,y,w,h=digit_box(n)
-    -- A finished digit is drawn light; others show how many are still to place.
-    local left=math.max(0,9-placed[n])
-    button(g,x,y,w,h,tostring(n),marked,{font=left==0 and 'digit_light' or 'digit'})
-    if left>0 then
-      local label=tostring(left)
-      text(g,x+w-8-UI.width(C,label,'small'),y+6,label,'small',nil,24)
+  -- Keep the first 477 pixels dedicated to the puzzle, as in the HTML file.
+  -- This line also makes failed writes visible without needing a pop-up.
+  if status then text(g,240,483,status,'small','center',462) end
+  if S.submitted then
+    text(g,240,532,'Solved','large','center',440)
+    for j,difficulty in ipairs(ORDER) do
+      local x,y
+      if j<=3 then x=12+(j-1)*155;y=598
+      else x=90+(j-4)*155;y=664 end
+      button(g,x,y,146,54,NAMES[difficulty],false,{font='small'})
     end
+    button(g,76,738,328,50,'Menu')
+    return
+  end
+  control(g,'notes','Notes',S.noteMode,'small')
+  control(g,'erase','Erase',false,'small')
+  control(g,'undo','Undo',false,'small')
+  control(g,'menu','Menu',false,'small')
+  for n=1,9 do
+    local x,y,w,h=digit_box(n)
+    local marked=S.noteMode and (S.locked==n or S.selected>0 and has(S.notes[S.selected],n))
+    button(g,x,y,w,h,tostring(n),marked,{font='digit'})
   end
 end
 local function hit(x,y,bx,by,w,h) return x>=bx and x<bx+w and y>=by and y<by+h end
 local function tap(x,y,additive)
-  local function at(key) local b=CONTROLS[key];return hit(x,y,b[1],b[2],b[3],b[4]) end
-  if at('help') then
-    if HELP or MENU then HELP=false;MENU=false else HELP=true end
-    return true
+  local function at(key)
+    local b=CONTROLS[key]
+    return b and hit(x,y,b[1],b[2],b[3],b[4])
   end
-  if HELP then if hit(x,y,76,710,328,62) then HELP=false;return true end;return false end
+  if HELP then
+    if hit(x,y,76,710,328,62) then HELP=false;MENU=true;return true end
+    return false
+  end
   if MENU then
     for j,d in ipairs(ORDER) do
       local bx,by
-      if j<=3 then bx=12+(j-1)*155;by=193
-      else bx=90+(j-4)*155;by=255 end
-      if hit(x,y,bx,by,146,54) then CHOICE=d;return true end
+      if j<=3 then bx=12+(j-1)*155;by=110
+      else bx=90+(j-4)*155;by=169 end
+      if hit(x,y,bx,by,146,50) then CHOICE=d;return true end
     end
-    if hit(x,y,76,323,328,62) then return new_puzzle(CHOICE) end
-    if hit(x,y,24,407,210,48) then S.autoClean=not S.autoClean;save();return true end
-    if hit(x,y,246,407,210,48) then S.highlight=not S.highlight;save();return true end
-    if hit(x,y,24,463,210,48) then S.showConflicts=not S.showConflicts;save();return true end
-    if hit(x,y,246,463,210,48) then
+    if hit(x,y,76,236,328,55) then return new_puzzle(CHOICE) end
+    if hit(x,y,12,337,222,48) then MENU=false;return check() end
+    if hit(x,y,246,337,222,48) then return reveal() end
+    if hit(x,y,12,394,222,48) then local r=clear_notes();MENU=false;return r or true end
+    if hit(x,y,246,394,222,48) then return reset() end
+    if hit(x,y,12,494,222,46) then S.autoClean=not S.autoClean;save();return true end
+    if hit(x,y,246,494,222,46) then S.highlight=not S.highlight;save();return true end
+    if hit(x,y,12,550,222,46) then S.showConflicts=not S.showConflicts;save();return true end
+    if hit(x,y,246,550,222,46) then S.showMistakes=not S.showMistakes;save();return true end
+    if hit(x,y,12,607,222,46) then
       S.multiMode=not S.multiMode
       S.locked=0;S.multi={}
       if S.multiMode then S.selected=0
       elseif S.selected>0 then S.multi[S.selected]=true end
       save();return true
     end
-    if hit(x,y,24,519,210,48) then local r=clear_notes();MENU=false;return r or true end
-    if hit(x,y,246,519,210,48) then return reset() end
-    if hit(x,y,24,590,210,54) then return visit(S.level-1) end
-    if hit(x,y,246,590,210,54) then return visit(S.level+1) end
-    if hit(x,y,76,710,328,62) then MENU=false;return true end
+    if at('help') then HELP=true;MENU=false;return true end
+    if hit(x,y,12,665,222,46) then return visit(S.level-1) end
+    if hit(x,y,246,665,222,46) then return visit(S.level+1) end
+    if hit(x,y,76,724,328,60) then MENU=false;return true end
     return false
   end
-  if at('new') then MENU=true;CHOICE=S.difficulty;return true end
-  if at('check') then return check() end
+  if S.submitted then
+    for j,d in ipairs(ORDER) do
+      local bx,by
+      if j<=3 then bx=12+(j-1)*155;by=598
+      else bx=90+(j-4)*155;by=664 end
+      if hit(x,y,bx,by,146,54) then return new_puzzle(d) end
+    end
+    if hit(x,y,76,738,328,50) then MENU=true;CHOICE=S.difficulty;return true end
+    return false
+  end
+  if at('menu') then MENU=true;CHOICE=S.difficulty;return true end
   if at('notes') then
     S.noteMode=not S.noteMode;S.locked=0;MSG=nil;save();return true
   end
@@ -551,7 +587,7 @@ end
 function on_leave() Theme.release(); if S then save() end end
 if rawget(_G,'__TEST') then
   __TEST.api={state=function() return S end,puzzle=function() return P end,
-    select=select_cell,put=put,erase=erase,undo=undo,reset=reset,check=check,
+    select=select_cell,put=put,erase=erase,undo=undo,reset=reset,check=check,reveal=reveal,
     geometry=BOARD,controls=CONTROLS,digit_box=digit_box,
     new=new_puzzle,visit=visit,tap=tap,conflicts=conflicts,
     clear_notes=clear_notes,note_total=function() return note_total(S.notes) end,

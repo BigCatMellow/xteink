@@ -87,7 +87,7 @@ for difficulty=1,3 do
   fill();assert(A.solved());assert(not s.submitted)
   s=reload();assert(A.solved());assert(not s.submitted)
   measured(ctx,on_draw,'sudoku correct unsubmitted '..difficulty)
-  assert(tap_control('check'));assert(s.submitted)
+  assert(A.check());assert(s.submitted)
   assert(not A.put(1));assert(not A.erase());assert(not A.undo())
   measured(ctx,on_draw,'sudoku solved '..difficulty)
   s=reload();assert(s.submitted)
@@ -97,10 +97,10 @@ assert(A.visit(1));s=A.state();A.reset();eq(s.unlocked,unlocked)
 eq(s.board[first],0);eq(s.notes[first],0);eq(#s.history,0)
 assert(A.visit(2));s=A.state();assert(s.submitted,'reset leaves other boards alone')
 -- Help and menu block accidental board edits; every overlay is measured.
-tap_control('help');measured(ctx,on_draw,'sudoku help')
+tap_control('menu');assert(A.tap(350,630));measured(ctx,on_draw,'sudoku help')
 assert(not A.tap(first_x,first_y));A.tap(240,740)
-tap_control('new');measured(ctx,on_draw,'sudoku new/history menu')
-assert(not A.tap(first_x,first_y));A.tap(240,740)
+measured(ctx,on_draw,'sudoku new/history menu')
+assert(not A.tap(first_x,first_y));A.tap(240,750)
 -- Pointer down, swipes and released keys do not produce a redraw.
 A.reset()
 local before=redraws
@@ -131,23 +131,23 @@ do
  for _,r in ipairs(reports) do
   eq(#r.regions,1,'one Sudoku puzzle region')
   local board=r.regions[1]
-  eq(board.x,6);eq(board.y,102);eq(board.w,468);eq(board.h,468)
+  eq(board.x,1);eq(board.y,1);eq(board.w,477);eq(board.h,477)
   assert(r.largest_gap.pixels<48,'unused band between screen elements '..r.largest_gap.pixels)
   eq(#r.number_keys,9,'all nine numeric buttons must be visible')
   for _,b in ipairs(r.number_keys) do
-   eq(b.w,100);eq(b.h,56)
+   eq(b.w,108);eq(b.h,90)
    assert(b.x>=0 and b.x+b.w<=480 and b.y>=0 and b.y+b.h<=800,'off-screen number key')
   end
  end
- for _,name in ipairs({'notes','undo','erase'}) do
-  local b=A.controls[name];eq(b[4],56,'keypad-height adjacent button')
+ for _,name in ipairs({'notes','undo','erase','menu'}) do
+  local b=A.controls[name];eq(b[4],66,'stacked keypad-adjacent tool')
  end
  for n=1,9 do
   local x,y,w,h=A.digit_box(n)
-  eq(y,612+math.floor((n-1)/3)*62,'adaptive keypad row')
-  eq(w,100);eq(h,56)
+  eq(y,510+math.floor((9-n)/3)*96,'HTML calculator keypad row')
+  eq(w,108);eq(h,90)
  end
- local _,y,_,h=A.digit_box(9)
+ local _,y,_,h=A.digit_box(1)
  eq(y+h,792,'reserve eight pixels at bottom')
 end
 
@@ -161,17 +161,17 @@ do
   return rect(self,x,y,w,h,o)
  end
  g:reset();on_draw(ctx,g);g:verify('sudoku solid divisions')
- assert(grid.size==468 and grid.cell==52,'board uses the full width')
+ assert(grid.size==477 and grid.cell==53,'board fills the top of the screen')
  local function bar(x,y,w,h)
   for _,b in ipairs(bars) do if b.x==x and b.y==y and b.w==w and b.h==h and b.radius==0 then return true end end
   return false
  end
  for _,i in ipairs({3,6}) do
-  assert(bar(grid.x+i*52-1,grid.y,3,468),'missing solid vertical 3x3 separator')
-  assert(bar(grid.x,grid.y+i*52-1,468,3),'missing solid horizontal 3x3 separator')
+  assert(bar(grid.x+i*53-1,grid.y,3,477),'missing solid vertical 3x3 separator')
+  assert(bar(grid.x,grid.y+i*53-1,477,3),'missing solid horizontal 3x3 separator')
  end
- assert(bar(grid.x,grid.y,3,468) and bar(grid.x+465,grid.y,3,468),'outer frame must be solid')
- assert(bar(grid.x+52,grid.y,1,468),'interior lines must be 1px')
+ assert(bar(grid.x,grid.y,3,477) and bar(grid.x+474,grid.y,3,477),'outer frame must be solid')
+ assert(bar(grid.x+53,grid.y,1,477),'interior lines must be 1px')
  for n=1,9 do
   local x,y,w,h=A.digit_box(n)
   assert(w>=48 and h>=48,'comfortable number-key touch target')
@@ -180,8 +180,8 @@ do
   eq(s.board[blank],n,'each 3-column digit key matches its label')
  end
  for i=1,81 do
-  local x=grid.x+(i-1)%9*52+26
-  local y=grid.y+math.floor((i-1)/9)*52+26
+  local x=grid.x+(i-1)%9*53+26
+  local y=grid.y+math.floor((i-1)/9)*53+26
   assert(A.tap(x,y));eq(s.selected,i,'all 81 expanded cell touch targets')
  end
 end
@@ -229,7 +229,7 @@ do
   -- Guides are grey shading only: never row/column outline bars (user
   -- feedback 2026-11-18: the lines were confusing on the reader).
   local function shaded(cells)
-    for _,c in ipairs(cells) do if not tiles[(6+c[1]*52)..','..(102+c[2]*52)] then return false end end
+    for _,c in ipairs(cells) do if not tiles[(1+c[1]*53)..','..(1+c[2]*53)] then return false end end
     return true
   end
   local row,col={},{}
@@ -237,12 +237,12 @@ do
     if k~=geometry.col then row[#row+1]={k,geometry.row} end
     if k~=geometry.row then col[#col+1]={geometry.col,k} end
   end
-  assert(not hasRect(6,102+geometry.row*52,468,52),'row guide must not be an outline')
-  assert(not hasRect(6+geometry.col*52,102,52,468),'column guide must not be an outline')
+  assert(not hasRect(1,1+geometry.row*53,477,53),'row guide must not be an outline')
+  assert(not hasRect(1+geometry.col*53,1,53,477),'column guide must not be an outline')
   if g.image then
     assert(shaded(row),'row guide shading missing')
     assert(shaded(col),'column guide shading missing')
-    assert(not tiles[(6+geometry.col*52)..','..(102+geometry.row*52)],'selected cell stays unshaded')
+    assert(not tiles[(1+geometry.col*53)..','..(1+geometry.row*53)],'selected cell stays unshaded')
   end
   -- Pencil digits are drawn inside the cells as monochrome segments,
   -- not represented solely by a dot or a status caption.
@@ -267,17 +267,18 @@ do
   eq(A.note_total(),4)
   -- The menu has the same Meditation preference toggles, persisted in v1 saves.
   assert(tap_control('notes'));assert(not s.noteMode)
-  assert(tap_control('new'))
-  assert(A.tap(128,431));assert(not s.autoClean,'autoclean toggle')
-  assert(A.tap(352,431));assert(not s.highlight,'highlight toggle')
-  assert(A.tap(128,487));assert(not s.showConflicts,'conflict toggle')
-  assert(A.tap(352,487));assert(s.multiMode,'touch multi-select toggle')
+  assert(tap_control('menu'))
+  assert(A.tap(128,517));assert(not s.autoClean,'autoclean toggle')
+  assert(A.tap(352,517));assert(not s.highlight,'highlight toggle')
+  assert(A.tap(128,572));assert(not s.showConflicts,'conflict toggle')
+  assert(A.tap(352,572));assert(s.showMistakes,'mistake toggle')
+  assert(A.tap(128,630));assert(s.multiMode,'touch multi-select toggle')
   assert(A.tap(240,740))
   s=reload()
-  assert(not s.autoClean and not s.highlight and not s.showConflicts and s.multiMode,
+  assert(not s.autoClean and not s.highlight and not s.showConflicts and s.showMistakes and s.multiMode,
     'save and reload all Meditation settings')
-  assert(A.tap(6+((firstBlank-1)%9)*52+26,102+math.floor((firstBlank-1)/9)*52+26))
-  assert(A.tap(6+((secondBlank-1)%9)*52+26,102+math.floor((secondBlank-1)/9)*52+26))
+  assert(A.tap(1+((firstBlank-1)%9)*53+26,1+math.floor((firstBlank-1)/9)*53+26))
+  assert(A.tap(1+((secondBlank-1)%9)*53+26,1+math.floor((secondBlank-1)/9)*53+26))
   assert(s.multi[firstBlank] and s.multi[secondBlank],'multi-select contains both squares')
   assert(tap_control('notes'))
   assert(A.put(5))
@@ -299,6 +300,33 @@ do
   eq(s.generation,1,'legacy seed keeps its original version')
   eq(table.concat(s.board),table.concat(classic.given),'legacy puzzle remains unchanged')
   assert(s.autoClean and s.highlight and s.showConflicts,'legacy preferences default ON')
+end
+
+-- HTML-port regressions: keypad order, toggle, reveal and persistent mistakes.
+do
+  for n=1,9 do
+    local x,y,w,h=A.digit_box(n)
+    eq(x,8+(n-1)%3*118,'HTML number-pad column')
+    eq(y,510+math.floor((9-n)/3)*96,'HTML number-pad row')
+    assert(w>=48 and h>=48)
+  end
+  A.reset();s=A.state()
+  local blank
+  for i=1,81 do if A.puzzle().given[i]==0 then blank=i;break end end
+  select(blank)
+  assert(A.put(2));eq(s.board[blank],2)
+  assert(A.put(2));eq(s.board[blank],0,'same digit toggles off like HTML')
+  assert(A.put(3))
+  assert(tap_control('menu'))
+  assert(A.tap(352,360),'reveal selected menu command')
+  eq(s.board[blank],A.puzzle().solution[blank],'reveal places correct digit')
+  assert(A.undo(),'reveal is undoable')
+  eq(s.board[blank],3)
+  assert(tap_control('menu'))
+  assert(A.tap(352,573),'show mistakes toggle')
+  assert(s.showMistakes,'mistakes assist enabled')
+  s=reload();assert(s.showMistakes,'mistakes assist saved')
+  assert(A.check(),'CHECK still requires explicit submission')
 end
 
 -- Maximum displayed puzzle number and error counter have bounded text.

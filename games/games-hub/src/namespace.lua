@@ -43,7 +43,8 @@ function Namespace.new(id)
     return result
   end
   function storage:usage() return scope.root.storage:usage() end
-  local proxy=setmetatable({storage=storage,files=storage},{__index=function(_,key)
+  -- Host flag is internal to the Games Hub adapter, not a firmware API.
+  local proxy=setmetatable({storage=storage,files=storage,xteink_hub_embedded=true},{__index=function(_,key)
     local value=scope.root[key]
     if type(value)=='function' then return function(_,...) return value(scope.root,...) end end
     return value

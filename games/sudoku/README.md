@@ -86,3 +86,9 @@ No web view, online font fetch, animation or extra permission is used.
 
 **Device verification pending:** screenshot and Lua checks are host evidence,
 not proof of real X4 Pro e-ink render, input, or on-card save migration.
+
+When launched inside Games Hub, the reserved **HUB** return control remains
+unobstructed: Sudoku reduces to a 441×441 board at (19,66), while keeping the
+same keypad and saved puzzle. This conditional geometry is controlled by the
+Hub adapter only; standalone remains 477×477. Feedback messages occupy the
+Hub header to avoid drawing over the embedded board.

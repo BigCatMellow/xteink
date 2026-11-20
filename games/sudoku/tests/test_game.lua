@@ -15,8 +15,15 @@ local function tap_control(key)
   local b=A.controls[key];return A.tap(b[1]+b[3]/2,b[2]+b[4]/2)
 end
 local grid=A.geometry
-local first_x,first_y=grid.x+grid.cell/2,grid.y+grid.cell/2
 on_load(ctx)
+local first_x,first_y=grid.x+grid.cell/2,grid.y+grid.cell/2
+local hubBoard=grid.y==66
+local expectedCell=hubBoard and 49 or 53
+local expectedSize=hubBoard and 441 or 477
+local expectedX=hubBoard and 19 or 1
+local expectedY=hubBoard and 66 or 1
+eq(grid.x,expectedX);eq(grid.y,expectedY)
+eq(grid.cell,expectedCell);eq(grid.size,expectedSize)
 local s=A.state()
 eq(s.level,1);eq(s.unlocked,1);eq(s.difficulty,2)
 measured(ctx,on_draw,'sudoku fresh')
@@ -131,7 +138,8 @@ do
  for _,r in ipairs(reports) do
   eq(#r.regions,1,'one Sudoku puzzle region')
   local board=r.regions[1]
-  eq(board.x,1);eq(board.y,1);eq(board.w,477);eq(board.h,477)
+  eq(board.x,expectedX);eq(board.y,expectedY)
+   eq(board.w,expectedSize);eq(board.h,expectedSize)
   assert(r.largest_gap.pixels<48,'unused band between screen elements '..r.largest_gap.pixels)
   eq(#r.number_keys,9,'all nine numeric buttons must be visible')
   for _,b in ipairs(r.number_keys) do
@@ -161,17 +169,17 @@ do
   return rect(self,x,y,w,h,o)
  end
  g:reset();on_draw(ctx,g);g:verify('sudoku solid divisions')
- assert(grid.size==477 and grid.cell==53,'board fills the top of the screen')
+ assert(grid.size==expectedSize and grid.cell==expectedCell,'device and Hub board geometry preserved')
  local function bar(x,y,w,h)
   for _,b in ipairs(bars) do if b.x==x and b.y==y and b.w==w and b.h==h and b.radius==0 then return true end end
   return false
  end
  for _,i in ipairs({3,6}) do
-  assert(bar(grid.x+i*53-1,grid.y,3,477),'missing solid vertical 3x3 separator')
-  assert(bar(grid.x,grid.y+i*53-1,477,3),'missing solid horizontal 3x3 separator')
+  assert(bar(grid.x+i*grid.cell-1,grid.y,3,grid.size),'missing solid vertical 3x3 separator')
+  assert(bar(grid.x,grid.y+i*grid.cell-1,grid.size,3),'missing solid horizontal 3x3 separator')
  end
- assert(bar(grid.x,grid.y,3,477) and bar(grid.x+474,grid.y,3,477),'outer frame must be solid')
- assert(bar(grid.x+53,grid.y,1,477),'interior lines must be 1px')
+ assert(bar(grid.x,grid.y,3,grid.size) and bar(grid.x+grid.size-3,grid.y,3,grid.size),'outer frame must be solid')
+ assert(bar(grid.x+grid.cell,grid.y,1,grid.size),'interior lines must be 1px')
  for n=1,9 do
   local x,y,w,h=A.digit_box(n)
   assert(w>=48 and h>=48,'comfortable number-key touch target')
@@ -180,8 +188,8 @@ do
   eq(s.board[blank],n,'each 3-column digit key matches its label')
  end
  for i=1,81 do
-  local x=grid.x+(i-1)%9*53+26
-  local y=grid.y+math.floor((i-1)/9)*53+26
+  local x=grid.x+(i-1)%9*grid.cell+math.floor(grid.cell/2)
+  local y=grid.y+math.floor((i-1)/9)*grid.cell+math.floor(grid.cell/2)
   assert(A.tap(x,y));eq(s.selected,i,'all 81 expanded cell touch targets')
  end
 end
@@ -229,7 +237,7 @@ do
   -- Guides are grey shading only: never row/column outline bars (user
   -- feedback 2026-11-18: the lines were confusing on the reader).
   local function shaded(cells)
-    for _,c in ipairs(cells) do if not tiles[(1+c[1]*53)..','..(1+c[2]*53)] then return false end end
+    for _,c in ipairs(cells) do if not tiles[(grid.x+c[1]*grid.cell)..','..(grid.y+c[2]*grid.cell)] then return false end end
     return true
   end
   local row,col={},{}
@@ -237,12 +245,12 @@ do
     if k~=geometry.col then row[#row+1]={k,geometry.row} end
     if k~=geometry.row then col[#col+1]={geometry.col,k} end
   end
-  assert(not hasRect(1,1+geometry.row*53,477,53),'row guide must not be an outline')
-  assert(not hasRect(1+geometry.col*53,1,53,477),'column guide must not be an outline')
+  assert(not hasRect(grid.x,grid.y+geometry.row*grid.cell,grid.size,grid.cell),'row guide must not be an outline')
+  assert(not hasRect(grid.x+geometry.col*grid.cell,grid.y,grid.cell,grid.size),'column guide must not be an outline')
   if g.image then
     assert(shaded(row),'row guide shading missing')
     assert(shaded(col),'column guide shading missing')
-    assert(not tiles[(1+geometry.col*53)..','..(1+geometry.row*53)],'selected cell stays unshaded')
+    assert(not tiles[(grid.x+geometry.col*grid.cell)..','..(grid.y+geometry.row*grid.cell)],'selected cell stays unshaded')
   end
   -- Pencil digits are drawn inside the cells as monochrome segments,
   -- not represented solely by a dot or a status caption.
@@ -277,8 +285,8 @@ do
   s=reload()
   assert(not s.autoClean and not s.highlight and not s.showConflicts and s.showMistakes and s.multiMode,
     'save and reload all Meditation settings')
-  assert(A.tap(1+((firstBlank-1)%9)*53+26,1+math.floor((firstBlank-1)/9)*53+26))
-  assert(A.tap(1+((secondBlank-1)%9)*53+26,1+math.floor((secondBlank-1)/9)*53+26))
+  assert(A.tap(grid.x+((firstBlank-1)%9)*grid.cell+math.floor(grid.cell/2),grid.y+math.floor((firstBlank-1)/9)*grid.cell+math.floor(grid.cell/2)))
+  assert(A.tap(grid.x+((secondBlank-1)%9)*grid.cell+math.floor(grid.cell/2),grid.y+math.floor((secondBlank-1)/9)*grid.cell+math.floor(grid.cell/2)))
   assert(s.multi[firstBlank] and s.multi[secondBlank],'multi-select contains both squares')
   assert(tap_control('notes'))
   assert(A.put(5))

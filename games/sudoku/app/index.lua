@@ -15,6 +15,15 @@ local KEY_MS=-1000
 -- keypad and four tools to its right. Integer geometry keeps 1-bit lines crisp.
 -- A 24px feedback strip is reserved for storage errors and other status.
 local BOARD={x=1,y=1,cell=53,size=477}
+-- Games Hub owns a 60x54 return key. Its portrait board starts below
+-- that reserved header; the standalone app keeps the edge-to-edge layout.
+local function layout_for_host()
+  if C and C.xteink_hub_embedded then
+    BOARD.x=19;BOARD.y=66;BOARD.cell=49;BOARD.size=441
+  else
+    BOARD.x=1;BOARD.y=1;BOARD.cell=53;BOARD.size=477
+  end
+end
 local CONTROLS={notes={366,510,106,66},erase={366,582,106,66},
   undo={366,654,106,66},menu={366,726,106,66},
   help={246,607,210,46}}
@@ -448,7 +457,11 @@ local function draw(g)
   end
   -- Keep the first 477 pixels dedicated to the puzzle, as in the HTML file.
   -- This line also makes failed writes visible without needing a pop-up.
-  if status then text(g,240,483,status,'small','center',462) end
+  if status then
+    if C and C.xteink_hub_embedded then
+      text(g,80,24,status,'small',nil,390)
+    else text(g,240,483,status,'small','center',462) end
+  end
   if S.submitted then
     text(g,240,532,'Solved','large','center',440)
     for j,difficulty in ipairs(ORDER) do
@@ -539,6 +552,7 @@ local function redraw() if C then pcall(function() C:invalidate() end) end end
 function on_load(context)
   Theme.release()
   C=context or ctx;S=nil;ERR=nil;HELP=false;MENU=false;MSG=nil;KEY_MS=-1000
+  layout_for_host()
   local ok,e=pcall(function()
     local f=fields(read('sudoku.txt'))
     local level,unlocked=integer(f.level,1,MAX),integer(f.unlocked,1,MAX)

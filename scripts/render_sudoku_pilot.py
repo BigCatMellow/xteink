@@ -38,8 +38,8 @@ for i=1,81 do
 end
 A.check()
 """,
-    "menu": "local b=A.controls.new;A.tap(b[1]+b[3]/2,b[2]+b[4]/2)",
-    "help": "local b=A.controls.help;A.tap(b[1]+b[3]/2,b[2]+b[4]/2)",
+    "menu": "local b=A.controls.menu or A.controls.new;A.tap(b[1]+b[3]/2,b[2]+b[4]/2)",
+    "help": "if A.controls.menu then local b=A.controls.menu;A.tap(b[1]+b[3]/2,b[2]+b[4]/2);A.tap(350,630) else local b=A.controls.help;A.tap(b[1]+b[3]/2,b[2]+b[4]/2) end",
 }
 
 
@@ -47,7 +47,7 @@ def geometry(text):
     import re
     board = re.search(r"local BOARD=\{x=(\d+),y=(\d+),cell=(\d+),size=(\d+)\}", text)
     keys = re.search(
-        r"return (\d+)\+\(n-1\)%3\*(\d+),(\d+)\+math.floor\(\(n-1\)/3\)\*(\d+),(\d+),(\d+)",
+        r"return (\d+)\+\(n-1\)%3\*(\d+),(\d+)\+math.floor\(\((?:n-1|9-n)\)/3\)\*(\d+),(\d+),(\d+)",
         text,
     )
     if not board or not keys:
@@ -97,12 +97,12 @@ def main():
     new_source = APP.read_text()
     before, after = geometry(old_source.decode("utf-8")), geometry(new_source)
     # Full-width board (user: negative space is the enemy) and larger keys.
-    assert after["board"] == [6, 102, 468, 468]
-    assert after["cell"] == 52
-    assert after["number_key"] == [100, 56]
-    assert after["number_key_start"] == 612
-    assert after["number_key_step"] == 62
-    assert after["numeric_touch_area"] >= 9 * 100 * 56
+    assert after["board"] == [1, 1, 477, 477]
+    assert after["cell"] == 53
+    assert after["number_key"] == [108, 90]
+    assert after["number_key_start"] == 510
+    assert after["number_key_step"] == 96
+    assert after["numeric_touch_area"] >= 9 * 108 * 90
     with tempfile.TemporaryDirectory(prefix="xteink-sudoku-") as temp:
         baseline = Path(temp) / "sudoku-before.lua"
         baseline.write_bytes(old_source)

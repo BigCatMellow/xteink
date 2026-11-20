@@ -666,3 +666,9 @@ legacy operations and adds reveal/mistake-assist parity. It does not attempt
 to render the HTML/CSS or reproduce web-only anti-aliased shadows and colors.
 The source of truth is `games/sudoku/app/index.lua` and its measured UI tests.
 Physical appearance, touch accuracy and persistence are still to be checked.
+
+**Games Hub exception:** The Hub's reserved top-left return button must
+remain usable and unobstructed. Embedded Sudoku uses a 441px square board at
+(19,66); standalone Sudoku uses the 477px board at (1,1). The same hitbox
+geometry is used for drawing and taps in each host mode. The Hub provides an
+explicit internal host flag; no firmware API detection is assumed.

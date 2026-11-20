@@ -97,7 +97,7 @@ assert(A.visit(1));s=A.state();A.reset();eq(s.unlocked,unlocked)
 eq(s.board[first],0);eq(s.notes[first],0);eq(#s.history,0)
 assert(A.visit(2));s=A.state();assert(s.submitted,'reset leaves other boards alone')
 -- Help and menu block accidental board edits; every overlay is measured.
-tap_control('menu');assert(A.tap(350,630));measured(ctx,on_draw,'sudoku help')
+assert(A.tap(240,760),'open menu from solved panel');assert(A.tap(350,630));measured(ctx,on_draw,'sudoku help')
 assert(not A.tap(first_x,first_y));A.tap(240,740)
 measured(ctx,on_draw,'sudoku new/history menu')
 assert(not A.tap(first_x,first_y));A.tap(240,750)

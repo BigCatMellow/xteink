@@ -141,7 +141,7 @@ function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Boo
  button(12,652,118,54,'< PREV',page>1?()=>{page--;draw()}:null);text(190,669,`${page} / ${pages}`,'medium',92);button(349,652,119,54,'NEXT >',page<pages?()=>{page++;draw()}:null);button(15,725,450,56,'CANCEL',()=>setView('detail'));
 }
 function openBook(b){if(status[b.id].rid){message='Preview only: native book launch needs device test.';}else{message='Open the EPUB in Bookshelf once, then link it here.';}el('parity').textContent='PREVIEW: '+message+' No files are opened in this browser.';}
-function draw(){hits=[];g.fillStyle='#fff';g.fillRect(0,0,480,800);g.lineJoin='miter';g.lineCap='butt';if(view==='detail')drawDetail();else if(view==='pick')drawPick();else drawList();el('scene').value=view;el('book').value=String(chosen);}
+function draw(){hits=[];g.fillStyle='#fff';g.fillRect(0,0,480,800);g.lineJoin='miter';g.lineCap='butt';if(view==='detail')drawDetail();else if(view==='pick')drawPick();else drawList();if(message){text(15,782,message,'small',450);message='';}el('scene').value=view;el('book').value=String(chosen);}
 canvas.addEventListener('pointerup',e=>{const b=canvas.getBoundingClientRect(),x=(e.clientX-b.left)*480/b.width,y=(e.clientY-b.top)*800/b.height;for(let i=hits.length-1;i>=0;i--){const h=hits[i];if(x>=h.x&&x<h.x+h.w&&y>=h.y&&y<h.y+h.h){h.fn();draw();return;}}});
 document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;if(e.key==='Escape'){if(view==='pick')setView('detail');else if(view==='detail')setView(chosen<=9?'path':'all');}
  if(e.key==='ArrowRight'||e.key==='ArrowDown'){page++;draw();}if(e.key==='ArrowLeft'||e.key==='ArrowUp'){page=Math.max(1,page-1);draw();}});

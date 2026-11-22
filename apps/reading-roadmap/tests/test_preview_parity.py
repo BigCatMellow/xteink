@@ -53,7 +53,8 @@ assert "begin_pick(b)" in lua and "beginPick(b)" in html
 assert "leave_pick()" in lua and "leavePick()" in html
 assert "try_open(books[chosen])" in lua and "openBook(books[chosen-1])" in html
 assert "hit(9,y,W-18,84" not in lua, 'Full row must not accidentally claim Info tap'
-assert "hit(9,y,462,84" not in html, 'Full row must not accidentally claim Info tap'
+assert "if(view==='check')hit(9,y,462,84" in html, 'Issue rows need full-width review tap'
+assert "hit(9,y,399,84" in html, 'Reading rows must keep INFO separate'
 assert "scan.issues" in lua and "scan.issues" in html
 assert "scan.found" in lua and "scan.found" in html
 assert "NOT INDEXED" in lua and "NOT INDEXED" in html

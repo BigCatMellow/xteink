@@ -473,7 +473,7 @@ function on_draw(c,g)
   elseif view=='pick' then draw_pick(g)
   else draw_list(g) end
   if msg~='' then
-    text(g,15,(view=='path' or view=='all' or view=='done') and 628 or 782,msg,'small',450)
+    text(g,15,(view=='detail' or view=='pick') and 782 or 628,msg,'small',450)
     msg=''
   end
 end

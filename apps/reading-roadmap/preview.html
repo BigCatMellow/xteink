@@ -27,7 +27,7 @@ code{background:#f3f3f3;border-radius:4px;padding:1px 4px}textarea{width:100%;mi
 <div class="layout">
   <section class="device-wrap">
     <h1>Reading Roadmap — X4 Pro mockup</h1>
-    <p style="font-size:13px">480 × 800 · Native app v0.1.0 layout</p>
+    <p style="font-size:13px">480 × 800 · Native app v0.2.0 layout</p>
     <div class="device"><canvas id="screen" width="480" height="800" role="img" aria-label="Interactive preview of the Reading Roadmap e-ink application"></canvas></div>
     <div class="footnote">The white device area reproduces the current Lua screen's coordinates, labels, hit areas and navigation. The controls to the right are <strong>preview only</strong>, not part of the device app.</div>
   </section>
@@ -114,27 +114,65 @@ function measure(name,s){g.font=font(name);return g.measureText(safe(s)).width;}
 function font(name){return `${design[name]}px Arial, Helvetica, sans-serif`;}
 function shorten(name,s,maxwidth){s=safe(s);if(measure(name,s)<=maxwidth)return s;while(s.length>0&&measure(name,s+'...')>maxwidth)s=s.slice(0,-1);return s+'...';}
 function text(x,y,s,name='medium',maxwidth=460){g.fillStyle='#000';g.textBaseline='top';g.textAlign='left';g.font=font(name);g.fillText(shorten(name,s,maxwidth),x,y);}
-function rect(x,y,w,h,lw=1){g.lineWidth=lw*design.stroke;g.strokeStyle='#000';g.strokeRect(x+g.lineWidth/2,y+g.lineWidth/2,w-g.lineWidth,h-g.lineWidth);}
+function rect(x,y,w,h,lw=1,radius=0){g.lineWidth=lw*design.stroke;g.strokeStyle='#000';g.beginPath();g.roundRect(x+g.lineWidth/2,y+g.lineWidth/2,w-g.lineWidth,h-g.lineWidth,radius);g.stroke();}
 function line(y){g.lineWidth=1*design.stroke;g.strokeStyle='#000';g.beginPath();g.moveTo(12,y);g.lineTo(468,y);g.stroke();}
 function hit(x,y,w,h,fn){if(fn)hits.push({x,y,w,h,fn});}
-function button(x,y,w,h,label,fn){rect(x,y,w,h,2);const s=shorten('medium',label,w-16),tw=measure('medium',s);text(x+Math.max(8,Math.floor((w-tw)/2)),y+Math.floor((h-24)/2),s,'medium',w-16);hit(x,y,w,h,fn);}
+function button(x,y,w,h,label,fn,selected=false){rect(x,y,w,h,3,9);g.fillStyle='#000';g.fillRect(x+9,y+h-1,w-18,1);if(selected)rect(x+5,y+5,w-10,h-10,1,5);const s=shorten('medium',label,w-20),tw=measure('medium',s);text(x+Math.max(10,Math.floor((w-tw)/2)),y+Math.floor((h-24)/2),s,'medium',w-20);hit(x,y,w,h,fn);}
+function chevron(x,y){g.lineWidth=2;g.beginPath();g.moveTo(x,y);g.lineTo(x+6,y+6);g.lineTo(x,y+12);g.stroke();}
 function wrap(s,name,width,maxlines){const out=[];let cur='';for(const word of safe(s).split(/\s+/)){if(!word)continue;const next=cur?cur+' '+word:word;if(cur&&measure(name,next)>width){out.push(cur);cur=word;if(out.length>=maxlines-1)break;}else cur=next;}if(cur&&out.length<maxlines)out.push(cur);return out;}
 function doneCount(){return Object.values(status).filter(s=>s.status==='done').length;}
 function percent(b){const r=library.find(x=>x.id===status[b.id].rid);return r?(r.finished?100:Math.max(0,Math.min(100,Math.round(r.percent)))):null;}
 function collect(which){return books.filter(b=>which==='all'||which==='path'&&b.id<=9||which==='done'&&status[b.id].status==='done');}
 function drawHead(title,subtitle){text(14,10,title,'large',452);text(14,47,subtitle,'small',452);line(75);}
-function drawList(){const ls=collect(view);drawHead('READING ROADMAP',`${doneCount()} / ${books.length} finished    |    ${view==='path'?'Main path':view==='all'?'All books':'Finished'}`);const pages=Math.max(1,Math.ceil(ls.length/6));page=Math.min(page,pages);const off=(page-1)*6;
- for(let slot=0;slot<6;slot++){const b=ls[off+slot];if(!b)continue;const y=86+slot*91,st=status[b.id].status;rect(9,y,462,84);const marker=st==='done'?'[x]':st==='reading'?'[>]':'[ ]';text(18,y+6,marker,'medium',44);text(71,y+5,b.title,'medium',390);const p=percent(b);let info=b.genre+(p!==null?` | ${p}%`:'')+(b.id<=9?' | PATH':'');text(71,y+38,info,'small',390);hit(9,y,462,84,()=>detail(b));}
- button(12,652,118,54,'< PREV',page>1?()=>{page--;draw()}:null);text(183,669,`${page} / ${pages}`,'medium',110);button(349,652,119,54,'NEXT >',page<pages?()=>{page++;draw()}:null);
- button(12,725,146,58,'PATH',()=>setView('path'));button(167,725,146,58,'ALL',()=>setView('all'));button(322,725,146,58,'DONE',()=>setView('done'));
+function drawList(){
+ const ls=collect(view),nextBook=books.find(b=>status[b.id].status==='reading'&&b.id<=9)||books.find(b=>status[b.id].status!=='done'&&b.id<=9)||books.find(b=>status[b.id].status==='reading')||books.find(b=>status[b.id].status!=='done');
+ drawHead('READING ROADMAP',doneCount()+' / '+books.length+' finished    |    '+(view==='path'?'Main path':view==='all'?'All books':'Finished'));
+ const pages=Math.max(1,Math.ceil(ls.length/6));page=Math.min(page,pages);const off=(page-1)*6;
+ for(let slot=0;slot<6;slot++){
+  const b=ls[off+slot];if(!b)continue;
+  const y=86+slot*91,st=status[b.id].status,focused=nextBook&&nextBook.id===b.id;
+  if(focused)rect(9,y,462,84,3,8);else{g.lineWidth=1;g.beginPath();g.moveTo(15,y+83);g.lineTo(465,y+83);g.stroke();}
+  text(18,y+18,String(b.id).padStart(2,'0'),'medium',42);
+  const titleLines=wrap(b.title,'medium',358,2),titleY=y+(titleLines.length>1?4:14);
+  titleLines.forEach((s,i)=>text(67,titleY+i*27,s,'medium',360));
+  const p=percent(b);const stateLabel=st==='done'?'FINISHED':st==='reading'?'READING':focused?'READ NEXT':'TO READ';
+  const info=b.genre+'  |  '+stateLabel+(p!==null?'  |  '+p+'%':'');
+  text(67,y+(titleLines.length>1?59:48),info,'small',376);
+  chevron(449,y+32);hit(9,y,462,84,()=>detail(b));
+ }
+ if(!ls.length){text(28,257,'No finished books yet','large',428);text(28,309,'Finish a book to see it here.','medium',424);button(40,422,400,54,'BACK TO PATH',()=>setView('path'));}
+ button(12,652,118,54,'< PREV',page>1?()=>{page--;draw()}:null);text(183,669,page+' / '+pages,'medium',110);
+ button(349,652,119,54,'NEXT >',page<pages?()=>{page++;draw()}:null);
+ button(12,725,146,58,'PATH',()=>setView('path'),view==='path');
+ button(167,725,146,58,'ALL',()=>setView('all'),view==='all');
+ button(322,725,146,58,'DONE',()=>setView('done'),view==='done');
 }
 function setView(v){view=v;page=1;draw();}
 function detail(b){chosen=b.id;setView('detail');}
 function setStatus(v){status[chosen].status=v;save();draw();}
-function drawDetail(){const b=books[chosen-1];drawHead(`BOOK ${b.id} / ${books.length}`,`${b.genre}  |  ${status[b.id].status}`);text(18,98,b.title,'large',444);text(18,143,b.author,'medium',444);line(183);text(18,209,'WHY IT IS ON YOUR LIST','small',442);wrap(b.note,'medium',430,4).forEach((s,i)=>text(18,241+i*30,s,'medium',438));let y=389;
- if(b.anchor!==''){text(18,y,'VISUAL REFERENCE','small',440);text(18,y+29,b.anchor,'medium',438);y+=81;}
- const p=percent(b);text(18,y,'ON YOUR XTEINK','small',440);text(18,y+31,p!==null?`Reader progress: ${p}%`:status[b.id].rid!==''?'Linked: no progress reported':'Not linked to an opened book','medium',440);text(18,y+61,'Use Link to select an EPUB opened in Bookshelf.','small',440);
- button(15,584,218,55,'START',()=>setStatus('reading'));button(247,584,218,55,'FINISHED',()=>setStatus('done'));button(15,650,218,55,'LINK BOOK',()=>setView('pick'));button(247,650,218,55,'OPEN BOOK',()=>openBook(b));button(15,723,450,59,'BACK TO LIST',()=>setView(chosen<=9?'path':'all'));
+function drawDetail(){
+ const b=books[chosen-1],st=status[b.id].status;
+ const label=st==='done'?'Finished':st==='reading'?'Reading':'Not started';
+ drawHead('BOOK '+b.id+' / '+books.length,b.genre+'  |  '+label);
+ const titleLines=wrap(b.title,'large',444,2);titleLines.forEach((s,i)=>text(18,91+i*35,s,'large',444));
+ const ay=91+titleLines.length*35+7;
+ text(18,ay,b.author,'medium',444);
+ const ruleY=ay+38;line(ruleY);
+ const noteHead=ruleY+18;text(18,noteHead,'WHY THIS BOOK','small',442);
+ const ls=wrap(b.note,'medium',430,3);ls.forEach((s,i)=>text(18,noteHead+29+i*30,s,'medium',438));
+ let y=noteHead+29+ls.length*30+22;
+ if(b.anchor!==''){text(18,y,'VISUAL REFERENCE','small',440);const anchorLines=wrap(b.anchor,'medium',430,2);anchorLines.forEach((s,i)=>text(18,y+28+i*28,s,'medium',438));y=y+28+anchorLines.length*28+20;}
+ const p=percent(b);
+ text(18,y,'ON YOUR XTEINK','small',440);
+ text(18,y+29,p!==null?'Reader progress: '+p+'%':status[b.id].rid!==''?'Linked: no progress reported':'Not linked to an opened book','medium',440);
+ if(y+59<513)text(18,y+59,'Link an EPUB after opening it in Bookshelf.','small',440);
+ button(15,522,218,48,'< PREVIOUS',chosen>1?()=>detail(books[chosen-2]):null);
+ button(247,522,218,48,'NEXT BOOK >',chosen<books.length?()=>detail(books[chosen]):null);
+ button(15,584,218,55,'START',()=>setStatus('reading'),st==='reading');
+ button(247,584,218,55,'FINISHED',()=>setStatus('done'),st==='done');
+ button(15,650,218,55,'LINK BOOK',()=>setView('pick'));
+ button(247,650,218,55,'OPEN BOOK',()=>openBook(b));
+ button(15,723,450,59,'BACK TO LIST',()=>setView(chosen<=9?'path':'all'));
 }
 function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Bookshelf.');const pages=Math.max(1,Math.ceil(library.length/6));page=Math.min(page,pages);for(let slot=0;slot<6;slot++){const r=library[(page-1)*6+slot];if(!r)continue;let y=87+slot*90;rect(10,y,460,82);text(19,y+8,r.title,'medium',440);text(19,y+42,r.author,'small',440);hit(10,y,460,82,()=>{status[chosen].rid=r.id;save();setView('detail');});}
  if(library.length===0){text(18,115,'No opened books were reported by the reader.','medium',440);text(18,154,'Open the EPUB in Bookshelf first.','medium',440);}
@@ -149,7 +187,7 @@ el('scene').addEventListener('change',e=>setView(e.target.value));el('book').add
 books.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=`${b.id}. ${b.title}`;el('book').append(o);});
 el('simulate').addEventListener('click',()=>{library=[{id:'sample-01',title:'A Knight of the Seven Kingdoms',author:'George R. R. Martin',percent:43},{id:'sample-02',title:'All Systems Red',author:'Martha Wells',percent:12},{id:'sample-03',title:'Project Hail Mary',author:'Andy Weir',percent:86}];if(!status[1].rid)status[1].rid='sample-01';save();draw();el('simulate').textContent='Sample books enabled';});
 el('reset').addEventListener('click',()=>{books.forEach(b=>status[b.id]={status:'todo',rid:''});save();view='path';page=1;chosen=1;draw();});
-function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.1.0',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.1.0 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
+function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.2.0',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.2.0 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
 for(const key of Object.keys(DEFAULTS)){el(key).addEventListener('input',e=>{design[key]=+e.target.value;el(key+'Out').textContent=key==='stroke'?`${design[key]}×`:`${design[key]} px`;writeProposal();draw();});}
 el('defaults').addEventListener('click',()=>{Object.assign(design,DEFAULTS);for(let key of Object.keys(DEFAULTS)){el(key).value=design[key];el(key+'Out').textContent=key==='stroke'?'1×':`${design[key]} px`;}writeProposal();draw();});
 el('copy').addEventListener('click',async()=>{const s=el('details').value;try{await navigator.clipboard.writeText(s);el('copy').textContent='Copied';setTimeout(()=>el('copy').textContent='Copy changes for native app',1600);}catch{el('details').focus();el('details').select();}});

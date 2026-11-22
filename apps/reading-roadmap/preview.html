@@ -27,7 +27,7 @@ code{background:#f3f3f3;border-radius:4px;padding:1px 4px}textarea{width:100%;mi
 <div class="layout">
   <section class="device-wrap">
     <h1>Reading Roadmap — X4 Pro mockup</h1>
-    <p style="font-size:13px">480 × 800 · Native app v0.2.0 layout</p>
+    <p style="font-size:13px">480 × 800 · Native app v0.2.1 layout</p>
     <div class="device"><canvas id="screen" width="480" height="800" role="img" aria-label="Interactive preview of the Reading Roadmap e-ink application"></canvas></div>
     <div class="footnote">The white device area reproduces the current Lua screen's coordinates, labels, hit areas and navigation. The controls to the right are <strong>preview only</strong>, not part of the device app.</div>
   </section>
@@ -141,8 +141,8 @@ function drawList(){
   chevron(449,y+32);hit(9,y,462,84,()=>detail(b));
  }
  if(!ls.length){text(28,257,'No finished books yet','large',428);text(28,309,'Finish a book to see it here.','medium',424);button(40,422,400,54,'BACK TO PATH',()=>setView('path'));}
- button(12,652,118,54,'< PREV',page>1?()=>{page--;draw()}:null);text(183,669,page+' / '+pages,'medium',110);
- button(349,652,119,54,'NEXT >',page<pages?()=>{page++;draw()}:null);
+ page>1&&button(12,652,118,54,'< PREV',()=>{page--;draw()});text(183,669,page+' / '+pages,'medium',110);
+ page<pages&&button(349,652,119,54,'NEXT >',()=>{page++;draw()});
  button(12,725,146,58,'PATH',()=>setView('path'),view==='path');
  button(167,725,146,58,'ALL',()=>setView('all'),view==='all');
  button(322,725,146,58,'DONE',()=>setView('done'),view==='done');
@@ -170,13 +170,13 @@ function drawDetail(){
  button(247,522,218,48,'NEXT BOOK >',chosen<books.length?()=>detail(books[chosen]):null);
  button(15,584,218,55,'START',()=>setStatus('reading'),st==='reading');
  button(247,584,218,55,'FINISHED',()=>setStatus('done'),st==='done');
- button(15,650,218,55,'LINK BOOK',()=>setView('pick'));
- button(247,650,218,55,'OPEN BOOK',()=>openBook(b));
+ if(status[b.id].rid===''){button(15,650,450,55,'LINK AN EPUB',()=>setView('pick'));}
+ else{button(15,650,218,55,'LINK BOOK',()=>setView('pick'));button(247,650,218,55,'OPEN BOOK',()=>openBook(b));}
  button(15,723,450,59,'BACK TO LIST',()=>setView(chosen<=9?'path':'all'));
 }
 function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Bookshelf.');const pages=Math.max(1,Math.ceil(library.length/6));page=Math.min(page,pages);for(let slot=0;slot<6;slot++){const r=library[(page-1)*6+slot];if(!r)continue;let y=87+slot*90;rect(10,y,460,82);text(19,y+8,r.title,'medium',440);text(19,y+42,r.author,'small',440);hit(10,y,460,82,()=>{status[chosen].rid=r.id;save();setView('detail');});}
  if(library.length===0){text(18,115,'No opened books were reported by the reader.','medium',440);text(18,154,'Open the EPUB in Bookshelf first.','medium',440);}
- button(12,652,118,54,'< PREV',page>1?()=>{page--;draw()}:null);text(190,669,`${page} / ${pages}`,'medium',92);button(349,652,119,54,'NEXT >',page<pages?()=>{page++;draw()}:null);button(15,725,450,56,'CANCEL',()=>setView('detail'));
+ page>1&&button(12,652,118,54,'< PREV',()=>{page--;draw()});text(190,669,`${page} / ${pages}`,'medium',92);page<pages&&button(349,652,119,54,'NEXT >',()=>{page++;draw()});button(15,725,450,56,'CANCEL',()=>setView('detail'));
 }
 function openBook(b){if(status[b.id].rid){message='Preview only: native book launch needs device test.';}else{message='Open the EPUB in Bookshelf once, then link it here.';}el('parity').textContent='PREVIEW: '+message+' No files are opened in this browser.';}
 function draw(){hits=[];g.fillStyle='#fff';g.fillRect(0,0,480,800);g.lineJoin='miter';g.lineCap='butt';if(view==='detail')drawDetail();else if(view==='pick')drawPick();else drawList();if(message){text(15,782,message,'small',450);message='';}el('scene').value=view;el('book').value=String(chosen);}
@@ -187,7 +187,7 @@ el('scene').addEventListener('change',e=>setView(e.target.value));el('book').add
 books.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=`${b.id}. ${b.title}`;el('book').append(o);});
 el('simulate').addEventListener('click',()=>{library=[{id:'sample-01',title:'A Knight of the Seven Kingdoms',author:'George R. R. Martin',percent:43},{id:'sample-02',title:'All Systems Red',author:'Martha Wells',percent:12},{id:'sample-03',title:'Project Hail Mary',author:'Andy Weir',percent:86}];if(!status[1].rid)status[1].rid='sample-01';save();draw();el('simulate').textContent='Sample books enabled';});
 el('reset').addEventListener('click',()=>{books.forEach(b=>status[b.id]={status:'todo',rid:''});save();view='path';page=1;chosen=1;draw();});
-function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.2.0',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.2.0 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
+function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.2.0',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.2.1 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
 for(const key of Object.keys(DEFAULTS)){el(key).addEventListener('input',e=>{design[key]=+e.target.value;el(key+'Out').textContent=key==='stroke'?`${design[key]}×`:`${design[key]} px`;writeProposal();draw();});}
 el('defaults').addEventListener('click',()=>{Object.assign(design,DEFAULTS);for(let key of Object.keys(DEFAULTS)){el(key).value=design[key];el(key+'Out').textContent=key==='stroke'?'1×':`${design[key]} px`;}writeProposal();draw();});
 el('copy').addEventListener('click',async()=>{const s=el('details').value;try{await navigator.clipboard.writeText(s);el('copy').textContent='Copied';setTimeout(()=>el('copy').textContent='Copy changes for native app',1600);}catch{el('details').focus();el('details').select();}});

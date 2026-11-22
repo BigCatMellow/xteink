@@ -47,6 +47,7 @@ for line in RAW:gmatch('[^\n]+') do
   end
 end
 local view, page, chosen, hits = 'path', 1, 1, {}
+local pick_origin, pick_page = 'path', 1
 local linked, library = {}, {}
 local msg = ''
 local last_key, last_ms = nil, nil
@@ -252,6 +253,31 @@ local function try_open(b)
   end
   notify('Open this book from Bookshelf. Direct launch unverified.')
 end
+-- A book row is a read action. Book management is intentionally secondary.
+local function begin_pick(b)
+  chosen=b.id
+  pick_origin,pick_page=view,page
+  view,page='pick',1
+  refresh_library()
+  invalidate()
+end
+local function leave_pick()
+  view,page=pick_origin,pick_page
+  refresh_library()
+  invalidate()
+end
+local function open_or_link(b)
+  chosen=b.id
+  refresh_library()
+  local s=states[b.id]
+  if s.rid~='' and linked[s.rid] then
+    try_open(b)
+  elseif #library>0 then
+    begin_pick(b)
+  else
+    notify('Not on device: open this EPUB from Bookshelf first.')
+  end
+end
 local function draw_head(g,title,subtitle)
   text(g,14,10,title,'large',452)
   text(g,14,47,subtitle,'small',452)
@@ -275,15 +301,18 @@ local function draw_list(g)
       if focused then g:rect(9,y,W-18,84,{line_width=3,radius=8})
       else g:line(15,y+83,W-15,y+83,{line_width=1}) end
       text(g,18,y+18,string.format('%02d',b.id),'medium',42)
-      local ls_title=wrap(b.title,'medium',358,2)
+      local ls_title=wrap(b.title,'medium',314,2)
       local title_y=y+(#ls_title>1 and 4 or 14)
-      for i,v in ipairs(ls_title) do text(g,67,title_y+(i-1)*27,v,'medium',360) end
+      for i,v in ipairs(ls_title) do text(g,67,title_y+(i-1)*27,v,'medium',314) end
       local p=percent(b)
       local state_label=st=='done' and 'FINISHED' or st=='reading' and 'READING' or focused and 'READ NEXT' or 'TO READ'
       local info=b.genre..'  |  '..state_label..(p and ('  |  '..p..'%') or '')
-      text(g,67,y+(#ls_title>1 and 59 or 48),info,'small',376)
-      chevron(g,449,y+32)
-      hit(9,y,W-18,84,function() detail(b) end)
+      text(g,67,y+(#ls_title>1 and 59 or 48),info,'small',314)
+      chevron(g,391,y+32)
+      g:line(407,y+9,407,y+75,{line_width=1})
+      text(g,416,y+32,'INFO','small',50)
+      hit(9,y,399,84,function() open_or_link(b) end)
+      hit(408,y,63,84,function() detail(b) end)
     end
   end
   if #ls==0 then
@@ -330,9 +359,9 @@ local function draw_detail(g)
   button(g,15,584,218,55,'START',function() set_status('reading') end,st=='reading')
   button(g,247,584,218,55,'FINISHED',function() set_status('done') end,st=='done')
   if states[b.id].rid=='' then
-    button(g,15,650,450,55,'LINK AN EPUB',function() set_view('pick') end)
+    button(g,15,650,450,55,'LINK AN EPUB',function() begin_pick(b) end)
   else
-    button(g,15,650,218,55,'LINK BOOK',function() set_view('pick') end)
+    button(g,15,650,218,55,'LINK BOOK',function() begin_pick(b) end)
     button(g,247,650,218,55,'OPEN BOOK',function() try_open(b) end)
   end
   button(g,15,723,450,59,'BACK TO LIST',function() set_view(chosen<=9 and 'path' or 'all') end)
@@ -351,7 +380,9 @@ local function draw_pick(g)
       hit(10,y,460,82,function()
         states[chosen].rid=tostring(r.id)
         save()
-        set_view('detail')
+        local return_to=pick_origin
+        leave_pick()
+        if return_to~='detail' then try_open(books[chosen]) end
       end)
     end
   end
@@ -362,7 +393,7 @@ local function draw_pick(g)
   if page>1 then button(g,12,652,118,54,'< PREV',function() page=page-1;invalidate() end) end
   text(g,190,669,page..' / '..pages,'medium',92)
   if page<pages then button(g,349,652,119,54,'NEXT >',function() page=page+1;invalidate() end) end
-  button(g,15,725,450,56,'CANCEL',function()set_view('detail')end)
+  button(g,15,725,450,56,'BACK TO LIST',function()leave_pick()end)
 end
 function on_load(c)
   ctx=c or ctx
@@ -377,7 +408,7 @@ function on_draw(c,g)
   elseif view=='pick' then draw_pick(g)
   else draw_list(g) end
   if msg~='' then
-    text(g,15,782,msg,'small',450)
+    text(g,15,(view=='path' or view=='all' or view=='done') and 628 or 782,msg,'small',450)
     msg=''
   end
 end
@@ -391,10 +422,10 @@ function on_input(c,e)
     if last_key==e.key and ms and last_ms and ms-last_ms>=0 and ms-last_ms<230 then return end
     last_key,last_ms=e.key,ms
     if e.key=='back' then
-      if view=='pick' then set_view('detail') elseif view=='detail' then set_view(chosen<=9 and 'path' or 'all') end
+      if view=='pick' then leave_pick() elseif view=='detail' then set_view(chosen<=9 and 'path' or 'all') end
     elseif e.key=='right' or e.key=='down' then page=page+1;invalidate()
     elseif e.key=='left' or e.key=='up' then page=math.max(1,page-1);invalidate()
-    elseif e.key=='ok' and view=='path' then detail(current_book() or books[1])
+    elseif e.key=='ok' and view=='path' then open_or_link(current_book() or books[1])
     end
     return
   end

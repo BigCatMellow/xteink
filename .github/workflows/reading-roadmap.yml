@@ -32,6 +32,7 @@ jobs:
       - name: Validate Lua and runtime behavior
         run: |
           lua5.4 apps/reading-roadmap/tests/test_app.lua
+          python apps/reading-roadmap/tests/test_preview_parity.py
           python /tmp/xtapp-tools/tools/lualint55.py apps/reading-roadmap/app/index.lua
       - name: Build native app
         run: |

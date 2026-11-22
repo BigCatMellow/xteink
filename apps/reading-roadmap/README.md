@@ -27,7 +27,7 @@ Run `python apps/reading-roadmap/tests/test_preview_parity.py` to catch catalogu
 
 The X4 Pro runs an ESP32-S3-based XTOS Licorice e-reader firmware, not Android. InkApps use Lua with the native InkApp API, and are packaged as .xtapp. An Android APK or browser-based HTML file is not the correct app format.
 
-The reader API gives book IDs and statistics for books that have already been opened; it does not give EPUB file paths. Earlier builds could not launch a stock EPUB from a mini app. Firmware 26110501 announced new "open files or books in the reader" API capabilities, but the public signatures have not been confirmed. This app probes the available calls conservatively and explains the fallback when it cannot open a book. The app never claims a book was opened if the host did not confirm the request.
+The reader API gives book IDs and statistics for books that have already been opened; it does not give EPUB file paths. Earlier builds could not launch a stock EPUB from a mini app. Firmware 26110501 announced new "open files or books in the reader" API capabilities, but the public signatures have not been confirmed. This app probes the available calls conservatively and explains the fallback when it cannot open a book. The app never claims a book was opened if the host did not confirm the request. Unlinked books show a single **LINK AN EPUB** action; the **OPEN BOOK** button appears only after the book has been matched to a reader record.
 
 This app ships no copyrighted books, downloads no books, changes no reader positions, and does not alter firmware.
 

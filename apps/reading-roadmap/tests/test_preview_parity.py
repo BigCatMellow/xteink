@@ -22,7 +22,7 @@ pairs = [
 ("hit(9,y,399,84", "hit(9,y,399,84"),
 ("hit(408,y,63,84", "hit(408,y,63,84"),
 ("text(g,416,y+32,'INFO'", "text(416,y+32,'INFO'"),
-("draw_head(g,'READING ROADMAP'", "drawHead('READING ROADMAP'"),
+("draw_head(g,view=='check' and 'BOOK CHECK' or 'READING ROADMAP'", "drawHead(view==='check'?'BOOK CHECK':'READING ROADMAP'"),
 ]
 buttons=[
 (12,652,118,54,"< PREV"),(349,652,119,54,"NEXT >"),

@@ -5,6 +5,8 @@ The book order comes from the November 2026 reading list: nine primary books and
 
 ## Interactive HTML mockup (native layout review)
 
+The authoritative app-specific decisions are in [DESIGN.md](DESIGN.md). They adapt the existing design rules from `docs/GAME_DESIGN.md` and the Design Bible's hierarchy, typography, spacing, and interaction guidance.
+
 Open `preview.html` in any browser. It uses a fixed **480 × 800 canvas** with the same 33-book catalogue, fixed screen coordinates, button areas, labels, navigation and reading-status transitions as the native Lua InkApp.
 
 The outside-of-device panel supports selecting screens, simulating already-opened EPUBs, and experimenting with text sizes / line weight. Experiments are explicitly marked **unsynced**: use **Copy changes for native app**, then apply those parameters to Lua before building another .xtapp. Browser text rasterization is not proof of exact XTOS native font metrics: compare a physical device photo before claiming pixel-perfect typography.

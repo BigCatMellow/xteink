@@ -180,13 +180,20 @@ end
 local function hit(x,y,w,h,fn)
   hits[#hits+1]={x=x,y=y,w=w,h=h,fn=fn}
 end
-local function button(g,x,y,w,h,label,fn)
-  g:rect(x,y,w,h,{line_width=2})
+-- Shared-family button treatment: 9px corners, 3px ink, subtle lower edge.
+local function button(g,x,y,w,h,label,fn,selected)
+  g:rect(x,y,w,h,{line_width=3,radius=9})
+  g:rect(x+9,y+h-1,w-18,1,{fill=true,radius=0})
+  if selected then g:rect(x+5,y+5,w-10,h-10,{line_width=1,radius=5}) end
   local f='medium'
-  local s=shorten(f,label,w-16)
+  local s=shorten(f,label,w-20)
   local tw=measure(f,s)
-  text(g,x+math.max(8,math.floor((w-tw)/2)),y+math.floor((h-24)/2),s,f,w-16)
+  text(g,x+math.max(10,math.floor((w-tw)/2)),y+math.floor((h-24)/2),s,f,w-20)
   if fn then hit(x,y,w,h,fn) end
+end
+local function chevron(g,x,y)
+  g:line(x,y,x+6,y+6,{line_width=2})
+  g:line(x+6,y+6,x,y+12,{line_width=2})
 end
 local function wrap(s,name,width,maxlines)
   local result,cur={},''
@@ -252,6 +259,7 @@ local function draw_head(g,title,subtitle)
 end
 local function draw_list(g)
   local ls=collect(view)
+  local next_book=current_book()
   draw_head(g,'READING ROADMAP',done_count()..' / '..#books..' finished    |    '..(view=='path' and 'Main path' or view=='all' and 'All books' or 'Finished'))
   local rows=6
   local pages=math.max(1,math.ceil(#ls/rows))
@@ -262,45 +270,65 @@ local function draw_list(g)
     if b then
       local y=86+(slot-1)*91
       local st=states[b.id].status
-      g:rect(9,y,W-18,84,{line_width=1})
-      local marker=st=='done' and '[x]' or st=='reading' and '[>]' or '[ ]'
-      text(g,18,y+6,marker,'medium',44)
-      text(g,71,y+5,b.title,'medium',390)
+      local focused=next_book and next_book.id==b.id
+      -- Only the book needing attention gets a frame; the remaining rows use quiet dividers.
+      if focused then g:rect(9,y,W-18,84,{line_width=3,radius=8})
+      else g:line(15,y+83,W-15,y+83,{line_width=1}) end
+      text(g,18,y+18,string.format('%02d',b.id),'medium',42)
+      local ls_title=wrap(b.title,'medium',358,2)
+      local title_y=y+(#ls_title>1 and 4 or 14)
+      for i,v in ipairs(ls_title) do text(g,67,title_y+(i-1)*27,v,'medium',360) end
       local p=percent(b)
-      local info=b.genre..(p and (' | '..p..'%') or '')..(b.id<=9 and ' | PATH' or '')
-      text(g,71,y+38,info,'small',390)
+      local state_label=st=='done' and 'FINISHED' or st=='reading' and 'READING' or focused and 'READ NEXT' or 'TO READ'
+      local info=b.genre..'  |  '..state_label..(p and ('  |  '..p..'%') or '')
+      text(g,67,y+(#ls_title>1 and 59 or 48),info,'small',376)
+      chevron(g,449,y+32)
       hit(9,y,W-18,84,function() detail(b) end)
     end
+  end
+  if #ls==0 then
+    text(g,28,257,'No finished books yet','large',428)
+    text(g,28,309,'Finish a book to see it here.','medium',424)
+    button(g,40,422,400,54,'BACK TO PATH',function()set_view('path')end)
   end
   button(g,12,652,118,54,'< PREV',page>1 and function() page=page-1;invalidate() end or nil)
   text(g,183,669,page..' / '..pages,'medium',110)
   button(g,349,652,119,54,'NEXT >',page<pages and function() page=page+1;invalidate() end or nil)
-  button(g,12,725,146,58,'PATH',function() set_view('path') end)
-  button(g,167,725,146,58,'ALL',function() set_view('all') end)
-  button(g,322,725,146,58,'DONE',function() set_view('done') end)
+  button(g,12,725,146,58,'PATH',function() set_view('path') end,view=='path')
+  button(g,167,725,146,58,'ALL',function() set_view('all') end,view=='all')
+  button(g,322,725,146,58,'DONE',function() set_view('done') end,view=='done')
 end
 local function draw_detail(g)
   local b=by_id[chosen]
   if not b then set_view('path');return end
-  draw_head(g,'BOOK '..b.id..' / '..#books,b.genre..'  |  '..states[b.id].status)
-  text(g,18,98,b.title,'large',444)
-  text(g,18,143,b.author,'medium',444)
-  line(g,183)
-  text(g,18,209,'WHY IT IS ON YOUR LIST','small',442)
-  local ls=wrap(b.note,'medium',430,4)
-  for i,s in ipairs(ls) do text(g,18,241+(i-1)*30,s,'medium',438) end
-  local y=389
+  local st=states[b.id].status
+  local label=st=='done' and 'Finished' or st=='reading' and 'Reading' or 'Not started'
+  draw_head(g,'BOOK '..b.id..' / '..#books,b.genre..'  |  '..label)
+  local title_lines=wrap(b.title,'large',444,2)
+  for i,v in ipairs(title_lines) do text(g,18,91+(i-1)*35,v,'large',444) end
+  local ay=91+#title_lines*35+7
+  text(g,18,ay,b.author,'medium',444)
+  local rule_y=ay+38
+  line(g,rule_y)
+  local note_head=rule_y+18
+  text(g,18,note_head,'WHY THIS BOOK','small',442)
+  local ls=wrap(b.note,'medium',430,3)
+  for i,v in ipairs(ls) do text(g,18,note_head+29+(i-1)*30,v,'medium',438) end
+  local y=note_head+29+#ls*30+22
   if b.anchor~='' then
     text(g,18,y,'VISUAL REFERENCE','small',440)
-    text(g,18,y+29,b.anchor,'medium',438)
-    y=y+81
+    local anchor_lines=wrap(b.anchor,'medium',430,2)
+    for i,v in ipairs(anchor_lines) do text(g,18,y+28+(i-1)*28,v,'medium',438) end
+    y=y+28+#anchor_lines*28+20
   end
   local p=percent(b)
   text(g,18,y,'ON YOUR XTEINK','small',440)
-  text(g,18,y+31,p and ('Reader progress: '..p..'%') or (states[b.id].rid~='' and 'Linked: no progress reported' or 'Not linked to an opened book'),'medium',440)
-  text(g,18,y+61,'Use Link to select an EPUB opened in Bookshelf.','small',440)
-  button(g,15,584,218,55,'START',function() set_status('reading') end)
-  button(g,247,584,218,55,'FINISHED',function() set_status('done') end)
+  text(g,18,y+29,p and ('Reader progress: '..p..'%') or (states[b.id].rid~='' and 'Linked: no progress reported' or 'Not linked to an opened book'),'medium',440)
+  if y+59<513 then text(g,18,y+59,'Link an EPUB after opening it in Bookshelf.','small',440) end
+  button(g,15,522,218,48,'< PREVIOUS',chosen>1 and function() detail(books[chosen-1]) end or nil)
+  button(g,247,522,218,48,'NEXT BOOK >',chosen<#books and function() detail(books[chosen+1]) end or nil)
+  button(g,15,584,218,55,'START',function() set_status('reading') end,st=='reading')
+  button(g,247,584,218,55,'FINISHED',function() set_status('done') end,st=='done')
   button(g,15,650,218,55,'LINK BOOK',function() set_view('pick') end)
   button(g,247,650,218,55,'OPEN BOOK',function() try_open(b) end)
   button(g,15,723,450,59,'BACK TO LIST',function() set_view(chosen<=9 and 'path' or 'all') end)

@@ -291,9 +291,9 @@ local function draw_list(g)
     text(g,28,309,'Finish a book to see it here.','medium',424)
     button(g,40,422,400,54,'BACK TO PATH',function()set_view('path')end)
   end
-  button(g,12,652,118,54,'< PREV',page>1 and function() page=page-1;invalidate() end or nil)
+  if page>1 then button(g,12,652,118,54,'< PREV',function() page=page-1;invalidate() end) end
   text(g,183,669,page..' / '..pages,'medium',110)
-  button(g,349,652,119,54,'NEXT >',page<pages and function() page=page+1;invalidate() end or nil)
+  if page<pages then button(g,349,652,119,54,'NEXT >',function() page=page+1;invalidate() end) end
   button(g,12,725,146,58,'PATH',function() set_view('path') end,view=='path')
   button(g,167,725,146,58,'ALL',function() set_view('all') end,view=='all')
   button(g,322,725,146,58,'DONE',function() set_view('done') end,view=='done')
@@ -329,8 +329,12 @@ local function draw_detail(g)
   button(g,247,522,218,48,'NEXT BOOK >',chosen<#books and function() detail(books[chosen+1]) end or nil)
   button(g,15,584,218,55,'START',function() set_status('reading') end,st=='reading')
   button(g,247,584,218,55,'FINISHED',function() set_status('done') end,st=='done')
-  button(g,15,650,218,55,'LINK BOOK',function() set_view('pick') end)
-  button(g,247,650,218,55,'OPEN BOOK',function() try_open(b) end)
+  if states[b.id].rid=='' then
+    button(g,15,650,450,55,'LINK AN EPUB',function() set_view('pick') end)
+  else
+    button(g,15,650,218,55,'LINK BOOK',function() set_view('pick') end)
+    button(g,247,650,218,55,'OPEN BOOK',function() try_open(b) end)
+  end
   button(g,15,723,450,59,'BACK TO LIST',function() set_view(chosen<=9 and 'path' or 'all') end)
 end
 local function draw_pick(g)
@@ -355,9 +359,9 @@ local function draw_pick(g)
     text(g,18,115,'No opened books were reported by the reader.','medium',440)
     text(g,18,154,'Open the EPUB in Bookshelf first.','medium',440)
   end
-  button(g,12,652,118,54,'< PREV',page>1 and function() page=page-1;invalidate() end or nil)
+  if page>1 then button(g,12,652,118,54,'< PREV',function() page=page-1;invalidate() end) end
   text(g,190,669,page..' / '..pages,'medium',92)
-  button(g,349,652,119,54,'NEXT >',page<pages and function() page=page+1;invalidate() end or nil)
+  if page<pages then button(g,349,652,119,54,'NEXT >',function() page=page+1;invalidate() end) end
   button(g,15,725,450,56,'CANCEL',function()set_view('detail')end)
 end
 function on_load(c)

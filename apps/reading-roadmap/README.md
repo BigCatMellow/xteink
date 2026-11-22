@@ -3,6 +3,14 @@
 A standalone, offline Lua InkApp for the X4 Pro on XTOS Licorice (480 × 800 pixels).
 The book order comes from the November 2026 reading list: nine primary books and 24 additional titles.
 
+## Interactive HTML mockup (native layout review)
+
+Open `preview.html` in any browser. It uses a fixed **480 × 800 canvas** with the same 33-book catalogue, fixed screen coordinates, button areas, labels, navigation and reading-status transitions as the native Lua InkApp.
+
+The outside-of-device panel supports selecting screens, simulating already-opened EPUBs, and experimenting with text sizes / line weight. Experiments are explicitly marked **unsynced**: use **Copy changes for native app**, then apply those parameters to Lua before building another .xtapp. Browser text rasterization is not proof of exact XTOS native font metrics: compare a physical device photo before claiming pixel-perfect typography.
+
+Run `python apps/reading-roadmap/tests/test_preview_parity.py` to catch catalogue and critical layout drift. The package CI also runs this check. Do not change one surface without updating and verifying the other.
+
 ## Features
 
 - PATH: the nine-book recommended order, starting with A Knight of the Seven Kingdoms, All Systems Red, and The Thin Man.

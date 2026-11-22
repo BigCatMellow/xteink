@@ -43,5 +43,7 @@ assert "WHY THIS BOOK" in lua and "WHY THIS BOOK" in html
 assert "READ NEXT" in lua and "READ NEXT" in html
 assert "control_radius=9" not in lua  # standalone app uses explicit shared-family 9px radius
 assert "radius=9" in lua and "rect(x,y,w,h,3,9)" in html
+assert "LINK AN EPUB" in html and "LINK AN EPUB" in lua
+assert "if page>1 then button" in lua and "page>1&&button" in html
 assert "version 0.1.0" not in html
 print("PASS: catalog, reading hierarchy, corners and 15 matching UI touch geometries")

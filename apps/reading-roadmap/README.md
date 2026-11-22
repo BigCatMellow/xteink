@@ -9,7 +9,7 @@ The authoritative app-specific decisions are in [DESIGN.md](DESIGN.md). They ada
 
 Open `preview.html` in any browser. It uses a fixed **480 × 800 canvas** with the same 33-book catalogue, fixed screen coordinates, button areas, labels, navigation and reading-status transitions as the native Lua InkApp.
 
-The outside-of-device panel supports selecting screens, simulating already-opened EPUBs, and experimenting with text sizes / line weight. Experiments are explicitly marked **unsynced**: use **Copy changes for native app**, then apply those parameters to Lua before building another .xtapp. Browser text rasterization is not proof of exact XTOS native font metrics: compare a physical device photo before claiming pixel-perfect typography.
+The preview simulates direct opening when you tap a book row; a separate INFO area opens book details. Native book launch is still subject to firmware support. The outside-of-device panel supports selecting screens, simulating already-opened EPUBs, and experimenting with text sizes / line weight. Experiments are explicitly marked **unsynced**: use **Copy changes for native app**, then apply those parameters to Lua before building another .xtapp. Browser text rasterization is not proof of exact XTOS native font metrics: compare a physical device photo before claiming pixel-perfect typography.
 
 Run `python apps/reading-roadmap/tests/test_preview_parity.py` to catch catalogue and critical layout drift. The package CI also runs this check. Do not change one surface without updating and verifying the other.
 
@@ -18,6 +18,8 @@ Run `python apps/reading-roadmap/tests/test_preview_parity.py` to catch catalogu
 - PATH: the nine-book recommended order, starting with A Knight of the Seven Kingdoms, All Systems Red, and The Thin Man.
 - ALL: the full 33-title collection across fantasy, science fiction, mystery, classics and nonfiction.
 - DONE: books marked as finished.
+- **Tap a book row to read** (when linked to a book the reader knows), or go straight to linking if a book must be matched first.
+- Tap **INFO** on the right for the optional recommendation, status and link controls.
 - Each book has a short reason to read it and a movie/TV/game visual reference when appropriate.
 - START and FINISHED save status inside the app sandbox (XTApps/readingpath/files/progress.txt).
 - LINK BOOK selects an EPUB that was already opened in the stock Bookshelf, showing its reading percentage where available.
@@ -41,7 +43,7 @@ This app ships no copyrighted books, downloads no books, changes no reader posit
 
 Install updates over the existing app; don't uninstall just to update, because that can remove its private progress data.
 
-If the OPEN BOOK button cannot launch an EPUB, open it once in Bookshelf, then return and use LINK BOOK. The progress tracker itself works without book launching.
+If tapping a book cannot launch its EPUB, open it once in Bookshelf, then return and tap its row again. Books that have not been matched offer the link picker if the firmware reports existing books. The progress tracker itself works without book launching.
 
 ## Testing from the repository root
 

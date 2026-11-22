@@ -138,7 +138,7 @@ local function refresh_library()
       local rk=norm(r.title:lower():gsub('%.epub$',''):gsub('%.txt$',''))
       if rk==key then
         exact[#exact+1]=r
-      elseif #key>=12 and #rk>=12 and
+      elseif #key>=8 and #rk>=8 and
          (rk:find(key,1,true) or key:find(rk,1,true)) then
         suggest[#suggest+1]=r
       end

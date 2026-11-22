@@ -178,7 +178,7 @@ function drawList(){
   }
   chevron(391,y+32);
   if(view!=='check'){g.lineWidth=1;g.beginPath();g.moveTo(407,y+9);g.lineTo(407,y+75);g.stroke();text(416,y+32,'INFO','small',50);}
-  else{text(413,y+32,'FIX','small',56);}
+  else{text(413,y+32,'INFO','small',56);}
   if(view==='check')hit(9,y,462,84,()=>{if(b.id>0)detail(books[b.id-1]);else message='Reader index unavailable.';});
   else{hit(9,y,399,84,()=>openOrLink(b));hit(408,y,63,84,()=>detail(b));}
  }

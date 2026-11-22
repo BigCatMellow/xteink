@@ -1,6 +1,6 @@
 # Reading Roadmap — visual and interaction contract
 
-Status: adopted for the standalone X4 Pro InkApp v0.2.1 and its matching 480×800 HTML canvas preview. Host rendering is not physical X4 Pro evidence. Owner: Reading Roadmap app. This document does **not** change the games' design contract.
+Status: adopted for the standalone X4 Pro InkApp v0.3.0 and its matching 480×800 HTML canvas preview. Host rendering is not physical X4 Pro evidence. Owner: Reading Roadmap app. This document does **not** change the games' design contract.
 
 ## Source of authority
 
@@ -14,8 +14,8 @@ The game-specific puzzle board requirements do **not** apply to a reading tracke
 ## User tasks and hierarchy
 
 1. Orient: what am I reading, what comes next, what have I completed?
-2. Choose: tap a title to see author, recommendation, visual-reference suggestion and reader link.
-3. Act: mark started/finished, link an already-opened EPUB, request an open in Bookshelf when supported.
+2. Open: tap the title area of an available book to request the stock EPUB reader immediately; if it is not linked, offer linking only where possible.
+3. Manage (secondary): tap the separate INFO target to see the recommendation, mark started/finished, or change the reader link.
 4. Explore: move through the recommended sequence, with optional All and Finished filters.
 
 Do not add a dashboard, clock, streak, animation, or decorative cover images merely to fill space. Favor one clear state, legible words and direct controls.
@@ -31,13 +31,13 @@ Do not add a dashboard, clock, streak, animation, or decorative cover images mer
 | Controls | 9px corner radius, 3px outline and subtle lower 1px line |
 | Selected tab/state | inset outline, never color alone |
 | Rows | 84px high, 91px pitch, six per page; full 462×84 touch rect |
-| Selected/next row | 3px frame, 8px radius, full matching touch rect |
-| Other rows | quiet 1px bottom divider; vector chevron cues tap |
+| Selected/next row | 3px frame, 8px radius; primary open target is x9–408, secondary INFO target x408–471 |
+| Other rows | quiet 1px bottom divider; the title/chevron means Open, the separately outlined INFO area means manage |
 | Screen | 76px title/progress header; controls below the scroll-free rows |
 
 Text and padding should be bounded based on measured glyphs, not character counts. Reserve two title lines if needed; keep the metadata distinct. Long descriptions and visual references should wrap instead of clipping. The fixed six-row screen deliberately uses its whole useful vertical band while leaving touch gutters between high-frequency footer controls.
 
-## Changes made for v0.2.1
+## Changes made for v0.3.0
 
 | Problem in v0.1.0 | Improvement | Why |
 | --- | --- | --- |
@@ -51,6 +51,16 @@ Text and padding should be bounded based on measured glyphs, not character count
 | Unlinked books offered OPEN BOOK despite no valid link | Show a single full-width LINK AN EPUB action until a book is linked; show Link/Open only after linking | INT-002, honest action availability and clearer priority |
 
 **Constrained non-goals:** do not invent EPUB file paths, pretend a direct-open API is verified, auto-finish a book solely from reader statistics, or change saved book IDs. Keep per-book status and link data in the app sandbox. Changing API permissions requires device confirmation.
+
+## v0.3.0: remove the mandatory detail-page detour
+
+User feedback: “when you click on the book it should just take you to it.” The primary object must perform the primary task. This overrides the earlier detail-first design without weakening the visual or safety constraints.
+
+- Primary 399×84 book-row target (x9–408): try to open the associated book in the stock reader. Existing reader IDs are matched by exact normalized title when possible.
+- Secondary 63×84 INFO target (x408–471): opens optional book description, completion controls and link management. Draw the vertical separator at x407; title lines must stay within 314px to avoid that target.
+- If the selected EPUB has not been linked and the reader reports books, go straight to the existing link picker. A selection stores that link and attempts to open it, then returns to the list. If the reader does not report any books, keep the user on the list and show “Not on device: open this EPUB from Bookshelf first.”
+- Never silently open another book, claim launch success from a missing response, or fabricate a file path. Direct reader-launch API behavior is **not physically verified**. Preserve the secondary INFO and manual status editing as fallbacks.
+- Hardware Back returns from linking to the originating screen and restores its page. All changes are mirrored in the HTML preview and tested.
 
 ## HTML and Lua parity
 
@@ -69,4 +79,4 @@ Text and padding should be bounded based on measured glyphs, not character count
 
 ## Review outcome
 
-The v0.2.0 source and preview use the same screen design as verified by the catalog/geometry regression, host Lua tests and browser interaction rendering. Hardware fidelity is **not** yet verified. Existing 11-game UI rules remain authoritative for games; this is the specific app's design owner.
+The v0.3.0 source and preview use the same screen design as verified by the catalog/geometry regression, host Lua tests and browser interaction rendering. Hardware fidelity is **not** yet verified. Existing 11-game UI rules remain authoritative for games; this is the specific app's design owner.

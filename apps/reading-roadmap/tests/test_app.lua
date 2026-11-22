@@ -56,7 +56,7 @@ assert(has('BOOK CHECK'),'fourth tab must show issues')
 assert(has('NOT INDEXED'),'unseen titles must show an index limitation')
 assert(has('LINK CHANGED'),'stale saved links must be flagged')
 assert(has('MULTIPLE'),'duplicate exact titles must require review')
-assert(has('Opened-books index only'),'must not claim a whole SD-card scan')
+assert(has('Opened books only'),'must not claim a whole SD-card scan')
 tap(393,674)
 assert(has('CHECK TITLE'),'similar titles must be suggestions, not auto links')
 tap(100,121) -- issue row opens details for manual inspection

@@ -62,7 +62,7 @@ assert "MULTIPLE" in lua and "MULTIPLE" in html
 assert "LINK CHANGED" in lua and "LINK CHANGED" in html
 assert "CHECK TITLE" in lua and "CHECK TITLE" in html
 assert "Opened books only; SD not scanned" in lua
-assert "Opened-books index only; not a full SD scan." in html
+assert "Opened books only; SD not scanned" in html
 assert "text(g,67,y+58,b.reason" in lua and "text(67,y+58,b.reason" in html
 assert "local function refresh_library()" in lua and "function scanLibrary()" in html
 assert lua.count("local function draw_list(g)") == 1, 'Duplicate Lua view: source corrupted'

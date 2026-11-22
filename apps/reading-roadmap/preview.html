@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Reading Roadmap — X4 Pro Native UI Preview</title>
+<style>
+:root{font-family:Inter,Arial,Helvetica,sans-serif;color:#222;background:#eaeaea}
+*{box-sizing:border-box}body{margin:0;padding:18px}h1{font-size:20px;line-height:1.25;margin:0 0 6px}p{line-height:1.45;margin:0 0 12px;color:#555}
+.layout{display:flex;align-items:flex-start;justify-content:center;gap:28px;flex-wrap:wrap;max-width:1050px;margin:0 auto}
+.device-wrap{flex:0 1 490px;width:490px;max-width:100%}.device{background:#1a1a1a;border:5px solid #1a1a1a;border-radius:14px;box-shadow:0 8px 30px #0002;padding:5px;max-width:100%}
+canvas{display:block;width:100%;height:auto;aspect-ratio:480/800;background:#fff;touch-action:manipulation;cursor:pointer;image-rendering:auto}
+.footnote{font-size:12px;color:#555;margin-top:10px;line-height:1.45}
+.panel{flex:1 1 330px;max-width:470px;min-width:min(100%,310px);background:#fff;padding:22px;border:1px solid #d0d0d0;border-radius:12px}
+label{display:block;font-weight:600;font-size:13px;margin:13px 0 5px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,select,input{font:inherit}button{border:1px solid #aaa;border-radius:6px;background:white;padding:9px 11px;min-height:39px;cursor:pointer}button:hover{background:#f0f0f0}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #17648b;outline-offset:2px}button.primary{background:#222;color:#fff;border-color:#222}
+select{width:100%;height:40px;padding:7px;border:1px solid #aaa;border-radius:5px;background:white}
+.slider{display:flex;align-items:center;gap:10px}.slider input{flex:1;min-width:100px;accent-color:#222}.slider output{width:42px;text-align:right;font-variant-numeric:tabular-nums}
+.note{font-size:12px;line-height:1.4;color:#575757}.warning{padding:9px 10px;background:#f7f7f7;border-left:3px solid #555;font-size:12px;line-height:1.45;margin:13px 0}
+code{background:#f3f3f3;border-radius:4px;padding:1px 4px}textarea{width:100%;min-height:76px;font-size:12px;margin:9px 0 4px;resize:vertical}
+@media(max-width:640px){body{padding:10px}.panel{padding:16px}.layout{gap:15px}.device-wrap{width:100%}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <section class="device-wrap">
+    <h1>Reading Roadmap — X4 Pro mockup</h1>
+    <p style="font-size:13px">480 × 800 · Native app v0.1.0 layout</p>
+    <div class="device"><canvas id="screen" width="480" height="800" role="img" aria-label="Interactive preview of the Reading Roadmap e-ink application"></canvas></div>
+    <div class="footnote">The white device area reproduces the current Lua screen's coordinates, labels, hit areas and navigation. The controls to the right are <strong>preview only</strong>, not part of the device app.</div>
+  </section>
+  <aside class="panel">
+    <h2 style="font-size:18px;margin:0 0 7px">Review and tweak</h2>
+    <p style="font-size:13px">Tap the mock device normally to test the Path, All, Done, book details and Link Book screens.</p>
+    <label for="scene">Open a screen directly</label>
+    <select id="scene">
+      <option value="path">Main reading path</option>
+      <option value="all">All 33 books</option>
+      <option value="done">Finished books</option>
+      <option value="detail">Book detail</option>
+      <option value="pick">Link a reader book</option>
+    </select>
+    <label for="book">Select a book</label>
+    <select id="book"></select>
+    <div class="row" style="margin-top:13px">
+      <button id="simulate">Simulate opened EPUBs</button>
+      <button id="reset">Reset preview progress</button>
+    </div>
+    <div class="warning" id="parity">DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.</div>
+    <h3 style="font-size:16px;margin:18px 0 4px">Typography / drawing experiments</h3>
+    <p style="font-size:12px">Changing these creates an <strong>unsynced design proposal</strong>. Copy the settings below so the same changes can be applied and verified in Lua.</p>
+    <label for="small">Small text size</label><div class="slider"><input id="small" type="range" min="14" max="27" value="20"><output id="smallOut">20 px</output></div>
+    <label for="medium">Body / button text size</label><div class="slider"><input id="medium" type="range" min="17" max="32" value="24"><output id="mediumOut">24 px</output></div>
+    <label for="large">Heading text size</label><div class="slider"><input id="large" type="range" min="23" max="40" value="30"><output id="largeOut">30 px</output></div>
+    <label for="stroke">Line thickness multiplier</label><div class="slider"><input id="stroke" type="range" min="1" max="2" step="0.25" value="1"><output id="strokeOut">1×</output></div>
+    <div class="row" style="margin-top:14px"><button class="primary" id="copy">Copy changes for native app</button><button id="defaults">Restore native defaults</button></div>
+    <label for="details">Design proposal</label>
+    <textarea id="details" readonly></textarea>
+    <p class="note">Use your browser's save function for a standalone offline copy. The existing native Lua app will not automatically pick up experiments made here; the exported settings are the required sync input.</p>
+  </aside>
+</div>
+<script>
+'use strict';
+// The BOOKS order is copied from apps/reading-roadmap/app/index.lua: RAW.
+// Keep IDs stable, since the native progress store uses the index as the ID.
+const RAW = `A Knight of the Seven Kingdoms|George R. R. Martin|Fantasy|Three warm, witty Dunk and Egg stories in familiar Westeros.|A Knight of the Seven Kingdoms TV series
+All Systems Red|Martha Wells|Sci-fi|A sarcastic security android with more personality than patience.|Murderbot TV series
+The Thin Man|Dashiell Hammett|Mystery|Nick and Nora make witty conversation the real attraction.|The Thin Man film
+Penric's Demon|Lois McMaster Bujold|Fantasy|A young man and a very opinionated demon learn to cooperate.|
+The Blacktongue Thief|Christopher Buehlman|Fantasy|A sharp-tongued thief crosses a dangerous, lived-in world.|
+True Grit|Charles Portis|Western|A remarkable narrator, dry humor, and a determined quest.|True Grit films
+Guards! Guards!|Terry Pratchett|Fantasy|A ramshackle city watch meets a dragon and civic absurdity.|
+Slow Horses|Mick Herron|Thriller|Disgraced spies, elaborate insults, and dangerous schemes.|Slow Horses TV series
+The Blade Itself|Joe Abercrombie|Fantasy|Morally complicated people and bitterly funny conversations.|
+The Martian|Andy Weir|Sci-fi|Scientific problem solving and a narrator worth spending time with.|The Martian film
+We Are Legion (We Are Bob)|Dennis E. Taylor|Sci-fi|A witty engineer becomes a spacefaring intelligence.|
+The Long Way to a Small, Angry Planet|Becky Chambers|Sci-fi|Found-family spaceship life with strong character chemistry.|
+I Am Legend|Richard Matheson|Sci-fi|Isolation, changed humanity, and an unsettling moral question.|I Am Legend film
+The Last Wish|Andrzej Sapkowski|Fantasy|Self-contained Witcher adventures, monsters, wit, and ethics.|The Witcher games and TV series
+The Princess Bride|William Goldman|Fantasy|A playful, self-aware adventure with unforgettable characters.|The Princess Bride film
+Kings of the Wyld|Nicholas Eames|Fantasy|An aging adventuring band reunites for one last quest.|
+The Tainted Cup|Robert Jackson Bennett|Fantasy|A clever detective partnership solves an impossible mystery.|
+Theft of Swords|Michael J. Sullivan|Fantasy|Two very different partners stumble into kingdom-wide trouble.|
+The Black Company|Glen Cook|Fantasy|A mercenary physician chronicles a morally murky company.|
+The Curse of Chalion|Lois McMaster Bujold|Fantasy|A weary veteran navigates politics, faith, and duty.|
+The Lies of Locke Lamora|Scott Lynch|Fantasy|Schemes, hilarious dialogue, friendship, and dangerous rivals.|
+The Hobbit|J. R. R. Tolkien|Fantasy|The classic warm adventure through a richly imagined world.|The Hobbit films
+The Lord of the Rings|J. R. R. Tolkien|Fantasy|An ancient world, friendship, and stakes that feel earned.|The Lord of the Rings films
+We Have Always Lived in the Castle|Shirley Jackson|Horror|A distinctive and unsettling voice drives a family mystery.|
+The Sisters Brothers|Patrick deWitt|Western|Two hired-killer brothers in a darkly comic Western.|The Sisters Brothers film
+The Last Policeman|Ben H. Winters|Mystery|A detective investigates a death with the apocalypse approaching.|
+The Friends of Eddie Coyle|George V. Higgins|Crime|Remarkably natural dialogue inside a bleak criminal world.|The Friends of Eddie Coyle film
+The Stepford Wives|Ira Levin|Horror|A seemingly perfect town hides a disturbing social mystery.|The Stepford Wives films
+The Queen's Gambit|Walter Tevis|Literary|Competing, obsession, and controlled character-focused prose.|The Queen's Gambit TV series
+A Walk in the Woods|Bill Bryson|Nonfiction|Observant comedy during an ill-prepared long hike.|A Walk in the Woods film
+Smoke Gets in Your Eyes|Caitlin Doughty|Nonfiction|Funeral-home work opens questions about mortality and society.|
+The Disaster Artist|Greg Sestero and Tom Bissell|Nonfiction|A hilarious and affecting account of an unlikely friendship.|The Disaster Artist film
+The Big Year|Mark Obmascik|Nonfiction|The obsessive real-world competition behind the film.|The Big Year film`;
+const books=RAW.split('\n').map((line,i)=>{const [title,author,genre,note,anchor]=line.split('|');return {id:i+1,title,author,genre,note,anchor:anchor||''};});
+const canvas=document.getElementById('screen');
+const g=canvas.getContext('2d');
+const el=id=>document.getElementById(id);
+const DEFAULTS={small:20,medium:24,large:30,stroke:1};
+const design={...DEFAULTS};
+const status=Object.fromEntries(books.map(b=>[b.id,{status:'todo',rid:''}]));
+let view='path',page=1,chosen=1,library=[],hits=[],message='';
+const rawSaved=()=>{try{return JSON.parse(localStorage.getItem('reading-roadmap-preview')||'{}')}catch{return {}}};
+Object.entries(rawSaved()).forEach(([id,s])=>{if(status[id]&&['todo','reading','done'].includes(s.status)) status[id]={status:s.status,rid:s.rid||''};});
+function save(){try{localStorage.setItem('reading-roadmap-preview',JSON.stringify(status))}catch{}}
+function safe(s){return String(s??'');}
+function measure(name,s){g.font=font(name);return g.measureText(safe(s)).width;}
+function font(name){return `${design[name]}px Arial, Helvetica, sans-serif`;}
+function shorten(name,s,maxwidth){s=safe(s);if(measure(name,s)<=maxwidth)return s;while(s.length>0&&measure(name,s+'...')>maxwidth)s=s.slice(0,-1);return s+'...';}
+function text(x,y,s,name='medium',maxwidth=460){g.fillStyle='#000';g.textBaseline='top';g.textAlign='left';g.font=font(name);g.fillText(shorten(name,s,maxwidth),x,y);}
+function rect(x,y,w,h,lw=1){g.lineWidth=lw*design.stroke;g.strokeStyle='#000';g.strokeRect(x+g.lineWidth/2,y+g.lineWidth/2,w-g.lineWidth,h-g.lineWidth);}
+function line(y){g.lineWidth=1*design.stroke;g.strokeStyle='#000';g.beginPath();g.moveTo(12,y);g.lineTo(468,y);g.stroke();}
+function hit(x,y,w,h,fn){if(fn)hits.push({x,y,w,h,fn});}
+function button(x,y,w,h,label,fn){rect(x,y,w,h,2);const s=shorten('medium',label,w-16),tw=measure('medium',s);text(x+Math.max(8,Math.floor((w-tw)/2)),y+Math.floor((h-24)/2),s,'medium',w-16);hit(x,y,w,h,fn);}
+function wrap(s,name,width,maxlines){const out=[];let cur='';for(const word of safe(s).split(/\s+/)){if(!word)continue;const next=cur?cur+' '+word:word;if(cur&&measure(name,next)>width){out.push(cur);cur=word;if(out.length>=maxlines-1)break;}else cur=next;}if(cur&&out.length<maxlines)out.push(cur);return out;}
+function doneCount(){return Object.values(status).filter(s=>s.status==='done').length;}
+function percent(b){const r=library.find(x=>x.id===status[b.id].rid);return r?(r.finished?100:Math.max(0,Math.min(100,Math.round(r.percent)))):null;}
+function collect(which){return books.filter(b=>which==='all'||which==='path'&&b.id<=9||which==='done'&&status[b.id].status==='done');}
+function drawHead(title,subtitle){text(14,10,title,'large',452);text(14,47,subtitle,'small',452);line(75);}
+function drawList(){const ls=collect(view);drawHead('READING ROADMAP',`${doneCount()} / ${books.length} finished    |    ${view==='path'?'Main path':view==='all'?'All books':'Finished'}`);const pages=Math.max(1,Math.ceil(ls.length/6));page=Math.min(page,pages);const off=(page-1)*6;
+ for(let slot=0;slot<6;slot++){const b=ls[off+slot];if(!b)continue;const y=86+slot*91,st=status[b.id].status;rect(9,y,462,84);const marker=st==='done'?'[x]':st==='reading'?'[>]':'[ ]';text(18,y+6,marker,'medium',44);text(71,y+5,b.title,'medium',390);const p=percent(b);let info=b.genre+(p!==null?` | ${p}%`:'')+(b.id<=9?' | PATH':'');text(71,y+38,info,'small',390);hit(9,y,462,84,()=>detail(b));}
+ button(12,652,118,54,'< PREV',page>1?()=>{page--;draw()}:null);text(183,669,`${page} / ${pages}`,'medium',110);button(349,652,119,54,'NEXT >',page<pages?()=>{page++;draw()}:null);
+ button(12,725,146,58,'PATH',()=>setView('path'));button(167,725,146,58,'ALL',()=>setView('all'));button(322,725,146,58,'DONE',()=>setView('done'));
+}
+function setView(v){view=v;page=1;draw();}
+function detail(b){chosen=b.id;setView('detail');}
+function setStatus(v){status[chosen].status=v;save();draw();}
+function drawDetail(){const b=books[chosen-1];drawHead(`BOOK ${b.id} / ${books.length}`,`${b.genre}  |  ${status[b.id].status}`);text(18,98,b.title,'large',444);text(18,143,b.author,'medium',444);line(183);text(18,209,'WHY IT IS ON YOUR LIST','small',442);wrap(b.note,'medium',430,4).forEach((s,i)=>text(18,241+i*30,s,'medium',438));let y=389;
+ if(b.anchor!==''){text(18,y,'VISUAL REFERENCE','small',440);text(18,y+29,b.anchor,'medium',438);y+=81;}
+ const p=percent(b);text(18,y,'ON YOUR XTEINK','small',440);text(18,y+31,p!==null?`Reader progress: ${p}%`:status[b.id].rid!==''?'Linked: no progress reported':'Not linked to an opened book','medium',440);text(18,y+61,'Use Link to select an EPUB opened in Bookshelf.','small',440);
+ button(15,584,218,55,'START',()=>setStatus('reading'));button(247,584,218,55,'FINISHED',()=>setStatus('done'));button(15,650,218,55,'LINK BOOK',()=>setView('pick'));button(247,650,218,55,'OPEN BOOK',()=>openBook(b));button(15,723,450,59,'BACK TO LIST',()=>setView(chosen<=9?'path':'all'));
+}
+function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Bookshelf.');const pages=Math.max(1,Math.ceil(library.length/6));page=Math.min(page,pages);for(let slot=0;slot<6;slot++){const r=library[(page-1)*6+slot];if(!r)continue;let y=87+slot*90;rect(10,y,460,82);text(19,y+8,r.title,'medium',440);text(19,y+42,r.author,'small',440);hit(10,y,460,82,()=>{status[chosen].rid=r.id;save();setView('detail');});}
+ if(library.length===0){text(18,115,'No opened books were reported by the reader.','medium',440);text(18,154,'Open the EPUB in Bookshelf first.','medium',440);}
+ button(12,652,118,54,'< PREV',page>1?()=>{page--;draw()}:null);text(190,669,`${page} / ${pages}`,'medium',92);button(349,652,119,54,'NEXT >',page<pages?()=>{page++;draw()}:null);button(15,725,450,56,'CANCEL',()=>setView('detail'));
+}
+function openBook(b){if(status[b.id].rid){message='Preview only: native book launch needs device test.';}else{message='Open the EPUB in Bookshelf once, then link it here.';}el('parity').textContent='PREVIEW: '+message+' No files are opened in this browser.';}
+function draw(){hits=[];g.fillStyle='#fff';g.fillRect(0,0,480,800);g.lineJoin='miter';g.lineCap='butt';if(view==='detail')drawDetail();else if(view==='pick')drawPick();else drawList();el('scene').value=view;el('book').value=String(chosen);}
+canvas.addEventListener('pointerup',e=>{const b=canvas.getBoundingClientRect(),x=(e.clientX-b.left)*480/b.width,y=(e.clientY-b.top)*800/b.height;for(let i=hits.length-1;i>=0;i--){const h=hits[i];if(x>=h.x&&x<h.x+h.w&&y>=h.y&&y<h.y+h.h){h.fn();draw();return;}}});
+document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;if(e.key==='Escape'){if(view==='pick')setView('detail');else if(view==='detail')setView(chosen<=9?'path':'all');}
+ if(e.key==='ArrowRight'||e.key==='ArrowDown'){page++;draw();}if(e.key==='ArrowLeft'||e.key==='ArrowUp'){page=Math.max(1,page-1);draw();}});
+el('scene').addEventListener('change',e=>setView(e.target.value));el('book').addEventListener('change',e=>{chosen=+e.target.value;if(view==='detail'||view==='pick')draw();});
+books.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=`${b.id}. ${b.title}`;el('book').append(o);});
+el('simulate').addEventListener('click',()=>{library=[{id:'sample-01',title:'A Knight of the Seven Kingdoms',author:'George R. R. Martin',percent:43},{id:'sample-02',title:'All Systems Red',author:'Martha Wells',percent:12},{id:'sample-03',title:'Project Hail Mary',author:'Andy Weir',percent:86}];if(!status[1].rid)status[1].rid='sample-01';save();draw();el('simulate').textContent='Sample books enabled';});
+el('reset').addEventListener('click',()=>{books.forEach(b=>status[b.id]={status:'todo',rid:''});save();view='path';page=1;chosen=1;draw();});
+function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.1.0',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.1.0 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
+for(const key of Object.keys(DEFAULTS)){el(key).addEventListener('input',e=>{design[key]=+e.target.value;el(key+'Out').textContent=key==='stroke'?`${design[key]}×`:`${design[key]} px`;writeProposal();draw();});}
+el('defaults').addEventListener('click',()=>{Object.assign(design,DEFAULTS);for(let key of Object.keys(DEFAULTS)){el(key).value=design[key];el(key+'Out').textContent=key==='stroke'?'1×':`${design[key]} px`;}writeProposal();draw();});
+el('copy').addEventListener('click',async()=>{const s=el('details').value;try{await navigator.clipboard.writeText(s);el('copy').textContent='Copied';setTimeout(()=>el('copy').textContent='Copy changes for native app',1600);}catch{el('details').focus();el('details').select();}});
+writeProposal();draw();
+</script>
+</body>
+</html>

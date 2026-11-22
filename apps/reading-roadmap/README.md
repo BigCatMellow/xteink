@@ -15,6 +15,7 @@ Run `python apps/reading-roadmap/tests/test_preview_parity.py` to catch catalogu
 
 ## Features
 
+- CHECK: automatically match all 33 titles against Bookshelf's **previously opened books** index, and list complications with remedies (not indexed, multiple editions, similar titles, stale links or unavailable reader access).
 - PATH: the nine-book recommended order, starting with A Knight of the Seven Kingdoms, All Systems Red, and The Thin Man.
 - ALL: the full 33-title collection across fantasy, science fiction, mystery, classics and nonfiction.
 - DONE: books marked as finished.
@@ -29,7 +30,7 @@ Run `python apps/reading-roadmap/tests/test_preview_parity.py` to catch catalogu
 
 The X4 Pro runs an ESP32-S3-based XTOS Licorice e-reader firmware, not Android. InkApps use Lua with the native InkApp API, and are packaged as .xtapp. An Android APK or browser-based HTML file is not the correct app format.
 
-The reader API gives book IDs and statistics for books that have already been opened; it does not give EPUB file paths. Earlier builds could not launch a stock EPUB from a mini app. Firmware 26110501 announced new "open files or books in the reader" API capabilities, but the public signatures have not been confirmed. This app probes the available calls conservatively and explains the fallback when it cannot open a book. The app never claims a book was opened if the host did not confirm the request. Unlinked books show a single **LINK AN EPUB** action; the **OPEN BOOK** button appears only after the book has been matched to a reader record.
+The reader API gives book IDs and statistics for books that have already been opened; it does not give EPUB file paths or a directory listing of all SD-card ebooks. **NOT INDEXED does not mean missing from SD.** Reopen or first open that EPUB in Bookshelf, then tap CHECK to rescan. Unique exact title matches link automatically; duplicates and similar titles require human review. Earlier builds could not launch a stock EPUB from a mini app. Firmware 26110501 announced new "open files or books in the reader" API capabilities, but the public signatures have not been confirmed. This app probes the available calls conservatively and explains the fallback when it cannot open a book. The app never claims a book was opened if the host did not confirm the request. Unlinked books show a single **LINK AN EPUB** action; the **OPEN BOOK** button appears only after the book has been matched to a reader record.
 
 This app ships no copyrighted books, downloads no books, changes no reader positions, and does not alter firmware.
 

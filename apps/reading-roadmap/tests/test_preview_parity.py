@@ -26,8 +26,9 @@ pairs = [
 ]
 buttons=[
 (12,652,118,54,"< PREV"),(349,652,119,54,"NEXT >"),
-(12,725,146,58,"PATH"),(167,725,146,58,"ALL"),
-(322,725,146,58,"DONE"),(15,584,218,55,"START"),
+(8,725,109,58,"PATH"),(126,725,109,58,"ALL"),
+(244,725,109,58,"DONE"),(362,725,109,58,"CHECK"),
+(15,584,218,55,"START"),
 (247,584,218,55,"FINISHED"),(15,650,218,55,"LINK BOOK"),
 (247,650,218,55,"OPEN BOOK"),(15,723,450,59,"BACK TO LIST"),
 (15,725,450,56,"BACK")
@@ -53,5 +54,14 @@ assert "leave_pick()" in lua and "leavePick()" in html
 assert "try_open(books[chosen])" in lua and "openBook(books[chosen-1])" in html
 assert "hit(9,y,W-18,84" not in lua, 'Full row must not accidentally claim Info tap'
 assert "hit(9,y,462,84" not in html, 'Full row must not accidentally claim Info tap'
+assert "scan.issues" in lua and "scan.issues" in html
+assert "scan.found" in lua and "scan.found" in html
+assert "NOT INDEXED" in lua and "NOT INDEXED" in html
+assert "MULTIPLE" in lua and "MULTIPLE" in html
+assert "LINK CHANGED" in lua and "LINK CHANGED" in html
+assert "CHECK TITLE" in lua and "CHECK TITLE" in html
+assert "Opened-books index only; not a full SD scan." in lua
+assert "Opened-books index only; not a full SD scan." in html
+assert "text(g,67,y+58,b.reason" in lua and "text(67,y+58,b.reason" in html
 assert "version 0.1.0" not in html
-print("PASS: catalog, reading hierarchy, corners and 17 matching UI touch geometries")
+print("PASS: catalog, reading hierarchy, corners and 18 matching UI touch geometries")

@@ -49,6 +49,7 @@ end
 local view, page, chosen, hits = 'path', 1, 1, {}
 local pick_origin, pick_page = 'path', 1
 local linked, library = {}, {}
+local scan = {ok=false,found=0,issues={}}
 local msg = ''
 local last_key, last_ms = nil, nil
 local W,H = 480,800
@@ -91,36 +92,75 @@ end
 local function norm(s)
   return safe_text(s):lower():gsub('[^%w]+','')
 end
+-- Search ONLY the stock reader's opened-book catalogue. It is not an SD scan.
 local function refresh_library()
   library,linked={},{}
-  if not ctx or not ctx.reader then return end
+  scan={ok=false,found=0,issues={},indexed=0}
   local collected={}
-  for _,method in ipairs({'all_books','books'}) do
-    local ok,res=pcall(function() return ctx.reader[method](ctx.reader) end)
-    if ok and type(res)=='table' then
-      for _,r in ipairs(res) do
-        if type(r)=='table' and r.id then
-          local id=tostring(r.id)
-          local old=collected[id] or {}
-          for k,v in pairs(r) do if v~=nil then old[k]=v end end
-          collected[id]=old
+  if ctx and ctx.reader then
+    for _,method in ipairs({'all_books','books'}) do
+      local ok,res=pcall(function() return ctx.reader[method](ctx.reader) end)
+      if ok and type(res)=='table' then
+        scan.ok=true
+        for _,r in ipairs(res) do
+          if type(r)=='table' and r.id and type(r.title)=='string' then
+            local id=tostring(r.id)
+            local old=collected[id] or {}
+            for k,v in pairs(r) do if v~=nil then old[k]=v end end
+            collected[id]=old
+          end
         end
       end
     end
   end
-  for id,b in pairs(collected) do
-    b.id=id
-    library[#library+1]=b
-    linked[id]=b
+  for id,r in pairs(collected) do
+    r.id=id
+    library[#library+1]=r
+    linked[id]=r
   end
-  table.sort(library,function(a,b) return tostring(a.title or '')<tostring(b.title or '') end)
-  -- Resolve title matches only among books the stock reader already knows.
+  table.sort(library,function(a,b)
+    return tostring(a.title):lower()<tostring(b.title):lower()
+  end)
+  scan.indexed=#library
+  if not scan.ok then
+    scan.issues[1]={id=0,title='Reader access unavailable',code='NO ACCESS',
+      reason='Allow reader access or check Licorice firmware.'}
+    return
+  end
+  -- Exact normalized titles auto-link only when UNIQUE. Similar titles are
+  -- suggestions, never safe to launch or silently auto-select.
   for _,b in ipairs(books) do
     local s=states[b.id]
-    if s.rid=='' then
-      for _,r in ipairs(library) do
-        if norm(b.title)==norm(r.title) then s.rid=r.id; break end
+    local exact,suggest={},{}
+    local key=norm(b.title)
+    for _,r in ipairs(library) do
+      local rk=norm(r.title:gsub('%.epub$',''):gsub('%.txt$',''))
+      if rk==key then
+        exact[#exact+1]=r
+      elseif #key>=12 and #rk>=12 and
+         (rk:find(key,1,true) or key:find(rk,1,true)) then
+        suggest[#suggest+1]=r
       end
+    end
+    local code,reason
+    if s.rid~='' then
+      if linked[s.rid] then
+        scan.found=scan.found+1
+      else
+        code,reason='LINK CHANGED','Saved reader ID is no longer in the opened-books list.'
+      end
+    elseif #exact==1 then
+      s.rid=exact[1].id
+      scan.found=scan.found+1
+    elseif #exact>1 then
+      code,reason='MULTIPLE','More than one edition matches; choose the correct book.'
+    elseif #suggest>0 then
+      code,reason='CHECK TITLE','Similar title found; review before linking.'
+    else
+      code,reason='NOT INDEXED','Open once in Bookshelf; it may already be on the SD card.'
+    end
+    if code then
+      scan.issues[#scan.issues+1]={id=b.id,title=b.title,code=code,reason=reason}
     end
   end
 end
@@ -227,7 +267,7 @@ end
 local function try_open(b)
   local s=states[b.id]
   if s.rid=='' then
-    notify('Open the EPUB in Bookshelf once, then link it here.')
+    notify('NOT INDEXED: open the book in Bookshelf once.')
     return
   end
   local target=linked[s.rid]
@@ -272,10 +312,8 @@ local function open_or_link(b)
   local s=states[b.id]
   if s.rid~='' and linked[s.rid] then
     try_open(b)
-  elseif #library>0 then
-    begin_pick(b)
   else
-    notify('Not on device: open this EPUB from Bookshelf first.')
+    notify(scan.ok and 'NOT INDEXED: check Bookshelf, then tap CHECK.' or 'Reader index unavailable; check permission.')
   end
 end
 local function draw_head(g,title,subtitle)
@@ -284,9 +322,10 @@ local function draw_head(g,title,subtitle)
   line(g,75)
 end
 local function draw_list(g)
-  local ls=collect(view)
+  local ls=view=='check' and scan.issues or collect(view)
   local next_book=current_book()
-  draw_head(g,'READING ROADMAP',done_count()..' / '..#books..' finished    |    '..(view=='path' and 'Main path' or view=='all' and 'All books' or 'Finished'))
+  local sub=view=='check' and (scan.ok and (scan.found..' / '..#books..' identified   |   '..#scan.issues..' issues') or 'Reader index unavailable') or (done_count()..' / '..#books..' finished    |    '..(view=='path' and 'Main path' or view=='all' and 'All books' or 'Finished'))
+  draw_head(g,view=='check' and 'BOOK CHECK' or 'READING ROADMAP',sub)
   local rows=6
   local pages=math.max(1,math.ceil(#ls/rows))
   if page>pages then page=pages end
@@ -295,37 +334,49 @@ local function draw_list(g)
     local b=ls[offset+slot]
     if b then
       local y=86+(slot-1)*91
-      local st=states[b.id].status
-      local focused=next_book and next_book.id==b.id
+      local st=states[b.id] and states[b.id].status or 'todo'
+      local focused=view~='check' and next_book and next_book.id==b.id
       -- Only the book needing attention gets a frame; the remaining rows use quiet dividers.
       if focused then g:rect(9,y,W-18,84,{line_width=3,radius=8})
       else g:line(15,y+83,W-15,y+83,{line_width=1}) end
-      text(g,18,y+18,string.format('%02d',b.id),'medium',42)
+      text(g,18,y+18,b.id>0 and string.format('%02d',b.id) or '!!','medium',42)
       local ls_title=wrap(b.title,'medium',314,2)
       local title_y=y+(#ls_title>1 and 4 or 14)
       for i,v in ipairs(ls_title) do text(g,67,title_y+(i-1)*27,v,'medium',314) end
-      local p=percent(b)
+      local p=b.id>0 and percent(b) or nil
       local state_label=st=='done' and 'FINISHED' or st=='reading' and 'READING' or focused and 'READ NEXT' or 'TO READ'
-      local info=b.genre..'  |  '..state_label..(p and ('  |  '..p..'%') or '')
+      local info=view=='check' and b.code or (b.genre..'  |  '..state_label..(p and ('  |  '..p..'%') or ''))
       text(g,67,y+(#ls_title>1 and 59 or 48),info,'small',314)
       chevron(g,391,y+32)
-      g:line(407,y+9,407,y+75,{line_width=1})
-      text(g,416,y+32,'INFO','small',50)
-      hit(9,y,399,84,function() open_or_link(b) end)
-      hit(408,y,63,84,function() detail(b) end)
+      if view~='check' then
+        g:line(407,y+9,407,y+75,{line_width=1})
+        text(g,416,y+32,'INFO','small',50)
+      else
+        text(g,413,y+32,'FIX','small',56)
+      end
+      if view=='check' then
+        hit(9,y,462,84,function()
+          if b.id>0 then detail(books[b.id]) else notify('Reader index unavailable.') end
+        end)
+      else
+        hit(9,y,399,84,function() open_or_link(b) end)
+        hit(408,y,63,84,function() detail(b) end)
+      end
     end
   end
   if #ls==0 then
-    text(g,28,257,'No finished books yet','large',428)
-    text(g,28,309,'Finish a book to see it here.','medium',424)
+    text(g,28,257,view=='check' and 'No indexing issues' or 'No finished books yet','large',428)
+    text(g,28,309,view=='check' and 'All titles have reader matches.' or 'Finish a book to see it here.','medium',424)
     button(g,40,422,400,54,'BACK TO PATH',function()set_view('path')end)
   end
+  if view=='check' then text(g,15,628,'Opened-books index only; not a full SD scan.','small',450) end
   if page>1 then button(g,12,652,118,54,'< PREV',function() page=page-1;invalidate() end) end
   text(g,183,669,page..' / '..pages,'medium',110)
   if page<pages then button(g,349,652,119,54,'NEXT >',function() page=page+1;invalidate() end) end
-  button(g,12,725,146,58,'PATH',function() set_view('path') end,view=='path')
-  button(g,167,725,146,58,'ALL',function() set_view('all') end,view=='all')
-  button(g,322,725,146,58,'DONE',function() set_view('done') end,view=='done')
+  button(g,8,725,109,58,'PATH',function() set_view('path') end,view=='path')
+  button(g,126,725,109,58,'ALL',function() set_view('all') end,view=='all')
+  button(g,244,725,109,58,'DONE',function() set_view('done') end,view=='done')
+  button(g,362,725,109,58,'CHECK',function() set_view('check') end,view=='check')
 end
 local function draw_detail(g)
   local b=by_id[chosen]

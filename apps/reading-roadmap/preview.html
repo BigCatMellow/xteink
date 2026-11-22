@@ -135,7 +135,7 @@ function scanLibrary(){
  for(const b of books){
   const sb=status[b.id], key=titleKey(b.title);
   const exact=library.filter(r=>titleKey(r.title)===key);
-  const similar=library.filter(r=>{const k=titleKey(r.title);return k!==key&&key.length>=12&&k.length>=12&&(k.includes(key)||key.includes(k));});
+  const similar=library.filter(r=>{const k=titleKey(r.title);return k!==key&&key.length>=8&&k.length>=8&&(k.includes(key)||key.includes(k));});
   let code='',reason='';
   if(sb.rid){
    if(ids.has(sb.rid)){scan.found++;}

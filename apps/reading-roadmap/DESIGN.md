@@ -1,6 +1,6 @@
 # Reading Roadmap — visual and interaction contract
 
-Status: adopted for the standalone X4 Pro InkApp v0.3.0 and its matching 480×800 HTML canvas preview. Host rendering is not physical X4 Pro evidence. Owner: Reading Roadmap app. This document does **not** change the games' design contract.
+Status: adopted for the standalone X4 Pro InkApp v0.4.0 and its matching 480×800 HTML canvas preview. Host rendering is not physical X4 Pro evidence. Owner: Reading Roadmap app. This document does **not** change the games' design contract.
 
 ## Source of authority
 
@@ -13,10 +13,10 @@ The game-specific puzzle board requirements do **not** apply to a reading tracke
 
 ## User tasks and hierarchy
 
-1. Orient: what am I reading, what comes next, what have I completed?
+1. Orient: what am I reading, what comes next, what have I completed, and which books can the reader identify?
 2. Open: tap the title area of an available book to request the stock EPUB reader immediately; if it is not linked, offer linking only where possible.
 3. Manage (secondary): tap the separate INFO target to see the recommendation, mark started/finished, or change the reader link.
-4. Explore: move through the recommended sequence, with optional All and Finished filters.
+4. Explore: move through Path, All and Finished lists; tap Check to rescan available reader metadata and see complications.
 
 Do not add a dashboard, clock, streak, animation, or decorative cover images merely to fill space. Favor one clear state, legible words and direct controls.
 
@@ -37,7 +37,7 @@ Do not add a dashboard, clock, streak, animation, or decorative cover images mer
 
 Text and padding should be bounded based on measured glyphs, not character counts. Reserve two title lines if needed; keep the metadata distinct. Long descriptions and visual references should wrap instead of clipping. The fixed six-row screen deliberately uses its whole useful vertical band while leaving touch gutters between high-frequency footer controls.
 
-## Changes made for v0.3.0
+## Changes made for v0.4.0
 
 | Problem in v0.1.0 | Improvement | Why |
 | --- | --- | --- |
@@ -52,7 +52,7 @@ Text and padding should be bounded based on measured glyphs, not character count
 
 **Constrained non-goals:** do not invent EPUB file paths, pretend a direct-open API is verified, auto-finish a book solely from reader statistics, or change saved book IDs. Keep per-book status and link data in the app sandbox. Changing API permissions requires device confirmation.
 
-## v0.3.0: remove the mandatory detail-page detour
+## v0.4.0: remove the mandatory detail-page detour
 
 User feedback: “when you click on the book it should just take you to it.” The primary object must perform the primary task. This overrides the earlier detail-first design without weakening the visual or safety constraints.
 
@@ -61,6 +61,17 @@ User feedback: “when you click on the book it should just take you to it.” T
 - If the selected EPUB has not been linked and the reader reports books, go straight to the existing link picker. A selection stores that link and attempts to open it, then returns to the list. If the reader does not report any books, keep the user on the list and show “Not on device: open this EPUB from Bookshelf first.”
 - Never silently open another book, claim launch success from a missing response, or fabricate a file path. Direct reader-launch API behavior is **not physically verified**. Preserve the secondary INFO and manual status editing as fallbacks.
 - Hardware Back returns from linking to the originating screen and restores its page. All changes are mirrored in the HTML preview and tested.
+
+## v0.4.0: automatic matching and complications
+
+User requested that the app **search for the books** and **list any complications**.
+
+- The firmware-supported source is `ctx.reader:all_books()` plus `ctx.reader:books()`. The former includes books opened at least once, **not all EPUB files physically present on SD**. The app has no documented general SD-card directory enumeration API. Therefore `NOT INDEXED` explicitly means the title is not in the reader's history, **not** that it is absent from storage.
+- On startup, on opening the Check tab, and when returning from book management, scan the available reader index. Coalesce by reader ID and use **unique exact normalized titles** to auto-link. Trim filename .epub/.txt suffixes and punctuation. Do not automatically select multiple exact matches or merely similar titles.
+- The **Check** tab lists issues in reading order: `NOT INDEXED` (open once in Bookshelf), `MULTIPLE` (several editions), `CHECK TITLE` (similar title requiring manual review), `LINK CHANGED` (saved link missing), and `NO ACCESS` (reader API unavailable).
+- Show a concise resolution per issue on the same screen. An issue row opens its book-management screen for manual linking; returning from that screen restores Check and its previous page.
+- A successful unique match counts as identified; never silently claim every EPUB is found on the SD card. Previously saved progress and explicit manual links have priority, and no file content is altered.
+- Direct opening remains dependent on firmware behavior, which still needs physical confirmation. An absent or ambiguous match must not trigger a guessed EPUB launch.
 
 ## HTML and Lua parity
 
@@ -79,4 +90,4 @@ User feedback: “when you click on the book it should just take you to it.” T
 
 ## Review outcome
 
-The v0.3.0 source and preview use the same screen design as verified by the catalog/geometry regression, host Lua tests and browser interaction rendering. Hardware fidelity is **not** yet verified. Existing 11-game UI rules remain authoritative for games; this is the specific app's design owner.
+The v0.4.0 source and preview use the same screen design as verified by the catalog/geometry regression, host Lua tests and browser interaction rendering. Hardware fidelity is **not** yet verified. Existing 11-game UI rules remain authoritative for games; this is the specific app's design owner.

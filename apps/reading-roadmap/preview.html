@@ -106,6 +106,7 @@ const DEFAULTS={small:20,medium:24,large:30,stroke:1};
 const design={...DEFAULTS};
 const status=Object.fromEntries(books.map(b=>[b.id,{status:'todo',rid:''}]));
 let view='path',page=1,chosen=1,library=[],hits=[],message='';
+let scan={ok:true,found:0,issues:[],indexed:0};
 let pickOrigin='path',pickPage=1;
 const rawSaved=()=>{try{return JSON.parse(localStorage.getItem('reading-roadmap-preview')||'{}')}catch{return {}}};
 Object.entries(rawSaved()).forEach(([id,s])=>{if(status[id]&&['todo','reading','done'].includes(s.status)) status[id]={status:s.status,rid:s.rid||''};});
@@ -124,33 +125,57 @@ function wrap(s,name,width,maxlines){const out=[];let cur='';for(const word of s
 function doneCount(){return Object.values(status).filter(s=>s.status==='done').length;}
 function percent(b){const r=library.find(x=>x.id===status[b.id].rid);return r?(r.finished?100:Math.max(0,Math.min(100,Math.round(r.percent)))):null;}
 function collect(which){return books.filter(b=>which==='all'||which==='path'&&b.id<=9||which==='done'&&status[b.id].status==='done');}
+function titleKey(s){return safe(s).toLowerCase().replace(/\.(epub|txt)$/i,'').replace(/[^a-z0-9]/g,'');}
+function scanLibrary(){
+ const ids=new Map();
+ for(const r of library){if(r&&r.id&&r.title)ids.set(String(r.id),r);}
+ library=[...ids.values()].sort((a,b)=>safe(a.title).toLowerCase().localeCompare(safe(b.title).toLowerCase()));
+ scan={ok:true,found:0,issues:[],indexed:library.length};
+ for(const b of books){
+  const sb=status[b.id], key=titleKey(b.title);
+  const exact=library.filter(r=>titleKey(r.title)===key);
+  const similar=library.filter(r=>{const k=titleKey(r.title);return k!==key&&key.length>=12&&k.length>=12&&(k.includes(key)||key.includes(k));});
+  let code='',reason='';
+  if(sb.rid){
+   if(ids.has(sb.rid)){scan.found++;}
+   else{code='LINK CHANGED';reason='Saved reader ID is no longer in the opened-books list.';}
+  }else if(exact.length===1){sb.rid=String(exact[0].id);scan.found++;}
+  else if(exact.length>1){code='MULTIPLE';reason='More than one edition matches; choose the correct book.';}
+  else if(similar.length){code='CHECK TITLE';reason='Similar title found; review before linking.';}
+  else{code='NOT INDEXED';reason='Open once in Bookshelf; it may already be on the SD card.';}
+  if(code)scan.issues.push({id:b.id,title:b.title,code,reason});
+ }
+}
 function drawHead(title,subtitle){text(14,10,title,'large',452);text(14,47,subtitle,'small',452);line(75);}
 function drawList(){
- const ls=collect(view),nextBook=books.find(b=>status[b.id].status==='reading'&&b.id<=9)||books.find(b=>status[b.id].status!=='done'&&b.id<=9)||books.find(b=>status[b.id].status==='reading')||books.find(b=>status[b.id].status!=='done');
- drawHead('READING ROADMAP',doneCount()+' / '+books.length+' finished    |    '+(view==='path'?'Main path':view==='all'?'All books':'Finished'));
+ const ls=view==='check'?scan.issues:collect(view),nextBook=books.find(b=>status[b.id].status==='reading'&&b.id<=9)||books.find(b=>status[b.id].status!=='done'&&b.id<=9)||books.find(b=>status[b.id].status==='reading')||books.find(b=>status[b.id].status!=='done');
+ const sub=view==='check'?(scan.ok?scan.found+' / '+books.length+' identified   |   '+scan.issues.length+' issues':'Reader index unavailable'):(doneCount()+' / '+books.length+' finished    |    '+(view==='path'?'Main path':view==='all'?'All books':'Finished'));
+ drawHead(view==='check'?'BOOK CHECK':'READING ROADMAP',sub);
  const pages=Math.max(1,Math.ceil(ls.length/6));page=Math.min(page,pages);const off=(page-1)*6;
  for(let slot=0;slot<6;slot++){
   const b=ls[off+slot];if(!b)continue;
-  const y=86+slot*91,st=status[b.id].status,focused=nextBook&&nextBook.id===b.id;
+  const y=86+slot*91,st=status[b.id]?.status||'todo',focused=view!=='check'&&nextBook&&nextBook.id===b.id;
   if(focused)rect(9,y,462,84,3,8);else{g.lineWidth=1;g.beginPath();g.moveTo(15,y+83);g.lineTo(465,y+83);g.stroke();}
-  text(18,y+18,String(b.id).padStart(2,'0'),'medium',42);
+  text(18,y+18,b.id>0?String(b.id).padStart(2,'0'):'!!','medium',42);
   const titleLines=wrap(b.title,'medium',314,2),titleY=y+(titleLines.length>1?4:14);
   titleLines.forEach((s,i)=>text(67,titleY+i*27,s,'medium',314));
-  const p=percent(b);const stateLabel=st==='done'?'FINISHED':st==='reading'?'READING':focused?'READ NEXT':'TO READ';
-  const info=b.genre+'  |  '+stateLabel+(p!==null?'  |  '+p+'%':'');
+  const p=b.id>0?percent(b):null;const stateLabel=st==='done'?'FINISHED':st==='reading'?'READING':focused?'READ NEXT':'TO READ';
+  const info=view==='check'?b.code:(b.genre+'  |  '+stateLabel+(p!==null?'  |  '+p+'%':''));
   text(67,y+(titleLines.length>1?59:48),info,'small',314);
   chevron(391,y+32);
-  g.lineWidth=1;g.beginPath();g.moveTo(407,y+9);g.lineTo(407,y+75);g.stroke();
-  text(416,y+32,'INFO','small',50);
-  hit(9,y,399,84,()=>openOrLink(b));
-  hit(408,y,63,84,()=>detail(b));
+  if(view!=='check'){g.lineWidth=1;g.beginPath();g.moveTo(407,y+9);g.lineTo(407,y+75);g.stroke();text(416,y+32,'INFO','small',50);}
+  else{text(413,y+32,'FIX','small',56);}
+  if(view==='check')hit(9,y,462,84,()=>{if(b.id>0)detail(books[b.id-1]);else message='Reader index unavailable.';});
+  else{hit(9,y,399,84,()=>openOrLink(b));hit(408,y,63,84,()=>detail(b));}
  }
- if(!ls.length){text(28,257,'No finished books yet','large',428);text(28,309,'Finish a book to see it here.','medium',424);button(40,422,400,54,'BACK TO PATH',()=>setView('path'));}
+ if(!ls.length){text(28,257,view==='check'?'No indexing issues':'No finished books yet','large',428);text(28,309,view==='check'?'All titles have reader matches.':'Finish a book to see it here.','medium',424);button(40,422,400,54,'BACK TO PATH',()=>setView('path'));}
+ if(view==='check')text(15,628,'Opened-books index only; not a full SD scan.','small',450);
  page>1&&button(12,652,118,54,'< PREV',()=>{page--;draw()});text(183,669,page+' / '+pages,'medium',110);
  page<pages&&button(349,652,119,54,'NEXT >',()=>{page++;draw()});
- button(12,725,146,58,'PATH',()=>setView('path'),view==='path');
- button(167,725,146,58,'ALL',()=>setView('all'),view==='all');
- button(322,725,146,58,'DONE',()=>setView('done'),view==='done');
+ button(8,725,109,58,'PATH',()=>setView('path'),view==='path');
+ button(126,725,109,58,'ALL',()=>setView('all'),view==='all');
+ button(244,725,109,58,'DONE',()=>setView('done'),view==='done');
+ button(362,725,109,58,'CHECK',()=>setView('check'),view==='check');
 }
 function setView(v){view=v;page=1;draw();}
 function detail(b){chosen=b.id;setView('detail');}

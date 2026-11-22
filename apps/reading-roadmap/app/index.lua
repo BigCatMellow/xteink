@@ -366,7 +366,7 @@ local function draw_list(g)
         g:line(407,y+9,407,y+75,{line_width=1})
         text(g,416,y+32,'INFO','small',50)
       else
-        text(g,413,y+32,'FIX','small',56)
+        text(g,413,y+32,'INFO','small',56)
       end
       if view=='check' then
         hit(9,y,462,84,function()

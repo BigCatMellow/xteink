@@ -108,6 +108,7 @@ const status=Object.fromEntries(books.map(b=>[b.id,{status:'todo',rid:''}]));
 let view='path',page=1,chosen=1,library=[],hits=[],message='';
 let scan={ok:true,found:0,issues:[],indexed:0};
 let pickOrigin='path',pickPage=1;
+let detailOrigin='path',detailPage=1;
 const rawSaved=()=>{try{return JSON.parse(localStorage.getItem('reading-roadmap-preview')||'{}')}catch{return {}}};
 Object.entries(rawSaved()).forEach(([id,s])=>{if(status[id]&&['todo','reading','done'].includes(s.status)) status[id]={status:s.status,rid:s.rid||''};});
 function save(){try{localStorage.setItem('reading-roadmap-preview',JSON.stringify(status))}catch{}}
@@ -138,11 +139,11 @@ function scanLibrary(){
   let code='',reason='';
   if(sb.rid){
    if(ids.has(sb.rid)){scan.found++;}
-   else{code='LINK CHANGED';reason='Saved reader ID is no longer in the opened-books list.';}
+   else{code='LINK CHANGED';reason='Relink: saved ID not found';}
   }else if(exact.length===1){sb.rid=String(exact[0].id);scan.found++;}
-  else if(exact.length>1){code='MULTIPLE';reason='More than one edition matches; choose the correct book.';}
-  else if(similar.length){code='CHECK TITLE';reason='Similar title found; review before linking.';}
-  else{code='NOT INDEXED';reason='Open once in Bookshelf; it may already be on the SD card.';}
+  else if(exact.length>1){code='MULTIPLE';reason='Choose the correct edition';}
+  else if(similar.length){code='CHECK TITLE';reason='Verify similar title before link';}
+  else{code='NOT INDEXED';reason='Open it once in Bookshelf';}
   if(code)scan.issues.push({id:b.id,title:b.title,code,reason});
  }
 }
@@ -175,7 +176,7 @@ function drawList(){
   else{hit(9,y,399,84,()=>openOrLink(b));hit(408,y,63,84,()=>detail(b));}
  }
  if(!ls.length){text(28,257,view==='check'?'No indexing issues':'No finished books yet','large',428);text(28,309,view==='check'?'All titles have reader matches.':'Finish a book to see it here.','medium',424);button(40,422,400,54,'BACK TO PATH',()=>setView('path'));}
- if(view==='check')text(15,628,'Opened-books index only; not a full SD scan.','small',450);
+ if(view==='check')text(15,628,'Opened books only; SD not scanned','small',450);
  page>1&&button(12,652,118,54,'< PREV',()=>{page--;draw()});text(183,669,page+' / '+pages,'medium',110);
  page<pages&&button(349,652,119,54,'NEXT >',()=>{page++;draw()});
  button(8,725,109,58,'PATH',()=>setView('path'),view==='path');
@@ -184,7 +185,8 @@ function drawList(){
  button(362,725,109,58,'CHECK',()=>setView('check'),view==='check');
 }
 function setView(v){view=v;page=1;scanLibrary();draw();}
-function detail(b){chosen=b.id;setView('detail');}
+function detail(b){if(view!=='detail'){detailOrigin=view;detailPage=page;}chosen=b.id;setView('detail');}
+function backFromDetail(){const prev=detailPage,target=detailOrigin;setView(target);if(target==='check'){page=Math.min(prev,Math.max(1,Math.ceil(scan.issues.length/6)));draw();}}
 function setStatus(v){status[chosen].status=v;save();draw();}
 function beginPick(b){chosen=b.id;pickOrigin=view;pickPage=page;view='pick';page=1;draw();}
 function leavePick(){view=pickOrigin;page=pickPage;draw();}
@@ -217,7 +219,7 @@ function drawDetail(){
  button(247,584,218,55,'FINISHED',()=>setStatus('done'),st==='done');
  if(status[b.id].rid===''){button(15,650,450,55,'LINK AN EPUB',()=>beginPick(b));}
  else{button(15,650,218,55,'LINK BOOK',()=>beginPick(b));button(247,650,218,55,'OPEN BOOK',()=>openBook(b));}
- button(15,723,450,59,'BACK TO LIST',()=>setView(chosen<=9?'path':'all'));
+ button(15,723,450,59,'BACK TO LIST',()=>backFromDetail());
 }
 function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Bookshelf.');const pages=Math.max(1,Math.ceil(library.length/6));page=Math.min(page,pages);for(let slot=0;slot<6;slot++){const r=library[(page-1)*6+slot];if(!r)continue;let y=87+slot*90;rect(10,y,460,82);text(19,y+8,r.title,'medium',440);text(19,y+42,r.author,'small',440);hit(10,y,460,82,()=>{status[chosen].rid=r.id;save();const from=pickOrigin;leavePick();if(from!=='detail'){openBook(books[chosen-1]);draw();}});}
  if(library.length===0){text(18,115,'No opened books were reported by the reader.','medium',440);text(18,154,'Open the EPUB in Bookshelf first.','medium',440);}
@@ -226,7 +228,7 @@ function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Boo
 function openBook(b){if(status[b.id].rid){message='PREVIEW: Would open '+b.title+'.';}else{message='Open the EPUB in Bookshelf first.';}el('parity').textContent='PREVIEW ONLY: '+message+' The browser cannot launch the physical reader.';}
 function draw(){hits=[];g.fillStyle='#fff';g.fillRect(0,0,480,800);g.lineJoin='miter';g.lineCap='butt';if(view==='detail')drawDetail();else if(view==='pick')drawPick();else drawList();if(message){text(15,['path','all','done'].includes(view)?628:782,message,'small',450);message='';}el('scene').value=view;el('book').value=String(chosen);}
 canvas.addEventListener('pointerup',e=>{const b=canvas.getBoundingClientRect(),x=(e.clientX-b.left)*480/b.width,y=(e.clientY-b.top)*800/b.height;for(let i=hits.length-1;i>=0;i--){const h=hits[i];if(x>=h.x&&x<h.x+h.w&&y>=h.y&&y<h.y+h.h){h.fn();draw();return;}}});
-document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;if(e.key==='Escape'){if(view==='pick')leavePick();else if(view==='detail')setView(chosen<=9?'path':'all');}
+document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;if(e.key==='Escape'){if(view==='pick')leavePick();else if(view==='detail')backFromDetail();}
  if(e.key==='Enter'&&view==='path'){openOrLink(books.find(b=>status[b.id].status==='reading'&&b.id<=9)||books.find(b=>status[b.id].status!=='done'&&b.id<=9)||books[0]);}if(e.key==='ArrowRight'||e.key==='ArrowDown'){page++;draw();}if(e.key==='ArrowLeft'||e.key==='ArrowUp'){page=Math.max(1,page-1);draw();}});
 el('scene').addEventListener('change',e=>setView(e.target.value));el('book').addEventListener('change',e=>{chosen=+e.target.value;if(view==='detail'||view==='pick')draw();});
 books.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=`${b.id}. ${b.title}`;el('book').append(o);});

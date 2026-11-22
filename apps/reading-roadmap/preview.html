@@ -157,11 +157,17 @@ function drawList(){
   const y=86+slot*91,st=status[b.id]?.status||'todo',focused=view!=='check'&&nextBook&&nextBook.id===b.id;
   if(focused)rect(9,y,462,84,3,8);else{g.lineWidth=1;g.beginPath();g.moveTo(15,y+83);g.lineTo(465,y+83);g.stroke();}
   text(18,y+18,b.id>0?String(b.id).padStart(2,'0'):'!!','medium',42);
-  const titleLines=wrap(b.title,'medium',314,2),titleY=y+(titleLines.length>1?4:14);
-  titleLines.forEach((s,i)=>text(67,titleY+i*27,s,'medium',314));
-  const p=b.id>0?percent(b):null;const stateLabel=st==='done'?'FINISHED':st==='reading'?'READING':focused?'READ NEXT':'TO READ';
-  const info=view==='check'?b.code:(b.genre+'  |  '+stateLabel+(p!==null?'  |  '+p+'%':''));
-  text(67,y+(titleLines.length>1?59:48),info,'small',314);
+  if(view==='check'){
+   text(67,y+4,b.title,'medium',314);
+   text(67,y+32,b.code,'small',314);
+   text(67,y+58,b.reason,'small',314);
+  }else{
+   const titleLines=wrap(b.title,'medium',314,2),titleY=y+(titleLines.length>1?4:14);
+   titleLines.forEach((s,i)=>text(67,titleY+i*27,s,'medium',314));
+   const p=percent(b);const stateLabel=st==='done'?'FINISHED':st==='reading'?'READING':focused?'READ NEXT':'TO READ';
+   const info=b.genre+'  |  '+stateLabel+(p!==null?'  |  '+p+'%':'');
+   text(67,y+(titleLines.length>1?59:48),info,'small',314);
+  }
   chevron(391,y+32);
   if(view!=='check'){g.lineWidth=1;g.beginPath();g.moveTo(407,y+9);g.lineTo(407,y+75);g.stroke();text(416,y+32,'INFO','small',50);}
   else{text(413,y+32,'FIX','small',56);}

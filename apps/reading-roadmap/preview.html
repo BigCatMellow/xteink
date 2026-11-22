@@ -192,7 +192,7 @@ function drawDetail(){
  else{button(15,650,218,55,'LINK BOOK',()=>beginPick(b));button(247,650,218,55,'OPEN BOOK',()=>openBook(b));}
  button(15,723,450,59,'BACK TO LIST',()=>setView(chosen<=9?'path':'all'));
 }
-function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Bookshelf.');const pages=Math.max(1,Math.ceil(library.length/6));page=Math.min(page,pages);for(let slot=0;slot<6;slot++){const r=library[(page-1)*6+slot];if(!r)continue;let y=87+slot*90;rect(10,y,460,82);text(19,y+8,r.title,'medium',440);text(19,y+42,r.author,'small',440);hit(10,y,460,82,()=>{status[chosen].rid=r.id;save();const from=pickOrigin;leavePick();if(from!=='detail')openBook(books[chosen-1]);});}
+function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Bookshelf.');const pages=Math.max(1,Math.ceil(library.length/6));page=Math.min(page,pages);for(let slot=0;slot<6;slot++){const r=library[(page-1)*6+slot];if(!r)continue;let y=87+slot*90;rect(10,y,460,82);text(19,y+8,r.title,'medium',440);text(19,y+42,r.author,'small',440);hit(10,y,460,82,()=>{status[chosen].rid=r.id;save();const from=pickOrigin;leavePick();if(from!=='detail'){openBook(books[chosen-1]);draw();}});}
  if(library.length===0){text(18,115,'No opened books were reported by the reader.','medium',440);text(18,154,'Open the EPUB in Bookshelf first.','medium',440);}
  page>1&&button(12,652,118,54,'< PREV',()=>{page--;draw()});text(190,669,`${page} / ${pages}`,'medium',92);page<pages&&button(349,652,119,54,'NEXT >',()=>{page++;draw()});button(15,725,450,56,'BACK',()=>leavePick());
 }

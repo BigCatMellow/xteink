@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""Block UI drift between native Lua and the interactive HTML preview."""
+from pathlib import Path
+import re
+
+root = Path(__file__).resolve().parents[1]
+lua = (root / 'app/index.lua').read_text()
+html = (root / 'preview.html').read_text()
+def extract(pat, source):
+    m = re.search(pat, source, re.S)
+    assert m, pat
+    return m.group(1).strip().splitlines()
+
+a = extract(r'local RAW\s*=\s*\[=\[(.*?)\]=\]', lua)
+b = extract(r'const RAW\s*=\s*`(.*?)`;', html)
+assert a == b, 'The 33-book ordering, IDs, authors and notes must match'
+assert len(a) == 33
+assert '<canvas id="screen" width="480" height="800"' in html
+pairs = [
+("local y=86+(slot-1)*91", "const y=86+slot*91"),
+("g:rect(9,y,W-18,84", "rect(9,y,462,84)"),
+("hit(9,y,W-18,84", "hit(9,y,462,84"),
+("draw_head(g,'READING ROADMAP'", "drawHead('READING ROADMAP'"),
+]
+buttons=[
+(12,652,118,54,"< PREV"),(349,652,119,54,"NEXT >"),
+(12,725,146,58,"PATH"),(167,725,146,58,"ALL"),
+(322,725,146,58,"DONE"),(15,584,218,55,"START"),
+(247,584,218,55,"FINISHED"),(15,650,218,55,"LINK BOOK"),
+(247,650,218,55,"OPEN BOOK"),(15,723,450,59,"BACK TO LIST"),
+(15,725,450,56,"CANCEL")
+]
+for x,y,w,h,label in buttons:
+    pairs.append((f"button(g,{x},{y},{w},{h},'{label}'",f"button({x},{y},{w},{h},'{label}'"))
+for native,web in pairs:
+    assert native in lua, f"Native UI changed: {native}"
+    assert web in html, f"Preview UI changed: {web}"
+assert "const DEFAULTS={small:20,medium:24,large:30,stroke:1}" in html
+assert "preview_only:changed" in html
+print("PASS: 33-title catalogue and 15 native UI geometry checks")

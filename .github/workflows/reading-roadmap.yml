@@ -43,5 +43,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: reading-roadmap-xtapp
-          path: dist/reading-roadmap.xtapp
+          path: |
+            dist/reading-roadmap.xtapp
+            apps/reading-roadmap/preview.html
           if-no-files-found: error

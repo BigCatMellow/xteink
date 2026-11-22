@@ -27,7 +27,7 @@ code{background:#f3f3f3;border-radius:4px;padding:1px 4px}textarea{width:100%;mi
 <div class="layout">
   <section class="device-wrap">
     <h1>Reading Roadmap — X4 Pro mockup</h1>
-    <p style="font-size:13px">480 × 800 · Native app v0.3.0 layout</p>
+    <p style="font-size:13px">480 × 800 · Native app v0.4.0 layout</p>
     <div class="device"><canvas id="screen" width="480" height="800" role="img" aria-label="Interactive preview of the Reading Roadmap e-ink application"></canvas></div>
     <div class="footnote">The white device area reproduces the current Lua screen's coordinates, labels, hit areas and navigation. The controls to the right are <strong>preview only</strong>, not part of the device app.</div>
   </section>
@@ -177,7 +177,7 @@ function drawList(){
  button(244,725,109,58,'DONE',()=>setView('done'),view==='done');
  button(362,725,109,58,'CHECK',()=>setView('check'),view==='check');
 }
-function setView(v){view=v;page=1;draw();}
+function setView(v){view=v;page=1;scanLibrary();draw();}
 function detail(b){chosen=b.id;setView('detail');}
 function setStatus(v){status[chosen].status=v;save();draw();}
 function beginPick(b){chosen=b.id;pickOrigin=view;pickPage=page;view='pick';page=1;draw();}
@@ -185,13 +185,9 @@ function leavePick(){view=pickOrigin;page=pickPage;draw();}
 function openOrLink(b){
  chosen=b.id;
  const sb=status[b.id];
- if(!sb.rid){
-  const same=library.find(x=>safe(x.title).toLowerCase().replace(/[^a-z0-9]/g,'')===safe(b.title).toLowerCase().replace(/[^a-z0-9]/g,''));
-  if(same){sb.rid=same.id;save();}
- }
+ scanLibrary();
  if(sb.rid&&library.some(x=>x.id===sb.rid)){openBook(b);}
- else if(library.length){beginPick(b);}
- else{message='Not on device: open this EPUB from Bookshelf first.';}
+ else{message='NOT INDEXED: check Bookshelf, then tap CHECK.';}
 }
 function drawDetail(){
  const b=books[chosen-1],st=status[b.id].status;
@@ -228,13 +224,13 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textar
  if(e.key==='Enter'&&view==='path'){openOrLink(books.find(b=>status[b.id].status==='reading'&&b.id<=9)||books.find(b=>status[b.id].status!=='done'&&b.id<=9)||books[0]);}if(e.key==='ArrowRight'||e.key==='ArrowDown'){page++;draw();}if(e.key==='ArrowLeft'||e.key==='ArrowUp'){page=Math.max(1,page-1);draw();}});
 el('scene').addEventListener('change',e=>setView(e.target.value));el('book').addEventListener('change',e=>{chosen=+e.target.value;if(view==='detail'||view==='pick')draw();});
 books.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=`${b.id}. ${b.title}`;el('book').append(o);});
-el('simulate').addEventListener('click',()=>{library=[{id:'sample-01',title:'A Knight of the Seven Kingdoms',author:'George R. R. Martin',percent:43},{id:'sample-02',title:'All Systems Red',author:'Martha Wells',percent:12},{id:'sample-03',title:'Project Hail Mary',author:'Andy Weir',percent:86}];if(!status[1].rid)status[1].rid='sample-01';save();draw();el('simulate').textContent='Sample books enabled';});
-el('reset').addEventListener('click',()=>{books.forEach(b=>status[b.id]={status:'todo',rid:''});save();view='path';page=1;chosen=1;draw();});
-function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.3.0',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.3.0 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
+el('simulate').addEventListener('click',()=>{library=[{id:'sample-01',title:'A Knight of the Seven Kingdoms',author:'George R. R. Martin',percent:43},{id:'sample-02',title:'All Systems Red',author:'Martha Wells',percent:12},{id:'sample-03',title:'Project Hail Mary',author:'Andy Weir',percent:86},{id:'sample-04',title:'The Martian Extended Edition',author:'Andy Weir',percent:0},{id:'sample-05',title:'True Grit',author:'Charles Portis',percent:0},{id:'sample-06',title:'True Grit',author:'Charles Portis',percent:0}];scanLibrary();save();draw();el('simulate').textContent='Sample index enabled';});
+el('reset').addEventListener('click',()=>{books.forEach(b=>status[b.id]={status:'todo',rid:''});scanLibrary();save();view='path';page=1;chosen=1;draw();});
+function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.4.0',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.4.0 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
 for(const key of Object.keys(DEFAULTS)){el(key).addEventListener('input',e=>{design[key]=+e.target.value;el(key+'Out').textContent=key==='stroke'?`${design[key]}×`:`${design[key]} px`;writeProposal();draw();});}
 el('defaults').addEventListener('click',()=>{Object.assign(design,DEFAULTS);for(let key of Object.keys(DEFAULTS)){el(key).value=design[key];el(key+'Out').textContent=key==='stroke'?'1×':`${design[key]} px`;}writeProposal();draw();});
 el('copy').addEventListener('click',async()=>{const s=el('details').value;try{await navigator.clipboard.writeText(s);el('copy').textContent='Copied';setTimeout(()=>el('copy').textContent='Copy changes for native app',1600);}catch{el('details').focus();el('details').select();}});
-writeProposal();draw();
+scanLibrary();writeProposal();draw();
 </script>
 </body>
 </html>

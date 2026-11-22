@@ -49,6 +49,7 @@ code{background:#f3f3f3;border-radius:4px;padding:1px 4px}textarea{width:100%;mi
       <button id="simulate">Simulate opened EPUBs</button>
       <button id="reset">Reset preview progress</button>
     </div>
+    <div class="row"><button id="unavailable">Simulate reader unavailable</button></div>
     <div class="warning" id="parity">DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.</div>
     <h3 style="font-size:16px;margin:18px 0 4px">Typography / drawing experiments</h3>
     <p style="font-size:12px">Changing these creates an <strong>unsynced design proposal</strong>. Copy the settings below so the same changes can be applied and verified in Lua.</p>
@@ -108,6 +109,7 @@ const design={...DEFAULTS};
 const status=Object.fromEntries(books.map(b=>[b.id,{status:'todo',rid:''}]));
 let view='path',page=1,chosen=1,library=[],hits=[],message='';
 let scan={ok:true,found:0,issues:[],indexed:0};
+let readerAvailable=true;
 let pickOrigin='path',pickPage=1;
 let detailOrigin='path',detailPage=1;
 const rawSaved=()=>{try{return JSON.parse(localStorage.getItem('reading-roadmap-preview')||'{}')}catch{return {}}};
@@ -129,6 +131,10 @@ function percent(b){const r=library.find(x=>x.id===status[b.id].rid);return r?(r
 function collect(which){return books.filter(b=>which==='all'||which==='path'&&b.id<=9||which==='done'&&status[b.id].status==='done');}
 function titleKey(s){return safe(s).toLowerCase().replace(/\.(epub|txt)$/i,'').replace(/[^a-z0-9]/g,'');}
 function scanLibrary(){
+ if(!readerAvailable){
+  scan={ok:false,found:0,indexed:0,issues:[{id:0,title:'Reader access unavailable',code:'NO ACCESS',reason:'Check reader permission or update'}]};
+  return;
+ }
  const ids=new Map();
  for(const r of library){if(r&&r.id&&r.title)ids.set(String(r.id),r);}
  library=[...ids.values()].sort((a,b)=>safe(a.title).toLowerCase().localeCompare(safe(b.title).toLowerCase()));
@@ -233,8 +239,9 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textar
  if(e.key==='Enter'&&view==='path'){openOrLink(books.find(b=>status[b.id].status==='reading'&&b.id<=9)||books.find(b=>status[b.id].status!=='done'&&b.id<=9)||books[0]);}if(e.key==='ArrowRight'||e.key==='ArrowDown'){page++;draw();}if(e.key==='ArrowLeft'||e.key==='ArrowUp'){page=Math.max(1,page-1);draw();}});
 el('scene').addEventListener('change',e=>setView(e.target.value));el('book').addEventListener('change',e=>{chosen=+e.target.value;if(view==='detail'||view==='pick')draw();});
 books.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=`${b.id}. ${b.title}`;el('book').append(o);});
-el('simulate').addEventListener('click',()=>{library=[{id:'sample-01',title:'A Knight of the Seven Kingdoms',author:'George R. R. Martin',percent:43},{id:'sample-02',title:'All Systems Red',author:'Martha Wells',percent:12},{id:'sample-03',title:'Project Hail Mary',author:'Andy Weir',percent:86},{id:'sample-04',title:'The Martian Extended Edition',author:'Andy Weir',percent:0},{id:'sample-05',title:'True Grit',author:'Charles Portis',percent:0},{id:'sample-06',title:'True Grit',author:'Charles Portis',percent:0}];scanLibrary();save();draw();el('simulate').textContent='Sample index enabled';});
-el('reset').addEventListener('click',()=>{books.forEach(b=>status[b.id]={status:'todo',rid:''});scanLibrary();save();view='path';page=1;chosen=1;draw();});
+el('simulate').addEventListener('click',()=>{readerAvailable=true;el('unavailable').textContent='Simulate reader unavailable';library=[{id:'sample-01',title:'A Knight of the Seven Kingdoms',author:'George R. R. Martin',percent:43},{id:'sample-02',title:'All Systems Red',author:'Martha Wells',percent:12},{id:'sample-03',title:'Project Hail Mary',author:'Andy Weir',percent:86},{id:'sample-04',title:'The Martian Extended Edition',author:'Andy Weir',percent:0},{id:'sample-05',title:'True Grit',author:'Charles Portis',percent:0},{id:'sample-06',title:'True Grit',author:'Charles Portis',percent:0}];scanLibrary();save();draw();el('simulate').textContent='Sample index enabled';});
+el('unavailable').addEventListener('click',()=>{readerAvailable=!readerAvailable;el('unavailable').textContent=readerAvailable?'Simulate reader unavailable':'Restore reader access';scanLibrary();view='check';page=1;draw();});
+el('reset').addEventListener('click',()=>{readerAvailable=true;el('unavailable').textContent='Simulate reader unavailable';books.forEach(b=>status[b.id]={status:'todo',rid:''});scanLibrary();save();view='path';page=1;chosen=1;draw();});
 function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.4.0',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.4.0 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
 for(const key of Object.keys(DEFAULTS)){el(key).addEventListener('input',e=>{design[key]=+e.target.value;el(key+'Out').textContent=key==='stroke'?`${design[key]}×`:`${design[key]} px`;writeProposal();draw();});}
 el('defaults').addEventListener('click',()=>{Object.assign(design,DEFAULTS);for(let key of Object.keys(DEFAULTS)){el(key).value=design[key];el(key+'Out').textContent=key==='stroke'?'1×':`${design[key]} px`;}writeProposal();draw();});

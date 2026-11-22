@@ -393,7 +393,7 @@ local function draw_pick(g)
   if page>1 then button(g,12,652,118,54,'< PREV',function() page=page-1;invalidate() end) end
   text(g,190,669,page..' / '..pages,'medium',92)
   if page<pages then button(g,349,652,119,54,'NEXT >',function() page=page+1;invalidate() end) end
-  button(g,15,725,450,56,'BACK TO LIST',function()leave_pick()end)
+  button(g,15,725,450,56,'BACK',function()leave_pick()end)
 end
 function on_load(c)
   ctx=c or ctx

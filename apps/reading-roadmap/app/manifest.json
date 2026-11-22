@@ -1,7 +1,7 @@
 {
   "app_id": "readingpath",
   "display_name": "Reading Roadmap",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "BigCatMellow",
   "description": "Your ordered reading list, progress and reader links",
   "entry": "index.lua",

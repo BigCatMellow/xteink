@@ -340,13 +340,19 @@ local function draw_list(g)
       if focused then g:rect(9,y,W-18,84,{line_width=3,radius=8})
       else g:line(15,y+83,W-15,y+83,{line_width=1}) end
       text(g,18,y+18,b.id>0 and string.format('%02d',b.id) or '!!','medium',42)
-      local ls_title=wrap(b.title,'medium',314,2)
-      local title_y=y+(#ls_title>1 and 4 or 14)
-      for i,v in ipairs(ls_title) do text(g,67,title_y+(i-1)*27,v,'medium',314) end
-      local p=b.id>0 and percent(b) or nil
-      local state_label=st=='done' and 'FINISHED' or st=='reading' and 'READING' or focused and 'READ NEXT' or 'TO READ'
-      local info=view=='check' and b.code or (b.genre..'  |  '..state_label..(p and ('  |  '..p..'%') or ''))
-      text(g,67,y+(#ls_title>1 and 59 or 48),info,'small',314)
+      if view=='check' then
+        text(g,67,y+4,b.title,'medium',314)
+        text(g,67,y+32,b.code,'small',314)
+        text(g,67,y+58,b.reason,'small',314)
+      else
+        local ls_title=wrap(b.title,'medium',314,2)
+        local title_y=y+(#ls_title>1 and 4 or 14)
+        for i,v in ipairs(ls_title) do text(g,67,title_y+(i-1)*27,v,'medium',314) end
+        local p=percent(b)
+        local state_label=st=='done' and 'FINISHED' or st=='reading' and 'READING' or focused and 'READ NEXT' or 'TO READ'
+        local info=b.genre..'  |  '..state_label..(p and ('  |  '..p..'%') or '')
+        text(g,67,y+(#ls_title>1 and 59 or 48),info,'small',314)
+      end
       chevron(g,391,y+32)
       if view~='check' then
         g:line(407,y+9,407,y+75,{line_width=1})

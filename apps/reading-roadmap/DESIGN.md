@@ -1,6 +1,6 @@
 # Reading Roadmap — visual and interaction contract
 
-Status: adopted for the standalone X4 Pro InkApp v0.2.0 and its matching 480×800 HTML canvas preview. Host rendering is not physical X4 Pro evidence. Owner: Reading Roadmap app. This document does **not** change the games' design contract.
+Status: adopted for the standalone X4 Pro InkApp v0.2.1 and its matching 480×800 HTML canvas preview. Host rendering is not physical X4 Pro evidence. Owner: Reading Roadmap app. This document does **not** change the games' design contract.
 
 ## Source of authority
 
@@ -37,7 +37,7 @@ Do not add a dashboard, clock, streak, animation, or decorative cover images mer
 
 Text and padding should be bounded based on measured glyphs, not character counts. Reserve two title lines if needed; keep the metadata distinct. Long descriptions and visual references should wrap instead of clipping. The fixed six-row screen deliberately uses its whole useful vertical band while leaving touch gutters between high-frequency footer controls.
 
-## Changes made for v0.2.0
+## Changes made for v0.2.1
 
 | Problem in v0.1.0 | Improvement | Why |
 | --- | --- | --- |
@@ -47,6 +47,8 @@ Text and padding should be bounded based on measured glyphs, not character count
 | Button corners were square, 2px frames; active tabs not visible | Shared-family rounded 9px / 3px style, selected inset on active tab and status | SHAPE-001, meaningful selection and consistent affordances |
 | Detail screen reserved a fixed empty 100px band | Dynamic title/note/reference layout, followed by Previous/Next Book controls | DENSITY-001 and next-action continuity |
 | Empty Finished view contained a blank page | Meaningful empty-state explanation and Back to Path control | Recoverable state, no unexplained whitespace |
+| Disabled Prev/Next pages still looked like functional buttons | Omit unavailable page arrows | INT-001: visible actions should actually work |
+| Unlinked books offered OPEN BOOK despite no valid link | Show a single full-width LINK AN EPUB action until a book is linked; show Link/Open only after linking | INT-002, honest action availability and clearer priority |
 
 **Constrained non-goals:** do not invent EPUB file paths, pretend a direct-open API is verified, auto-finish a book solely from reader statistics, or change saved book IDs. Keep per-book status and link data in the app sandbox. Changing API permissions requires device confirmation.
 

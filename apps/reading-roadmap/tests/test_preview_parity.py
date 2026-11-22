@@ -18,7 +18,7 @@ assert len(a) == 33
 assert '<canvas id="screen" width="480" height="800"' in html
 pairs = [
 ("local y=86+(slot-1)*91", "const y=86+slot*91"),
-("g:rect(9,y,W-18,84", "rect(9,y,462,84)"),
+("g:rect(9,y,W-18,84", "rect(9,y,462,84,3,8)"),
 ("hit(9,y,W-18,84", "hit(9,y,462,84"),
 ("draw_head(g,'READING ROADMAP'", "drawHead('READING ROADMAP'"),
 ]
@@ -37,4 +37,11 @@ for native,web in pairs:
     assert web in html, f"Preview UI changed: {web}"
 assert "const DEFAULTS={small:20,medium:24,large:30,stroke:1}" in html
 assert "preview_only:changed" in html
-print("PASS: 33-title catalogue and 15 native UI geometry checks")
+assert "string.format('%02d',b.id)" in lua
+assert "String(b.id).padStart(2,'0')" in html
+assert "WHY THIS BOOK" in lua and "WHY THIS BOOK" in html
+assert "READ NEXT" in lua and "READ NEXT" in html
+assert "control_radius=9" not in lua  # standalone app uses explicit shared-family 9px radius
+assert "radius=9" in lua and "rect(x,y,w,h,3,9)" in html
+assert "version 0.1.0" not in html
+print("PASS: catalog, reading hierarchy, corners and 15 matching UI touch geometries")

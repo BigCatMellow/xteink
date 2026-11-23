@@ -997,7 +997,8 @@
       "estimated_commitment": null,
       "sequence_next_order": null,
       "source_plan_order": 32,
-      "read_history": "unknown / original path",      "previous_order": 39,
+      "read_history": "unknown / original path",
+      "previous_order": 39,
       "order": 38,
       "priority": "core recommendation",
       "reread_option": false,
@@ -1996,7 +1997,8 @@
       "format": "mobi",
       "section": "Fantasy",
       "series": "Drizzt",
-      "device_note": "MOBI file listed; convert DRM-free copy to EPUB before X4 Pro use",      "status": "not_started",
+      "device_note": "MOBI file listed; convert DRM-free copy to EPUB before X4 Pro use",
+      "status": "not_started",
       "reader_fit": "",
       "visual_reference": "",
       "warning": "",
@@ -2995,7 +2997,8 @@
       "stage": 7
     },
     {
-      "phase": 6,      "phase_name": "06 · Great mysteries, spies and thrillers",
+      "phase": 6,
+      "phase_name": "06 · Great mysteries, spies and thrillers",
       "title": "Mystic River",
       "filename": "Mystic River - Dennis Lehane.epub",
       "relative_path": "Mystery and Thrillers/Standalone/Mystic River - Dennis Lehane.epub",
@@ -3994,7 +3997,8 @@
       "estimated_commitment": null,
       "sequence_next_order": null,
       "source_plan_order": 171,
-      "read_history": "unknown / original path",      "previous_order": 199,
+      "read_history": "unknown / original path",
+      "previous_order": 199,
       "order": 163,
       "priority": "core recommendation",
       "reread_option": false,
@@ -4993,7 +4997,8 @@
       "format": "epub",
       "section": "Classics and Literature",
       "series": null,
-      "device_note": "EPUB file listed; ability to open has not been tested",      "status": "not_started",
+      "device_note": "EPUB file listed; ability to open has not been tested",
+      "status": "not_started",
       "reader_fit": "",
       "visual_reference": "",
       "warning": "Older epic verse; translation greatly affects readability.",
@@ -5992,7 +5997,8 @@
         "Life, the Universe and Everything"
       ],
       "optional": [
-        "So Long, and Thanks for All the Fish",        "Mostly Harmless"
+        "So Long, and Thanks for All the Fish",
+        "Mostly Harmless"
       ],
       "rationale": "First three capture the core wit and voice. The later installments change tone and divide readers."
     },

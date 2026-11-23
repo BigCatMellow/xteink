@@ -468,3 +468,4 @@ The preferred file below is a **convenience pick for an EPUB reader**, not proof
 **Malazan Book of the Fallen — “Collection” titles** — Four filenames have the same truncated “A Malazan Book of the Fallen Col...” text but different numbered [01], [03], [05], [07] prefixes. Do NOT mark these as duplicates solely by matching truncated filenames; collections/contents may differ.
 
 **Other omnibus entries** — Mistborn Trilogy and The Lonesome Dove Chronicles are stored as collection files. Do not count one omnibus as one short novella, nor assume an overlap if no matching standalone copy is listed.
+

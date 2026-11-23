@@ -3,6 +3,12 @@
 A standalone, offline Lua InkApp for the X4 Pro on XTOS Licorice (480 × 800 pixels).
 The book order comes from the November 2026 reading list: nine primary books and 24 additional titles.
 
+## Curated owned-library plans
+
+See **[data/README.md](data/README.md)** for the uploaded, user-curated **211-book quality-first reading path**, its **62 optional series continuations**, the **65-group duplicate audit**, and an optional wishlist of **26 earlier recommendations not found in the inventory**. Files are in both Markdown and JSON under [data/](data/).
+
+**Important:** these are planning materials, not yet installed in the Lua app or the HTML mockup, which still have 33 titles. Preserve existing book progress IDs and require a Lua/HTML parity check before replacing the app's catalogue. No new books need to be purchased for the 211-book owned path.
+
 ## Interactive HTML mockup (native layout review)
 
 The authoritative app-specific decisions are in [DESIGN.md](DESIGN.md). They adapt the existing design rules from `docs/GAME_DESIGN.md` and the Design Bible's hierarchy, typography, spacing, and interaction guidance.

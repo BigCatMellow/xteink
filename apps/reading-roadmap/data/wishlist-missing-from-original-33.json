@@ -1,0 +1,261 @@
+{
+  "title": "Optional acquisition wishlist derived from the original 33 recommendations",
+  "source": "directory-tree(6).md (693 filename entries); original Reading Roadmap 33",
+  "scope": "Not required for the 211-book quality-first owned-library path",
+  "original_recommendations": 33,
+  "already_owned": 7,
+  "not_listed": 26,
+  "missing": [
+    {
+      "original_rank": 1,
+      "title": "A Knight of the Seven Kingdoms",
+      "author": "George R. R. Martin",
+      "priority": "high",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 3,
+      "title": "The Thin Man",
+      "author": "Dashiell Hammett",
+      "priority": "high",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 4,
+      "title": "Penric's Demon",
+      "author": "Lois McMaster Bujold",
+      "priority": "high",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 5,
+      "title": "The Blacktongue Thief",
+      "author": "Christopher Buehlman",
+      "priority": "high",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 7,
+      "title": "Guards! Guards!",
+      "author": "Terry Pratchett",
+      "priority": "high",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 8,
+      "title": "Slow Horses",
+      "author": "Mick Herron",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 9,
+      "title": "The Blade Itself",
+      "author": "Joe Abercrombie",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 11,
+      "title": "We Are Legion (We Are Bob)",
+      "author": "Dennis E. Taylor",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 12,
+      "title": "The Long Way to a Small, Angry Planet",
+      "author": "Becky Chambers",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 14,
+      "title": "The Last Wish",
+      "author": "Andrzej Sapkowski",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 16,
+      "title": "Kings of the Wyld",
+      "author": "Nicholas Eames",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 17,
+      "title": "The Tainted Cup",
+      "author": "Robert Jackson Bennett",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 18,
+      "title": "Theft of Swords",
+      "author": "Michael J. Sullivan",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 19,
+      "title": "The Black Company",
+      "author": "Glen Cook",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 20,
+      "title": "The Curse of Chalion",
+      "author": "Lois McMaster Bujold",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 21,
+      "title": "The Lies of Locke Lamora",
+      "author": "Scott Lynch",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 24,
+      "title": "We Have Always Lived in the Castle",
+      "author": "Shirley Jackson",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 25,
+      "title": "The Sisters Brothers",
+      "author": "Patrick deWitt",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 26,
+      "title": "The Last Policeman",
+      "author": "Ben H. Winters",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 27,
+      "title": "The Friends of Eddie Coyle",
+      "author": "George V. Higgins",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 28,
+      "title": "The Stepford Wives",
+      "author": "Ira Levin",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 29,
+      "title": "The Queen's Gambit",
+      "author": "Walter Tevis",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 30,
+      "title": "A Walk in the Woods",
+      "author": "Bill Bryson",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 31,
+      "title": "Smoke Gets in Your Eyes",
+      "author": "Caitlin Doughty",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 32,
+      "title": "The Disaster Artist",
+      "author": "Greg Sestero and Tom Bissell",
+      "priority": "optional",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    },
+    {
+      "original_rank": 33,
+      "title": "The Big Year",
+      "author": "Mark Obmascik",
+      "priority": "high",
+      "ownership_evidence": "not listed in 693-file inventory",
+      "required_for_211_book_path": false
+    }
+  ],
+  "owned": [
+    {
+      "original_rank": 2,
+      "title": "All Systems Red",
+      "formats": "EPUB"
+    },
+    {
+      "original_rank": 6,
+      "title": "True Grit",
+      "formats": "EPUB"
+    },
+    {
+      "original_rank": 10,
+      "title": "The Martian",
+      "formats": "EPUB, MOBI"
+    },
+    {
+      "original_rank": 13,
+      "title": "I Am Legend",
+      "formats": "MOBI"
+    },
+    {
+      "original_rank": 15,
+      "title": "The Princess Bride",
+      "formats": "Filename match"
+    },
+    {
+      "original_rank": 22,
+      "title": "The Hobbit",
+      "formats": "EPUB"
+    },
+    {
+      "original_rank": 23,
+      "title": "The Lord of the Rings",
+      "formats": "EPUB, MOBI"
+    }
+  ],
+  "notes": [
+    "Every book in the quality-first 211-book path has a matching filename in the user-supplied inventory; no purchases are required for it.",
+    "No book is required simply to finish a series. The wishlist is optional.",
+    "Not listed means no recognized matching filename in this directory snapshot; it does not prove the user lacks the book elsewhere.",
+    "No file contents, DRM, translations or edition metadata were verified."
+  ]
+}

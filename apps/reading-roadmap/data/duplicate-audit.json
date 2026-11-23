@@ -997,7 +997,8 @@
     },
     {
       "group": 50,
-      "work": "So Long, and Thanks for All the Fish",      "category": "Science Fiction",
+      "work": "So Long, and Thanks for All the Fish",
+      "category": "Science Fiction",
       "copies": 2,
       "extra_file_entries": 1,
       "confidence": "same work inferred from filenames",

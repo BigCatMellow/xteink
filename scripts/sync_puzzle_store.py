@@ -3,7 +3,7 @@
 import argparse
 from sync_game_ui import ROOT, project_path
 
-APPS = ('word-hunt', 'nonogram', 'sudoku', 'quiet-mines', 'takuzu', 'mosaic', 'hitori')
+APPS = ('word-hunt', 'nonogram', 'sudoku', 'quiet-mines', 'takuzu', 'mosaic', 'hitori', 'lantern-logic', 'crown-fields')
 
 
 def main():

@@ -52,6 +52,26 @@ def main():
                     bad.append(str(target.relative_to(ROOT)))
             else:
                 target.write_bytes(data)
+    for game in ('takuzu', 'mosaic', 'hitori', 'lantern-logic', 'crown-fields'):
+        for source, dest in (
+            ('shared/random_session.lua', 'app/random_session.lua'),
+            ('shared/procedural_puzzles.lua', 'app/procedural_puzzles.lua'),
+        ):
+            target = project_path(game) / dest
+            data = (ROOT / source).read_bytes()
+            if args.check:
+                if not target.exists() or target.read_bytes() != data:
+                    bad.append(str(target.relative_to(ROOT)))
+            else:
+                target.write_bytes(data)
+        if game in ('lantern-logic', 'crown-fields'):
+            target = project_path(game) / 'tests/test_procedural.lua'
+            data = (ROOT / 'tests/region_procedural.lua').read_bytes()
+            if args.check:
+                if target.read_bytes() != data:
+                    bad.append(str(target.relative_to(ROOT)))
+            else:
+                target.write_bytes(data)
     if bad:
         raise SystemExit('UI copies differ; run scripts/sync_game_ui.py: ' + ', '.join(bad))
     print('Shared UI copies: ' + ('verified' if args.check else 'updated'))

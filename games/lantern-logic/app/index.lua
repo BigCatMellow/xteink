@@ -37,10 +37,15 @@ local C,S,ERR,MSG=nil,nil,nil,nil
 local key_ms=-1000
 local MODE=1
 local HELP=false
+local Random=require('random_session')
+local Store=require('puzzle_store')
+local SIZE=5
+
 local function idx(x,y,n) return (y-1)*n+x end
 local function inside(x,y,n) return x>=1 and x<=n and y>=1 and y<=n end
 local function wall(v) return v~='.' end
 local function parse(n)
+  if n>#LEVELS and S and S.generated and S.generated.number==n then return S.b end
   local p=LEVELS[n]
   if not p then error('invalid level') end
   local a={}
@@ -117,8 +122,28 @@ local function complete(b,m)
   local dark,conflicts,bad=inspect(b,m)
   return dark==0 and conflicts==0 and bad==0
 end
+local function generated_state(p,max)
+  local b={n=p.n,tiles={}}
+  for i=1,#p.clues do b.tiles[i]=p.clues:sub(i,i) end
+  local solution=assert(decode(p.answer,b),'Invalid generated solution')
+  assert(complete(b,solution),'Invalid stored solution')
+  local marks=assert(decode(p.marks,b),'Invalid saved marks')
+  local h={}
+  for _,raw in ipairs(p.history) do h[#h+1]=assert(decode(raw,b),'Invalid saved undo') end
+  return {level=p.number,unlocked=max,b=b,marks=marks,history=h,generated=p}
+end
+local function generated_record()
+  local p=S.generated
+  local record={}
+  for k,v in pairs(p) do record[k]=v end
+  record.marks=serialize(S.marks);record.history={}
+  for i,h in ipairs(S.history) do record.history[i]=serialize(h) end
+  record.mode=MODE;record.won=complete(S.b,S.marks)
+  return record
+end
 local function save()
   if not S or not C or not C.storage then return end
+  if S.generated then Random.save(C.storage,generated_record(),S.unlocked,SIZE);return end
   local hist={}
   for _,h in ipairs(S.history) do hist[#hist+1]=serialize(h) end
   local data=table.concat({
@@ -129,8 +154,8 @@ local function save()
     'history='..table.concat(hist,';'),
     'mode='..MODE
   },'\n')
-  pcall(function() C.storage:write('lantern-logic.txt',data) end)
-  pcall(function() C.storage:write('lantern-logic-'..S.level..'.txt',data) end)
+  Store.write(C.storage,'lantern-logic-'..S.level..'.txt',data)
+  Store.write(C.storage,'lantern-logic.txt',data)
 end
 local function start(n,unlocked)
   local b=parse(n)
@@ -164,7 +189,41 @@ local function restore(filename,expected)
   MSG=nil;MODE=f.mode=='2' and 2 or 1
   return true
 end
+local function new_game(n,forced,limit)
+  local pointer=Random.pointer(C.storage,#LEVELS)
+  local max=pointer and pointer.max or #LEVELS
+  local p=Random.generate(C,'akari',n,max+1,S and S.generated and S.generated.clues,forced,limit)
+  if not p then MSG='No puzzle - retry New';return false end
+  local nextS=generated_state(p,max+1)
+  local ok=pcall(function()
+    if S then save() end
+    Random.save(C.storage,p,max+1,n)
+  end)
+  if not ok then MSG='Save failed - retry New';return false end
+  S=nextS;SIZE=n;MODE=p.mode;HELP=false;MSG=nil;return true
+end
+local function load_generated()
+  local ptr=Random.pointer(C.storage,#LEVELS)
+  if not ptr then return false end
+  assert(Random.supported('akari',ptr.size),'Invalid selected size')
+  local p=Random.read(C.storage,'akari',ptr.level)
+  S=generated_state(p,ptr.max);SIZE=ptr.size;MODE=p.mode;MSG=nil
+  return true
+end
+local function visit_generated(n)
+  if n<=#LEVELS or n>S.unlocked or n==S.level then return false end
+  local ok,nextS=pcall(function()
+    save()
+    local p=Random.read(C.storage,'akari',n)
+    local nextS=generated_state(p,S.unlocked)
+    Random.select(C.storage,n,S.unlocked,SIZE)
+    return nextS
+  end)
+  if not ok then MSG='Cannot open puzzle';return false end
+  S=nextS;MODE=S.generated.mode;MSG=nil;HELP=false;return true
+end
 local function visit(n)
+  if S.generated then return visit_generated(n) end
   local unlocked=S.unlocked
   save()
   if restore('lantern-logic-'..n..'.txt',n) then
@@ -188,7 +247,7 @@ local function choose(x,y,v)
   v=v or MODE
   S.marks[i]=S.marks[i]==v and 0 or v
   if complete(S.b,S.marks) then
-    S.unlocked=math.min(#LEVELS,math.max(S.unlocked,S.level+1))
+    if not S.generated then S.unlocked=math.min(#LEVELS,math.max(S.unlocked,S.level+1)) end
     MSG='Solved'
   else MSG=nil end
   save()
@@ -203,16 +262,24 @@ local function undo()
 end
 local function reset()
   if not S then return false end
-  start(S.level,S.unlocked)
+  if S.generated then
+    for i=1,#S.marks do S.marks[i]=0 end
+    S.history={};MSG=nil;save()
+  else start(S.level,S.unlocked) end
   return true
 end
 local function previous()
-  if not S or S.level==1 then return false end
-  visit(S.level-1)
-  return true
+  if not S or S.level==1 or (S.generated and S.level==#LEVELS+1) then return false end
+  return visit(S.level-1)
 end
 local function next_level()
-  if not S or S.level>=#LEVELS or
+  if not S then return false end
+  if S.generated then
+    if S.level<S.unlocked then return visit_generated(S.level+1) end
+    if complete(S.b,S.marks) then new_game(SIZE);return true end
+    return false
+  end
+  if S.level>=#LEVELS or
      (S.level>=S.unlocked and not complete(S.b,S.marks)) then return false end
   visit(S.level+1)
   return true
@@ -236,11 +303,15 @@ local function draw(g)
   button(g,416,12,48,48,HELP and 'X' or '?')
   if HELP then
     UI.text(g,C,240,94,'How to play','large','center',436)
-    UI.paragraph(g,C,22,150,436,430,'Place bulbs on white squares to light every white cell along rows and columns. Walls block light. Bulbs must never see each other. A numbered wall needs that many bulbs touching its four sides. Select Bulb or X, then tap a cell. A small dot means lit; brackets mark conflicting bulbs. Tap the same mark to clear.','medium')
+    UI.paragraph(g,C,22,150,436,320,'Light every white square with bulbs. Walls block light; bulbs must not see each other. Numbered walls need that many adjacent bulbs. Choose Bulb or X, then tap. Dots mean lit; brackets mean conflict. Tap the same mark to clear.','medium')
+    if MSG then UI.text(g,C,240,480,MSG,'small','center',440) end
+    local sizes=Random.sizes.akari;local w=math.floor(456/#sizes)
+    for k,n in ipairs(sizes) do UI.button(g,C,12+(k-1)*w,530,w-3,62,n..'x'..n,SIZE==n,{font='small'}) end
+    button(g,76,620,328,62,'New puzzle')
     button(g,76,704,328,70,'Back to grid')
     return
   end
-  UI.text(g,C,16,66,'Puzzle '..S.level..' / '..#LEVELS,'small',nil,300)
+  UI.text(g,C,16,66,S.generated and ('Puzzle '..(S.level-#LEVELS)..'  '..S.b.n..'x'..S.b.n) or ('Legacy '..S.level..' / '..#LEVELS),'small',nil,440)
   local b,m=S.b,S.marks
   local bx,by,cell=position(b.n)
   UI.region(bx,by,b.n*cell,b.n*cell)
@@ -311,10 +382,8 @@ local function draw(g)
   button(g,12,704,106,70,'Prev')
   button(g,128,704,106,70,'Undo')
   button(g,244,704,106,70,'Reset')
-  if S.level<#LEVELS and (complete(b,m) or S.level<S.unlocked) then
+  if S.level<S.unlocked or complete(b,m) then
     button(g,360,704,108,70,'Next')
-  elseif complete(b,m) then
-    button(g,360,704,108,70,'Done')
   end
 end
 local function hit(x,y,a,b,w,h)
@@ -324,6 +393,11 @@ local function tap(x,y)
   if hit(x,y,416,12,48,48) then HELP=not HELP;return true end
   if HELP then
     if hit(x,y,76,704,328,70) then HELP=false;return true end
+    if hit(x,y,76,620,328,62) then new_game(SIZE);return true end
+    local sizes=Random.sizes.akari;local w=math.floor(456/#sizes)
+    for k,n in ipairs(sizes) do
+      if hit(x,y,12+(k-1)*w,530,w-3,62) then SIZE=n;save();return true end
+    end
     return false
   end
   if hit(x,y,12,620,222,62) then return mode(1) end
@@ -331,7 +405,10 @@ local function tap(x,y)
   if hit(x,y,12,704,106,70) then return previous() end
   if hit(x,y,128,704,106,70) then return undo() end
   if hit(x,y,244,704,106,70) then return reset() end
-  if hit(x,y,360,704,108,70) then return next_level() end
+  if hit(x,y,360,704,108,70) then
+    if not S.generated and S.level==#LEVELS and complete(S.b,S.marks) then new_game(SIZE);return true end
+    return next_level()
+  end
   local a,b,cell=position(S.b.n)
   if hit(x,y,a,b,cell*S.b.n,cell*S.b.n) then
     return choose(math.floor((x-a)/cell)+1,math.floor((y-b)/cell)+1)
@@ -343,8 +420,14 @@ local function refresh()
 end
 function on_load(c)
   Theme.release()
-  C=c or ctx;ERR=nil;HELP=false;MODE=1
-  local ok,e=pcall(function() if not restore() then start(1,1) end end)
+  C=c or ctx;ERR=nil;HELP=false;MODE=1;S=nil;SIZE=5
+  local ok,e=pcall(function()
+    if load_generated() then return end
+    local raw,err=C.storage:read('lantern-logic.txt')
+    if raw==nil and err and err~='not_found' then error(err) end
+    if raw then assert(restore(),'Invalid legacy save; data retained')
+    else assert(new_game(SIZE),'No verified puzzle; reopen to retry') end
+  end)
   if not ok then ERR=tostring(e) end
 end
 function on_draw(c,g)
@@ -389,7 +472,7 @@ if rawget(_G,'__TEST') then
     start=start,restore=restore,choose=choose,undo=undo,
     reset=reset,next=next_level,prev=previous,
     state=function() return S end,position=position,
-    decode=decode,mode=mode,tap=tap
+    decode=decode,mode=mode,tap=tap,new=new_game,visit=visit
   }
 end
 

@@ -42,6 +42,8 @@ def main():
             ('shared/logic_grid.lua', 'app/index.lua'),
             ('tests/logic_grid_game.lua', 'tests/test_game.lua'),
             ('tests/validate_logic_grid.py', 'tests/validate_levels.py'),
+            ('shared/procedural_puzzles.lua', 'app/procedural_puzzles.lua'),
+            ('tests/logic_grid_procedural.lua', 'tests/test_procedural.lua'),
         ):
             target = project_path(game) / dest
             data = (ROOT / source).read_bytes()

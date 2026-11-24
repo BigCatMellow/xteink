@@ -21,6 +21,18 @@ local SOLUTIONS={
   {5,10,15,18,28,33,37,43,45,48},
   {3,7,13,23,29,35,39,44,47},
   {6,9,15,21,24,27,33,39,44},
+  {1,5,10,16,20,25,35,39,46,56,57,60},
+  {1,6,13,15,18,27,30,36,40,41,47,53,62},
+  {1,16,17,22,27,31,38,41,50,53,60},
+  {3,13,18,24,30,35,41,47,50,53,56,60,62},
+  {3,7,10,17,24,27,32,35,38,42,45,48,52,58,60,65,71,73,75,77,81},
+  {1,6,9,13,20,26,28,41,45,48,52,58,62,64,69,72,74},
+  {1,5,13,21,26,31,33,39,44,47,52,54,59,71,73,78},
+  {3,8,10,14,20,24,30,40,54,55,59,66,74,79},
+  {1,7,15,18,30,35,37,44,49,51,55,67,73,76,82,98,100},
+  {8,16,19,23,27,30,31,38,44,47,55,62,69,76,81,87,90,94,98},
+  {2,6,10,18,23,35,40,42,49,51,53,60,62,64,67,73,76,85,94},
+  {1,4,13,17,20,26,31,39,46,52,58,63,71,75,83,90,94},
 }
 local function eq(a,b,description)
   assert(a==b,(description or 'mismatch')..': '..tostring(a)..' != '..tostring(b))
@@ -41,22 +53,22 @@ on_load(ctx)
 eq(A.state().level,1)
 eq(A.state().unlocked,1)
 assert(store['lantern-logic.txt']:find('version=1',1,true))
-eq(#SOLUTIONS,16)
-eq(#A.levels,16)
+eq(#SOLUTIONS,28)
+eq(#A.levels,28)
 assert(not A.complete(A.state().b,A.state().marks))
 assert(not A.next(),'cannot skip first puzzle')
 
--- Each tile cycles bulb -> cross -> clear, with undo and no animation.
+-- Direct modes: selecting the same mark a second time clears it.
 local s=A.state()
 local b=s.b
 local first=SOLUTIONS[1][1]
 local x=(first-1)%b.n+1
 local y=math.floor((first-1)/b.n)+1
-assert(A.choose(x,y))
+assert(A.choose(x,y,1))
 eq(s.marks[first],1)
-assert(A.choose(x,y))
+assert(A.choose(x,y,2))
 eq(s.marks[first],2)
-assert(A.choose(x,y))
+assert(A.choose(x,y,2))
 eq(s.marks[first],0)
 assert(A.undo())
 eq(s.marks[first],2)
@@ -67,12 +79,12 @@ eq(A.state().marks[first],0)
 
 -- Validate every authored level end-to-end, including exact clue counts,
 -- complete illumination, no bulb interactions, saving, and navigation.
-for level=1,16 do
+for level=1,28 do
   A.start(level,level)
   local state=A.state()
   eq(state.level,level)
   local n=state.b.n
-  eq(n,level<=5 and 5 or level<=11 and 6 or 7)
+  eq(n,level<=5 and 5 or level<=11 and 6 or level<=16 and 7 or math.floor((level-17)/4)+8)
   local seen={}
   for _,p in ipairs(SOLUTIONS[level]) do
     local i=p
@@ -89,15 +101,15 @@ for level=1,16 do
   eq(bad,0,'numbered wall clues exact')
   assert(clues>=2)
   assert(A.complete(state.b,state.marks),'puzzle valid')
-  eq(state.unlocked,math.min(16,level+1))
+  eq(state.unlocked,math.min(28,level+1))
   measured(ctx,on_draw,'lantern-logic solved '..level)
   on_leave();on_load(ctx)
   assert(A.complete(A.state().b,A.state().marks),'save survives reload')
-  if level<16 then assert(A.next()) else assert(not A.next()) end
+  if level<28 then assert(A.next()) else assert(not A.next()) end
 end
 
 -- Invalid wall/number taps cannot change board.
-A.start(1,16)
+A.start(1,28)
 local state=A.state()
 local n=state.b.n
 local wall_i
@@ -151,7 +163,7 @@ assert(conflicts>0,'visibility conflict counted')
 assert(not A.complete(state.b,state.marks))
 
 -- Simulated pointer presses: single redraw only on pointer-up event.
-A.start(2,16)
+A.start(2,28)
 state=A.state()
 local bx,by,cell=A.position(state.b.n)
 local i=SOLUTIONS[2][1]
@@ -180,7 +192,7 @@ for _,method in ipairs({'clear','rect','line','circle','text'}) do
   end
 end
 for level=1,16 do
-  A.start(level,16)
+  A.start(level,28)
   commands,counts=0,{}
   on_draw(ctx,g)
   assert(commands>=35 and commands<=300,'rendering command budget: '..commands)
@@ -211,7 +223,8 @@ measured(ctx,on_draw,'lantern-logic conflicting bulbs')
 -- All boards plus help are checked with distinct and enlarged font metrics.
 local layout=require('game_canvas').check
 for n=1,#A.levels do
-  A.start(n,16)
+  A.start(n,28)
   layout(ctx,on_draw,'lantern-logic level '..n)
 end
-print('Lantern Logic: 16 unique boards, bulbs, clues, undo, save, rendering PASS')
+assert(A.tap(440,30));measured(ctx,on_draw,'Akari help');assert(A.tap(240,740))
+print('Akari: 28 unique boards, bulbs, clues, undo, save, rendering PASS')

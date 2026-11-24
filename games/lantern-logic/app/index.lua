@@ -17,12 +17,26 @@ local LEVELS={
 {size=7,rows={"0......",".#...00","..#.1.1",".......","###....","...#1.#",".3..#.."}},
 {size=7,rows={"#...#..","#0....2","..#...#",".......","..#....","11.....","#..2.1."}},
 {size=7,rows={"##.#...","...#...",".2.#.2.","...#..2","..1....","#.1...0","1.....#"}},
+{size=8,rows={".2......","...1....","#.#..#..","..#1...0","...10...","#..##.21","........",".#..#.##"}},
+{size=8,rows={"..##..#.","#....3..","1.......","#...#.#.","....1#2.",".....1..",".....#..",".0..2..#"}},
+{size=8,rows={"........","2.......","...0....","...1.3..","#..0...#",".......#","..12....",".#......"}},
+{size=8,rows={"........","0.1.....","....1...","....1.1.",".1...##.",".#..1..#","2.#...#.","#...3..."}},
+{size=9,rows={".#.##....","...#.1..2","1.#...#3.","#....3..#","....#.##.",".2...3...","....#...#","..#......",".3.#...2."}},
+{size=9,rows={"....#.##.","1#.......","2....#1..","..0.##..#",".....#...","...#.1.##","#.#.1#...",".2....1#.","...0#.##1"}},
+{size=9,rows={"..0.....#","........#","01.3.1...","..#.#.#2.","...2##...","...0...#.",".1#...#11",".0#.....#","....1...."}},
+{size=9,rows={".1...#..1","..#..2...","..2......","....0..0.","#........",".##1#0.1.",".1.....#.","#2.......","...#...1#"}},
+{size=10,rows={".###1#..##","#....#2...","##.02.....","#....2....","....3#...#",".1....##1#",".0.#.2....","...#....0#","1.........","........2."}},
+{size=10,rows={"........##",".01.#.#2..","....0#..2.","......#.#.","....2#.2#.","#1.#.###1.","....1.##.#","...#......",".1##...2..",".0...0#..."}},
+{size=10,rows={"..#0....#.",".#........","....1..1.#",".....1.#..","..#......3",".4.##.....","..4.#..1#.","...#....0#","...2.....#",".#........"}},
+{size=10,rows={"..#.#..#..","...2...#..","#..0.....1","....#2...1","..0.......","....#.#..0","1..1..0..#",".#2.......",".#.....0..","0......0.1"}},
 }
 local D={{0,-1},{1,0},{0,1},{-1,0}}
 local UI=require('ui')
 local Theme=require('theme')
 local C,S,ERR,MSG=nil,nil,nil,nil
 local key_ms=-1000
+local MODE=1
+local HELP=false
 local function idx(x,y,n) return (y-1)*n+x end
 local function inside(x,y,n) return x>=1 and x<=n and y>=1 and y<=n end
 local function wall(v) return v~='.' end
@@ -112,7 +126,8 @@ local function save()
     'level='..S.level,
     'unlocked='..S.unlocked,
     'marks='..serialize(S.marks),
-    'history='..table.concat(hist,';')
+    'history='..table.concat(hist,';'),
+    'mode='..MODE
   },'\n')
   pcall(function() C.storage:write('lantern-logic.txt',data) end)
   pcall(function() C.storage:write('lantern-logic-'..S.level..'.txt',data) end)
@@ -122,7 +137,7 @@ local function start(n,unlocked)
   local marks={}
   for i=1,#b.tiles do marks[i]=0 end
   S={level=n,unlocked=math.max(n,unlocked or n),b=b,marks=marks,history={}}
-  MSG='Tap empty cell: bulb, X, clear'
+  MSG=nil
   save()
 end
 local function restore(filename,expected)
@@ -146,7 +161,7 @@ local function restore(filename,expected)
     hist[#hist+1]=h
   end
   S={level=n,unlocked=u,b=b,marks=marks,history=hist}
-  MSG=nil
+  MSG=nil;MODE=f.mode=='2' and 2 or 1
   return true
 end
 local function visit(n)
@@ -158,7 +173,11 @@ local function visit(n)
   else start(n,unlocked) end
   return true
 end
-local function choose(x,y)
+local function mode(v)
+  if MODE==v then return false end
+  MODE=v;save();return true
+end
+local function choose(x,y,v)
   if not S or not inside(x,y,S.b.n) then return false end
   local i=idx(x,y,S.b.n)
   if wall(S.b.tiles[i]) or complete(S.b,S.marks) then return false end
@@ -166,10 +185,11 @@ local function choose(x,y)
   local prev={}
   for j,v in ipairs(S.marks) do prev[j]=v end
   S.history[#S.history+1]=prev
-  S.marks[i]=(S.marks[i]+1)%3
+  v=v or MODE
+  S.marks[i]=S.marks[i]==v and 0 or v
   if complete(S.b,S.marks) then
     S.unlocked=math.min(#LEVELS,math.max(S.unlocked,S.level+1))
-    MSG='PUZZLE SOLVED'
+    MSG='Solved'
   else MSG=nil end
   save()
   return true
@@ -208,13 +228,19 @@ local function button(g,x,y,w,h,s)
   UI.button(g,C,x,y,w,h,s)
 end
 local function position(n)
-  return UI.grid_geometry(n,120,568)
+  return UI.grid_geometry(n,94,572,468)
 end
 local function draw(g)
   g:clear(0)
-  put(g,24,16,'LANTERN LOGIC','large')
-  put(g,24,57,'PUZZLE '..S.level..' / '..#LEVELS,'medium')
-  g:line(24,111,456,111)
+  UI.text(g,C,80,14,'Akari','large',nil,326)
+  button(g,416,12,48,48,HELP and 'X' or '?')
+  if HELP then
+    UI.text(g,C,240,94,'How to play','large','center',436)
+    UI.paragraph(g,C,22,150,436,430,'Place bulbs on white squares to light every white cell along rows and columns. Walls block light. Bulbs must never see each other. A numbered wall needs that many bulbs touching its four sides. Select Bulb or X, then tap a cell. A small dot means lit; brackets mark conflicting bulbs. Tap the same mark to clear.','medium')
+    button(g,76,704,328,70,'Back to grid')
+    return
+  end
+  UI.text(g,C,16,66,'Puzzle '..S.level..' / '..#LEVELS,'small',nil,300)
   local b,m=S.b,S.marks
   local bx,by,cell=position(b.n)
   UI.region(bx,by,b.n*cell,b.n*cell)
@@ -271,38 +297,41 @@ local function draw(g)
       elseif m[i]==2 then
         g:line(cx-11,cy-11,cx+11,cy+11,{line_width=2})
         g:line(cx+11,cy-11,cx-11,cy+11,{line_width=2})
+        if lit[i] then g:circle(px+9,py+9,2,{fill=true}) end
       elseif lit[i] then
         -- Small corner dot indicates illumination, not a gray fill.
         g:circle(px+11,py+11,2,{fill=true})
       end
     end
   end
-  if complete(b,m) then
-    centered(g,240,574,'ALL LIT - SOLVED!','medium')
-  elseif conflicts>0 then
-    centered(g,240,574,'BULBS CROSS: '..math.floor(conflicts),'medium')
-  else
-    centered(g,240,574,'DARK '..dark..'   CLUES LEFT '..bad,'medium')
-  end
-  UI.paragraph(g,C,24,617,432,48,MSG or 'TAP: BULB  >  X  >  CLEAR','small','center')
-  centered(g,240,651,'CHECK = CLUE MET / BRACKETS = CLASH','small')
-  button(g,22,684,103,72,S.level>1 and 'PREV' or 'START')
-  button(g,134,684,103,72,'UNDO')
-  button(g,246,684,103,72,'RESET')
+  local status=complete(b,m) and 'Solved' or (conflicts>0 and 'Bulbs conflict: '..math.floor(conflicts) or ('Dark '..dark..' / Clues '..bad))
+  UI.text(g,C,240,580,status,'medium','center',440)
+  UI.button(g,C,12,620,222,62,'Bulb',MODE==1)
+  UI.button(g,C,246,620,222,62,'X',MODE==2)
+  button(g,12,704,106,70,'Prev')
+  button(g,128,704,106,70,'Undo')
+  button(g,244,704,106,70,'Reset')
   if S.level<#LEVELS and (complete(b,m) or S.level<S.unlocked) then
-    button(g,359,684,98,72,'NEXT')
+    button(g,360,704,108,70,'Next')
   elseif complete(b,m) then
-    centered(g,409,716,'DONE','medium')
+    button(g,360,704,108,70,'Done')
   end
 end
 local function hit(x,y,a,b,w,h)
   return x>=a and x<a+w and y>=b and y<b+h
 end
 local function tap(x,y)
-  if hit(x,y,22,684,103,72) then return previous() end
-  if hit(x,y,134,684,103,72) then return undo() end
-  if hit(x,y,246,684,103,72) then return reset() end
-  if hit(x,y,359,684,98,72) then return next_level() end
+  if hit(x,y,416,12,48,48) then HELP=not HELP;return true end
+  if HELP then
+    if hit(x,y,76,704,328,70) then HELP=false;return true end
+    return false
+  end
+  if hit(x,y,12,620,222,62) then return mode(1) end
+  if hit(x,y,246,620,222,62) then return mode(2) end
+  if hit(x,y,12,704,106,70) then return previous() end
+  if hit(x,y,128,704,106,70) then return undo() end
+  if hit(x,y,244,704,106,70) then return reset() end
+  if hit(x,y,360,704,108,70) then return next_level() end
   local a,b,cell=position(S.b.n)
   if hit(x,y,a,b,cell*S.b.n,cell*S.b.n) then
     return choose(math.floor((x-a)/cell)+1,math.floor((y-b)/cell)+1)
@@ -314,7 +343,7 @@ local function refresh()
 end
 function on_load(c)
   Theme.release()
-  C=c or ctx;ERR=nil
+  C=c or ctx;ERR=nil;HELP=false;MODE=1
   local ok,e=pcall(function() if not restore() then start(1,1) end end)
   if not ok then ERR=tostring(e) end
 end
@@ -360,7 +389,7 @@ if rawget(_G,'__TEST') then
     start=start,restore=restore,choose=choose,undo=undo,
     reset=reset,next=next_level,prev=previous,
     state=function() return S end,position=position,
-    decode=decode
+    decode=decode,mode=mode,tap=tap
   }
 end
 

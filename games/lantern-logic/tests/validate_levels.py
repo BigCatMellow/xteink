@@ -12,7 +12,7 @@ import re
 
 src=(Path(__file__).resolve().parents[1]/'app'/'index.lua').read_text(encoding='utf-8')
 matches=re.findall(r'\{size=(\d+),rows=\{([^{}]+)\}\}',src)
-assert len(matches)==16,f'Expected 16 boards, got {len(matches)}'
+assert len(matches)==28,f'Expected 28 boards, got {len(matches)}'
 
 def constraints(n,grid):
     cells=[i for i,ch in enumerate(grid) if ch=='.']
@@ -89,7 +89,7 @@ def solve(n,grid,limit=2):
 for i,(size,raw) in enumerate(matches,1):
     n=int(size)
     rows=re.findall(r'"([.#01234]+)"',raw)
-    assert n==(5 if i<=5 else 6 if i<=11 else 7)
+    assert n==(5 if i<=5 else 6 if i<=11 else 7 if i<=16 else (i-17)//4+8)
     assert len(rows)==n and all(len(r)==n for r in rows)
     board=''.join(rows)
     result=solve(n,board,limit=2)
@@ -97,4 +97,4 @@ for i,(size,raw) in enumerate(matches,1):
     assert len(result[0])>=n,f'Level {i} has too few bulbs'
     assert sum(ch in '01234' for ch in board)>=2,f'Level {i} has too few clues'
     print(f'Level {i:02}: {n}x{n} — unique, {len(result[0])} bulbs')
-print('PASS: all 16 Akari puzzles have exactly one solution')
+print('PASS: all 28 Akari puzzles have exactly one solution')

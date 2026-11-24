@@ -125,7 +125,8 @@ local function tak_prove(n,pat,clue,tick)
     domains[line]=d
     if #d==1 then if fixed[d[1]] then return nil end;fixed[d[1]]=true end
    end
-   for line,d in ipairs(domains) do
+   for line,domain in ipairs(domains) do
+    local d=domain
     if #d>1 then
      local keep={} for _,k in ipairs(d) do if not fixed[k] then keep[#keep+1]=k end end
      d=keep

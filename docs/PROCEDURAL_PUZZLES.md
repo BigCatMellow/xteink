@@ -77,3 +77,55 @@ an acceptance test fail the ordinary quality gate; a family release fails
 while any named migration gap remains. Passing the backend sample solver
 does not establish gameplay integration. Keep the existing four games and
 historic packages intact while resolving the gaps.
+
+
+## Meditation Sudoku reference review — 2026-11-24
+
+User identified the Meditation Sudoku generator as the architectural reference.
+Reviewed [SDK generator, immutable source](https://github.com/BigCatMellow/meditation/blob/4545d442f01f0ff45910b08743f5c78171f7ca0f/index.html#L2110-L2208)
+against [XTEINK Sudoku generator](../games/sudoku/app/generator.lua) and its
+independent [solver regression](../games/sudoku/tests/validate_levels.py).
+
+Reuse the architecture, not the browser code verbatim:
+
+1. Seed an original completed solution using a game-specific randomized constructor.
+2. Derive a puzzle by removing or restricting information, preserving the
+   original answer and validity at each accepted change.
+3. Prove uniqueness independently where required; count up to two solutions
+   with a finite work budget and distinguish contradiction from exhaustion.
+4. Analyze the reasoning path using puzzle-specific techniques, recording
+   techniques, counts, forced-step depth, and whether deductions finish.
+5. Classify difficulty by that evidence, not board size or clue count alone.
+   Reject out-of-band candidates or report generation failure with retry.
+6. Persist the exact board (or immutable versioned seed), current marks and
+   history. Resume must never generate a replacement.
+
+The Meditation implementation has real advantages: randomized MRV backtracking
+from randomized diagonal boxes, rotational clue removal, and a separate
+candidate analyzer for naked and hidden singles. It has important limitations:
+countSols' best() returns null for both a dead cell and a complete board,
+and solve() increments count for either. Its analyzer implements only singles,
+so a stalled board is not proof that guessing is required. Its acceptance
+checks a minimum clue count but not an upper bound or target attainment;
+the fallback skips technique analysis. Do not copy those semantics.
+
+The current native Sudoku v1/v2 code fixes the contradiction/exhaustion issue,
+uses bounded exact counting and independent Python validation (135 fixtures),
+and preserves legacy seed behavior. It constructs solutions from permutations
+of one canonical grid and uses clue-count targets, not calibrated techniques.
+New Sudoku generation profiles may adopt randomized complete-grid search and
+a stronger deterministic logic analyzer only under a new generator version.
+Keep v1/v2 replay unchanged and measure actual firmware latency.
+
+For Takuzu, Mosaic, and Akari, extend the existing propagation proof to
+report technique-specific deductions and tier criteria. For Hitori and Crown
+Fields, add explainable logical analyzers; current exact uniqueness alone is
+not evidence of no-guess solvability. Lights Out can rate minimal solution
+length and structure, not uniqueness of presses where multiple solutions
+exist. Preserve the existing Nonogram/Minesweeper no-guess checks and improve
+difficulty calibration separately. Reuse a common acceptance/result contract,
+not a single Sudoku constraint solver for unrelated games.
+
+No changes to the Meditation repo or installed Sudoku behavior were made.
+This is the reference and acceptance direction for the outstanding runtime
+integration; it is not evidence of completed difficulty calibration.

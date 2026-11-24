@@ -1,7 +1,7 @@
 {
   "app_id": "quietmines",
   "display_name": "Quiet Mines",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "author": "BigCatMellow",
   "description": "Random no-guess Minesweeper with 3 tiers and clue-only hints",
   "entry": "index.lua",

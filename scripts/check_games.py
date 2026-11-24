@@ -2,6 +2,7 @@
 """Run game quality checks; optionally lint and build every active game."""
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -11,8 +12,9 @@ from sync_game_ui import GAMES, COLLECTIONS, OTHER_APPS, SHELVED, ARCHIVED, ROOT
 from verify_package_icons import verify_icon
 
 
-def run(command, cwd=ROOT):
-    subprocess.run([str(item) for item in command], cwd=cwd, check=True)
+def run(command, cwd=ROOT, env=None):
+    subprocess.run([str(item) for item in command], cwd=cwd, check=True,
+                   env=None if env is None else {**os.environ, **env})
 
 
 def verify_project_layout(root=ROOT):
@@ -66,6 +68,8 @@ def main():
         print(f'Checking {game}', flush=True)
         run(['lua', 'tests/test_game.lua'], folder)
         run(['lua', ROOT/'tests/run_themed_game.lua'], folder)
+        # The reader keeps only 8 decoded pictures alive: glyphs must go through layers.
+        run(['lua', ROOT/'tests/run_themed_game.lua'], folder, {'DEVICE_IMAGES': '1'})
         run(['lua', ROOT/'tests/run_hub_game.lua'], folder)
         run(['lua', ROOT/'tests/run_hub_game.lua', '--bitmap'], folder)
         if (folder / 'tests/test_fonts.lua').exists():

@@ -891,6 +891,10 @@ local function on_draw(context,g)
     Typefaces.report(C,FONT_ERROR)
     ok,e=pcall(themed_draw)
   end
+  if ok and D==FONTSET and FONTSET and not FONTSET.reported then
+    FONTSET.reported=true
+    Typefaces.report(C,'OK: bitmap font drawn ('..tostring(FONTSET.mode)..', '..FONTSET.count..' glyphs)')
+  end
   if not ok then ERR=tostring(e);UI.error(g,C,'NONOGRAM',ERR) end
 end
 local function on_input(context,event)

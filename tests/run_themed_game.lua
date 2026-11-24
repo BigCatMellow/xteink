@@ -4,12 +4,32 @@ package.path='app/?.lua;../../tests/?.lua;'..package.path
 local T=require('game_canvas')
 local native_canvas=T.canvas
 local decoded,released,max_commands,frames=0,0,0,0
+-- DEVICE_IMAGES=1 models the reader: at most 8 decoded pictures alive (then
+-- decode answers nil,'limit_exceeded'), plus ctx.layers for off-screen drawing.
+local DEVICE=os.getenv('DEVICE_IMAGES')=='1'
+local LIVE_LIMIT,live,max_live,layers_made,layers_freed=8,0,0,0,0
 local image_backend={decode=function(_,raw)
-  decoded=decoded+1
+  if DEVICE and live>=LIVE_LIMIT then return nil,'limit_exceeded' end
+  decoded=decoded+1;live=live+1;max_live=math.max(max_live,live)
   local function u32(i) local a,b,c,d=raw:byte(i,i+3);return ((a*256+b)*256+c)*256+d end
   local im={width=u32(17),height=u32(21)}
-  function im:release() assert(not self.released);self.released=true;released=released+1 end
+  function im:release() assert(not self.released);self.released=true;released=released+1;live=live-1 end
   return im
+end}
+local layer_backend={create=function(_,w,h)
+  layers_made=layers_made+1
+  local layer={width=w,height=h,layer=true}
+  function layer:draw(fn)
+    assert(not self.released,'drawing into a released layer')
+    local lg={clear=function() end}
+    function lg:image(im,x,y)
+      assert(not im.released,'released picture drawn into a layer')
+      assert(x>=0 and y>=0 and x+im.width<=w and y+im.height<=h,'picture larger than its layer')
+    end
+    fn(lg)
+  end
+  function layer:release() assert(not self.released);self.released=true;layers_freed=layers_freed+1 end
+  return layer
 end}
 function T.canvas()
   local g=native_canvas()
@@ -59,11 +79,17 @@ function dofile(path)
   local result=old_dofile(path)
   if path=='app/index.lua' then
     local load=on_load
-    function on_load(c) c.image=image_backend;return load(c) end
+    function on_load(c) c.image=image_backend;if DEVICE then c.layers=layer_backend end;return load(c) end
   end
   return result
 end
 dofile('tests/test_game.lua')
 on_leave()
 assert(decoded==released,'font images leaked across gameplay relaunches: '..decoded..' / '..released)
-print('BITMAP FAMILY: '..frames..' audited frames, max '..max_commands..' commands; all '..decoded..' decoded images released')
+if DEVICE then
+  assert(layers_made==layers_freed,'font layers leaked: '..layers_made..' / '..layers_freed)
+  assert(max_live<=3,'too many decoded pictures alive at once: '..max_live)
+  print('DEVICE IMAGES: '..frames..' frames in bitmap font, '..layers_made..' glyph layers, max '..max_live..' live decodes')
+else
+  print('BITMAP FAMILY: '..frames..' audited frames, max '..max_commands..' commands; all '..decoded..' decoded images released')
+end

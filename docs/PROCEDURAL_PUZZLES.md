@@ -129,3 +129,18 @@ not a single Sudoku constraint solver for unrelated games.
 No changes to the Meditation repo or installed Sudoku behavior were made.
 This is the reference and acceptance direction for the outstanding runtime
 integration; it is not evidence of completed difficulty calibration.
+
+
+## Runtime integration candidate
+
+Fresh installations and the explicit New action now use procedural generation in
+Takuzu, Mosaic, Hitori, Akari and Crown Fields. Fixed boards remain as save
+compatibility fixtures only. A successful new puzzle is written before its
+active pointer, generated clues/answer/seed/version and undo are retained in
+sharded records, and previous generated puzzles can be reopened. The five
+new games use sixteen shards each to leave capacity within the Hub's common
+512-file limit. The old three procedural engines retain their 64-shard stores.
+Lights Out rejects exhausted generation instead of using a fixed fallback.
+Host smoke tests exercise both standalone and hosted paths, including write
+failure. Actual bitmap review, measured reader latency and reasoning-based
+difficulty calibration are separate acceptance requirements.

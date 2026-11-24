@@ -12,8 +12,6 @@ from sync_game_ui import GAMES, ROOT, project_path
 ESTABLISHED = frozenset(('nonogram', 'sudoku', 'quiet-mines'))
 
 MIGRATION_GAPS = {
-    'lantern-logic': 'Wire fresh procedural puzzles and durable generated saves.',
-    'crown-fields': 'Wire fresh procedural puzzles and durable generated saves.',
 }
 
 def verify(games=GAMES, root=ROOT, strict=False):

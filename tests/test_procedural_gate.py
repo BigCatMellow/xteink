@@ -24,9 +24,11 @@ class ProceduralGate(unittest.TestCase):
         self.assertEqual(gate.verify(('future-game',),self.root,strict=True),{})
 
     def test_named_migration_is_not_release_exemption(self):
-        self.assertIn('crown-fields',gate.verify(('crown-fields',),self.root))
-        with self.assertRaisesRegex(ValueError,'Procedural release gate blocked'):
-            gate.verify(('crown-fields',),self.root,strict=True)
+        from unittest.mock import patch
+        with patch.dict(gate.MIGRATION_GAPS, {'example-gap':'pending integration'}):
+            self.assertIn('example-gap',gate.verify(('example-gap',),self.root))
+            with self.assertRaisesRegex(ValueError,'Procedural release gate blocked'):
+                gate.verify(('example-gap',),self.root,strict=True)
 
     def test_existing_regression_cannot_disappear(self):
         with self.assertRaisesRegex(AssertionError,'missing established generator regression'):

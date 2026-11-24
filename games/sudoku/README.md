@@ -63,3 +63,32 @@ still require on-device review.
 The 480×800 display now follows the approved device mockup: 441×441 Sudoku board at (19,126), 49px cells; large Sudoku header and Puzzle/difficulty row; Left/Clashes immediately beneath the board; full-size Notes/Undo/Erase and 3×3 number pad at y620/680/740. Selecting a cell keeps one bold border and a faint one-bit stipple row/column wash, not crossing rails. The generator, saved seeds, pencil notes, checks, history, touch geometry and help/settings remain live.
 
 The browser image's photographic bevels, gray shading and antialiasing cannot be bit-for-bit identical on a strictly 1-bit Licorice device. The runtime uses Poppins/Inter bitmap fonts and small offset 2px shadows instead of an image. No device photograph or static illustration is substituted for playable controls.
+
+## v0.7.0 — attached HTML port (native XTOS Lua)
+
+The uploaded `Sudoku.html` is a browser prototype, not a format XTOS runs
+directly. This release ports its **board-first UI** to the existing installable
+Sudoku app: 477×477 9×9 board at (1,1), stippled row/column selection,
+matching-digit underlines, 7–8–9 / 4–5–6 / 1–2–3 number grid, and
+Notes / Erase / Undo / Menu in the right-hand column. A small feedback line
+between board and keypad is retained for failed saves and error messages.
+
+The full-screen menu retains the native app's five difficulties, unique
+seeded puzzles, history navigation, explicit Check, Auto Clean, Conflicts,
+Multi Select and Help, and adds **Reveal Cell** and a persistent **Mistakes**
+assist from the HTML. Entering the same digit twice clears that cell.
+Submitted solved puzzles show difficulty shortcuts below the board.
+
+The saved game ID and `version=1` save schema are preserved; a missing
+`showMistakes` field defaults to Off when loading prior saves. The native
+generator, notes, undo history and existing installed puzzles are preserved.
+No web view, online font fetch, animation or extra permission is used.
+
+**Device verification pending:** screenshot and Lua checks are host evidence,
+not proof of real X4 Pro e-ink render, input, or on-card save migration.
+
+When launched inside Games Hub, the reserved **HUB** return control remains
+unobstructed: Sudoku reduces to a 441×441 board at (19,66), while keeping the
+same keypad and saved puzzle. This conditional geometry is controlled by the
+Hub adapter only; standalone remains 477×477. Feedback messages occupy the
+Hub header to avoid drawing over the embedded board.

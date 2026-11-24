@@ -12,7 +12,7 @@ These are complete game projects **moved, not deleted**. Their original app IDs,
 | [ink-runes](ink-runes/ARCHIVED.md) | Most puzzles use just 1–6 rune moves; simple random-move simulation wins some advanced boards too often, including 66.7% for level 20. | More interacting rule discovery, fewer interchangeable moves and stronger constraints verified by player trials. |
 | [word-bridge](word-bridge/ARCHIVED.md) | Each board is a 12-word set with shortest paths of 3–7 moves; ten of twelve have only one optimal first step. The small bank encourages rapid trial and error. | Larger, nontrivial interlocked word networks needing sustained strategic deduction beyond 4–5 moves. |
 
-**11 games remain active. Six are archived. Paper Golf remains separately shelved.**
+**Historical 2026-11-14 snapshot:** 11 games were active and six archived. The 2026-11-24 current lineup is four active games; see [inactive projects](../inactive/README.md). Paper Golf remains separately shelved.
 
 The archive is excluded from active discovery, Games Hub, font/theme syncing, active build workflows, and new family releases. Each archived project retains an SVG `icon.svg` and a disabled original `build-workflow.yml`.
 

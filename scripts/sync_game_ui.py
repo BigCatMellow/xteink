@@ -4,8 +4,8 @@ import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-GAMES = ('nonogram', 'sudoku', 'quiet-mines', 'lights-out')
-INACTIVE = ('summit-putt', 'lantern-logic', 'ray-vault', 'island-links', 'rectangle-rooms', 'crown-fields', 'sum-cross', 'ten-pairs')
+GAMES = ('nonogram', 'sudoku', 'quiet-mines', 'lights-out', 'takuzu', 'mosaic', 'hitori', 'lantern-logic', 'crown-fields')
+INACTIVE = ('summit-putt', 'ray-vault', 'island-links', 'rectangle-rooms', 'sum-cross', 'ten-pairs')
 OTHER_APPS = ('wallpaper-randomizer',)
 COLLECTIONS = ('games-hub',)  # Generated from GAMES; audited by check_games.py.
 SHELVED = ('paper-golf',)

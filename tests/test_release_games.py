@@ -54,8 +54,8 @@ class Releases(unittest.TestCase):
                 (card/'Apps'/(game+'.xtapp')).write_bytes(b'previous recovery copy')
                 entries.append(entry)
             # A new standalone game has no firmware registration but is in Hub.
-            data=package('crownfields','0.2.0');(releases/'crown-fields.xtapp').write_bytes(data)
-            new={'game':'crown-fields','app_id':'crownfields','version':'0.2.0','file':'crown-fields.xtapp','bytes':len(data),'sha256':Update.digest(data)}
+            data=package('sudoku','0.2.0');(releases/'sudoku.xtapp').write_bytes(data)
+            new={'game':'sudoku','app_id':'sudoku','version':'0.2.0','file':'sudoku.xtapp','bytes':len(data),'sha256':Update.digest(data)}
             untouched=card/'XTApps/unrelated/files';untouched.mkdir(parents=True)
             (untouched/'data.bin').write_bytes(b'keep this')
             catalogue=releases/'latest.json'
@@ -63,8 +63,8 @@ class Releases(unittest.TestCase):
             before={str(p.relative_to(card)):p.read_bytes() for p in card.glob('XTApps/*/files/*')}
             result=Release.deploy(card,catalogue,root/'backup')
             self.assertEqual(len(result['updates']),2)
-            self.assertEqual(result['new_games_available_in_hub'],['crownfields'])
-            self.assertFalse((card/'XTApps/crownfields').exists(),'do not invent firmware registration')
+            self.assertEqual(result['new_games_available_in_hub'],['sudoku'])
+            self.assertFalse((card/'XTApps/sudoku').exists(),'do not invent firmware registration')
             self.assertEqual(result['recovery_installers_verified'],3)
             for name,data in before.items():self.assertEqual((card/name).read_bytes(),data)
             self.assertEqual((root/'backup/previous-installers/nonogram.xtapp').read_bytes(),b'previous recovery copy')

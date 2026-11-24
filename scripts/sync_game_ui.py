@@ -36,6 +36,20 @@ def main():
                 bad.append(str(target.relative_to(ROOT)))
         else:
             target.write_bytes(canonical)
+    # Shared engine and host checks for the three binary-mark puzzle apps.
+    for game in ('takuzu', 'mosaic', 'hitori'):
+        for source, dest in (
+            ('shared/logic_grid.lua', 'app/index.lua'),
+            ('tests/logic_grid_game.lua', 'tests/test_game.lua'),
+            ('tests/validate_logic_grid.py', 'tests/validate_levels.py'),
+        ):
+            target = project_path(game) / dest
+            data = (ROOT / source).read_bytes()
+            if args.check:
+                if not target.exists() or target.read_bytes() != data:
+                    bad.append(str(target.relative_to(ROOT)))
+            else:
+                target.write_bytes(data)
     if bad:
         raise SystemExit('UI copies differ; run scripts/sync_game_ui.py: ' + ', '.join(bad))
     print('Shared UI copies: ' + ('verified' if args.check else 'updated'))

@@ -40,7 +40,12 @@ def main():
                 ('nonogram', '', 'assert(A.launch(1))\nA.state().engine.api.paint(1,1)', portrait),
                 ('sudoku', '', 'assert(A.launch(2))', portrait),
                 ('quiet-mines', '', 'assert(A.launch(3))', portrait),
-                ('lights-out', '', 'assert(A.launch(4))', portrait)]
+                ('lights-out', '', 'assert(A.launch(4))', portrait),
+                ('takuzu', '', 'assert(A.launch(5))', portrait),
+                ('mosaic', '', 'assert(A.launch(6))', portrait),
+                ('hitori', '', 'assert(A.launch(7))', portrait),
+                ('akari', '', 'assert(A.launch(8))', portrait),
+                ('crown-fields', '', 'assert(A.launch(9))', portrait)]
     cell = 852
     sheet = Image.new('RGB', (3*cell-24, ((len(fixtures)+2)//3)*cell), '#e9e9e9')
     for i, (name, before, setup, canvas) in enumerate(fixtures):

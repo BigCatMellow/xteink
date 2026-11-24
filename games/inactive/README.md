@@ -1,11 +1,9 @@
 # Inactive projects and next puzzle family — 2026-11-24
 
-These eight complete projects are parked by user direction, not deleted and not newly judged shallow. Their app IDs, source and historical releases are preserved. Original workflows are kept here disabled. Paper Golf remains separately shelved. The four active games are unchanged.
+These six complete projects are parked by user direction, not deleted and not newly judged shallow. Their app IDs, source and historical releases are preserved. Original workflows are kept here disabled. Paper Golf remains separately shelved. The four active games are unchanged.
 
 | Project | Disposition |
 |---|---|
-| [Crown Fields](crown-fields/) | Redesign for sustained replay and direct mark modes; preserve existing levels and saves |
-| [Lantern Logic](lantern-logic/) | Existing Akari implementation; improve rather than create a duplicate app ID |
 | [summit-putt](summit-putt/) | Parked |
 | [ray-vault](ray-vault/) | Parked |
 | [island-links](island-links/) | Parked |
@@ -13,7 +11,9 @@ These eight complete projects are parked by user direction, not deleted and not 
 | [sum-cross](sum-cross/) | Parked |
 | [ten-pairs](ten-pairs/) | Parked |
 
-## Next family: implementation acceptance
+## Candidate family: implementation acceptance
+
+Akari and Crown Fields have been restored to their original project paths on the candidate branch, with existing app IDs. Takuzu, Mosaic and Hitori are new projects.
 
 | Candidate | Rule and device design | Challenge and correctness |
 |---|---|---|

@@ -49,6 +49,7 @@ def main():
     run([sys.executable, ROOT / 'tests/test_game_discovery.py'])
     run([sys.executable, ROOT / 'tests/test_reasoning_audit.py'])
     run([sys.executable, ROOT / 'tests/validate_procedural_puzzles.py'])
+    run(['lua', ROOT/'tests/test_puzzle_reasoning.lua'])
     run([sys.executable, ROOT / 'scripts/sync_game_ui.py', '--check'])
     run([sys.executable, ROOT / 'scripts/sync_puzzle_store.py', '--check'])
     run([sys.executable, ROOT / 'scripts/sync_game_theme.py', '--check'])

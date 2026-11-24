@@ -65,7 +65,7 @@ if SCENE~='blank' then
   end end
 end
 if SCENE=='solved' then A.check() end
-if SCENE=='help' then A.tap(443,34) end
+if SCENE=='help' then local b=A.controls.menu;A.tap(b[1]+b[3]/2,b[2]+b[4]/2) end
 if SCENE=='wrong' then A.check() end
 if SCENE=='hint' then A.hint() end
 local function emit(kind,...)

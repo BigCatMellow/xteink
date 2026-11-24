@@ -89,8 +89,9 @@ for _,level in ipairs({1,5,9}) do
   assert(cell>=34,'touch cells must stay usable with extended 10x10 puzzles')
   assert(n*cell>=345,'the puzzle must receive meaningful screen area')
   assert(math.abs(((bx-gutter)+(bx+n*cell))/2-240)<=.5,'clues and board centered horizontally')
-  assert(math.abs(((by-clueArea)+(by+n*cell))/2-334)<=.5,'clues and board centered vertically')
-  assert(by+n*cell<=592,'board leaves room for feedback and controls')
+  local top,band=A.band()
+  assert(by-clueArea==top,'clues and board start flush at the top of the band')
+  assert(by-clueArea>=top and by+n*cell<=top+band,'board owns the top of the screen above the status line')
   assert(not A.tap(bx-1,by+cell/2),'clue gutter must not paint a square')
   assert(A.tap(bx+1,by+1));eq(s.boards[level][1],1,'top-left touch matches drawn cell')
   assert(A.tap(bx+n*cell-1,by+n*cell-1));eq(s.boards[level][n*n],1,'bottom-right touch matches drawn cell')
@@ -229,13 +230,14 @@ for level=1,12 do
   A.check()
   measured(ctx,on_draw,'nonogram revealed '..level)
 end
-A.tap(443,34)
-measured(ctx,on_draw,'nonogram help')
+local function press(key) local b=A.controls[key];return A.tap(b[1]+b[3]/2,b[2]+b[4]/2) end
+assert(press('menu'));measured(ctx,on_draw,'nonogram menu')
 local opened=s.level
-local nextButton=A.controls.next
-assert(not A.tap(nextButton[1]+nextButton[3]/2,nextButton[2]+nextButton[4]/2),'help must block navigation hitboxes')
+assert(press('help'));measured(ctx,on_draw,'nonogram help')
+assert(not press('next'),'help must block navigation hitboxes')
 eq(s.level,opened)
-A.tap(443,34)
+assert(press('back'));assert(press('resume'))
+assert(press('menu'),'menu opens again after resuming');assert(press('resume'))
 -- Upgrade a v1 save without losing submitted pictures or undo snapshots.
 assert(A.visit(5));A.reset();A.paint(1,1);A.paint(2,1)
 local legacy=store['nonogram.txt']:gsub('version=2','version=1'):gsub('unlocked=%d+','unlocked=12')

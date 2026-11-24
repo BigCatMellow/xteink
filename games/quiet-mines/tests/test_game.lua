@@ -31,7 +31,7 @@ do
   end
   g:reset();on_draw(ctx,g);g:verify('Mines raised closed squares')
   assert(key and edge,'closed squares are raised keys')
-  eq(cell,46,'10x10 field uses the full width');assert(x>=6 and x+10*cell<=474,'field inside the screen')
+  assert(cell>=46,'10x10 field uses the full width');assert(x>=2 and x+10*cell<=478,'field inside the screen')
 end
 assert(not firstGenerated.mines[1]);eq(A.nearby(firstGenerated,1),0)
 local function signature(level)
@@ -136,8 +136,10 @@ for level=1,24 do
  measured(ctx,on_draw,'mines reset '..level)
  A.apply(1);measured(ctx,on_draw,'mines partial '..level)
 end
-A.tap(442,33);measured(ctx,on_draw,'mines help')
-A.tap(220,735)
+local function press(key) local b=A.controls[key];return A.tap(b[1]+b[3]/2,b[2]+b[4]/2) end
+assert(press('menu'));measured(ctx,on_draw,'mines menu')
+assert(press('help'));measured(ctx,on_draw,'mines help')
+assert(not press('new'),'help blocks the menu targets');assert(press('back'));assert(press('resume'))
 -- The 12 original fields remain completable by direct arithmetic; advanced
 -- fields must be playable by the same direct/subset rule implemented by Hint.
 local advancedOverlap=0

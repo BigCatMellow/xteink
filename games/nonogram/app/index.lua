@@ -49,22 +49,31 @@ local FAILED_FONTSET=nil
 local NEEDS_FONTS=true
 local FONT_ERROR=nil
 local HELP=false
+local MENU=false
 local KEY_MS=-1000
 local CROSS_MODE=false
 local SELECTED=0
 local HINTED=0
 -- One geometry contract for visible controls and touch. See docs/DESIGN.md.
--- 'fill'/'cross' form the mode switch; 'hint' lives on the help screen.
+-- Screen-first layout (as Sudoku 0.7): the clues and board own the top of the
+-- screen, one status line, then large controls. 'fill'/'cross' form the mode
+-- switch; Next, Previous, Reset and Help live on the full-screen menu.
 local BUTTONS={
-  next={312,20,104,48},help={424,20,50,48},
-  fill={6,664,231,58},cross={243,664,231,58},
-  prev={6,730,111,62},undo={125,730,111,62},
-  reset={244,730,111,62},check={363,730,111,62},
-  hint={24,640,432,58},back={24,730,432,62}
+  fill={8,598,228,86},cross={244,598,228,86},
+  hint={8,696,110,96},undo={126,696,110,96},
+  check={244,696,110,96},menu={362,696,110,96},
+  next={24,96,432,66},prev={24,174,432,66},
+  reset={24,252,432,66},help={24,330,432,66},
+  resume={24,712,432,72},back={24,712,432,72}
 }
--- Clue header + board composition band, between the title row and counters.
--- 472px wide (4px margins); small puzzles may use cells up to 84px.
-local TOP,BAND,SPAN=76,516,472
+local STATUS_Y=564
+-- Clue header + board composition band above the status line; 476px wide
+-- (2px margins); small puzzles may use cells up to 84px. Inside the Games Hub
+-- the band starts below the Hub's reserved return key.
+local TOP,BAND,SPAN=2,554,476
+local function layout_for_host()
+  if C and C.xteink_hub_embedded then TOP,BAND=66,490 else TOP,BAND=2,554 end
+end
 local STYLE=Family
 local function copy(arr)
   local dst={}
@@ -218,7 +227,7 @@ local function start()
   end
   load_generated(S,TOTAL+1)
   MSG='New generated logic puzzle'
-  HELP=false
+  HELP=false;MENU=false
   save()
 end
 local function restore()
@@ -259,7 +268,7 @@ local function restore()
   if loaded.submitted[TOTAL] then loaded.unlocked=math.max(unlocked,TOTAL+1) end
   load_generated(loaded,level)
   S=loaded
-  HELP=false;MSG=nil;CROSS_MODE=false;SELECTED=0;HINTED=0
+  HELP=false;MENU=false;MSG=nil;CROSS_MODE=false;SELECTED=0;HINTED=0
   return true
 end
 local function visit(level)
@@ -270,7 +279,7 @@ local function visit(level)
     S.boards[S.level]=nil;S.history[S.level]=nil;S.submitted[S.level]=nil
   end
   S.level=level
-  MSG=nil;HELP=false;CROSS_MODE=false;SELECTED=0;HINTED=0
+  MSG=nil;HELP=false;MENU=false;CROSS_MODE=false;SELECTED=0;HINTED=0
   save()
   return true
 end
@@ -290,7 +299,7 @@ local function new_puzzle()
   end
   S.level=number;S.unlocked=number
   MSG='New generated logic puzzle'
-  HELP=false;CROSS_MODE=false;SELECTED=0;HINTED=0
+  HELP=false;MENU=false;CROSS_MODE=false;SELECTED=0;HINTED=0
   save();return true
 end
 local function mark_cell(x,y,kind)
@@ -399,7 +408,7 @@ local function geometry()
   end
   assert(cell>=34,'Nonogram clue density exceeds readable screen')
   local x=math.floor((480-(n*cell+gutter))/2)+gutter
-  local y=TOP+math.floor((BAND-(n*cell+clueArea))/2)+clueArea
+  local y=TOP+clueArea  -- flush to the top, as Sudoku's board
   return x,y,cell,gutter,clueArea,font
 end
 local function button(g,key,label,pressed)
@@ -411,24 +420,31 @@ local function text(g,x,y,s,style,align,width)
   UI.text(g,D or C,x,y,s,style,align,width)
 end
 local function help_screen(g)
-  text(g,240,100,'How to solve','large','center',432)
-  UI.paragraph(g,D or C,24,148,432,118,
+  text(g,240,40,'How to solve','large','center',432)
+  UI.paragraph(g,D or C,24,100,432,118,
     'Each number is a run of filled cells. Leave at least one empty cell between runs.', 'body')
-  UI.paragraph(g,D or C,24,276,432,120,
+  UI.paragraph(g,D or C,24,240,432,120,
     'Use the Fill and X switch under the board. X marks squares you know are empty.', 'body')
-  UI.paragraph(g,D or C,24,406,432,116,
+  UI.paragraph(g,D or C,24,382,432,150,
     'Hint uses the clues to find a certain move, without seeing the picture. Undo and Reset keep your progress.', 'body')
-  text(g,240,540,(S.level<=TOTAL and 'Saved '..S.level or 'Puzzle '..(S.level-TOTAL))
-    ..'  -  '..current().n..' x '..current().n,'small','center',432)
-  if not S.submitted[S.level] then button(g,'hint','Show a hint') end
-  button(g,'back','Back to puzzle')
+  button(g,'back','Back to menu')
+end
+local function menu_screen(g)
+  text(g,24,30,'Menu','title',nil,300)
+  local won=S.submitted[S.level]
+  button(g,'next',S.level<S.unlocked and 'Next puzzle' or 'New puzzle')
+  button(g,'prev','Previous puzzle')
+  button(g,'reset','Reset this puzzle')
+  button(g,'help','How to play')
+  text(g,240,430,(S.level<=TOTAL and 'Saved '..S.level or 'Puzzle '..(S.level-TOTAL))
+    ..'  -  '..current().n..' x '..current().n..(won and '  -  solved' or ''),'small','center',432)
+  button(g,'resume','Back to puzzle')
 end
 local function draw(g)
   g:clear(0)
-  text(g,6,22,'Nonogram','title',nil,290)
-  if not HELP then button(g,'next',S.level<S.unlocked and 'Next' or 'New') end
-  button(g,'help',HELP and 'X' or '?')
+  layout_for_host()
   if HELP then help_screen(g);return end
+  if MENU then menu_screen(g);return end
   local p=current()
   local bx,by,cell,gutter,clueArea,clueFont=geometry()
   local n=p.n
@@ -489,22 +505,18 @@ local function draw(g)
     local px,py=bx+col*cell,by+row*cell
     g:rect(px+1,py+1,cell-1,cell-1,{line_width=3,radius=7})
   end
-  text(g,8,598,'Rows '..rows..' / '..n,'body',nil,200)
-  local colsLabel='Cols '..cols..' / '..n
-  local cw=math.min(UI.width(D or C,colsLabel,'body'),200)
-  text(g,472-cw,598,colsLabel,'body',nil,200)
   local won=S.submitted[S.level]
+  -- One status line: a message, the solved picture, or line progress.
   local status=MSG or (won and 'Revealed: '..display_name(p.name)
-    or CROSS_MODE and 'X marks squares you know are empty'
-    or 'Fill the squares the clues describe')
-  text(g,240,634,status,'small','center',464)
+    or 'Rows '..rows..' / '..n..'    Cols '..cols..' / '..n)
+  text(g,240,STATUS_Y,status,'body','center',464)
   -- The mode switch: the active half looks pressed in.
   button(g,'fill','Fill',not CROSS_MODE)
   button(g,'cross','X',CROSS_MODE)
-  button(g,'prev','Prev')
+  button(g,'hint','Hint',false)
   button(g,'undo','Undo')
-  button(g,'reset','Reset')
-  button(g,'check',won and (S.level<S.unlocked and 'Next' or 'Done') or 'Check')
+  button(g,'check',won and (S.level<S.unlocked and 'Next' or 'New') or 'Check')
+  button(g,'menu','Menu')
 end
 local function hit(x,y,bx,by,w,h)
   return x>=bx and x<bx+w and y>=by and y<by+h
@@ -514,22 +526,35 @@ local function control_hit(key,x,y)
   return hit(x,y,b[1],b[2],b[3],b[4])
 end
 local function tap(x,y)
-  if control_hit('help',x,y) then HELP=not HELP;return true end
+  layout_for_host()
   if HELP then
-    if control_hit('back',x,y) then HELP=false;return true end
-    if control_hit('hint',x,y) and not S.submitted[S.level] then HELP=false;return hint() end
+    if control_hit('back',x,y) then HELP=false;MENU=true;return true end
     return false
   end
+  if MENU then
+    if control_hit('resume',x,y) then MENU=false;return true end
+    if control_hit('help',x,y) then MENU=false;HELP=true;return true end
+    if control_hit('next',x,y) then
+      MENU=false
+      return S.level<S.unlocked and next_level() or new_puzzle()
+    end
+    if control_hit('prev',x,y) then MENU=false;return prev() end
+    if control_hit('reset',x,y) then MENU=false;return reset() end
+    return false
+  end
+  if control_hit('menu',x,y) then MENU=true;return true end
   if control_hit('fill',x,y) then if CROSS_MODE then return toggle_mode() end return true end
   if control_hit('cross',x,y) then if not CROSS_MODE then return toggle_mode() end return true end
-  if control_hit('next',x,y) then
-    return S.level<S.unlocked and next_level() or new_puzzle()
+  if control_hit('hint',x,y) then
+    if S.submitted[S.level] then return false end
+    return hint()
   end
-  if control_hit('prev',x,y) then return prev() end
   if control_hit('undo',x,y) then return undo() end
-  if control_hit('reset',x,y) then return reset() end
   if control_hit('check',x,y) then
-    if S.submitted[S.level] then return next_level() else return check() end
+    if S.submitted[S.level] then
+      return S.level<S.unlocked and next_level() or new_puzzle()
+    end
+    return check()
   end
   local p=current()
   local bx,by,cell=geometry()
@@ -629,7 +654,7 @@ if rawget(_G,'__TEST') then
     cursor=function() return SELECTED,HINTED end,
     check=check,reset=reset,undo=undo,visit=visit,next=next_level,
     prev=prev,new=new_puzzle,geometry=geometry,counters=counters,tap=tap,restore=restore,
-    controls=BUTTONS,style=STYLE,
+    controls=BUTTONS,style=STYLE,band=function() layout_for_host();return TOP,BAND end,
     typefaces=function() return FONTSET,FONT_ERROR end
   }
 end
@@ -637,7 +662,7 @@ end
 -- Crash reports: errors are saved to crash.txt and shown on a recovery screen.
 do
   local guarded=UI.guard{id='nonogram',test=rawget(_G,'__TEST'),
-    state=function() return S and ('level='..tostring(S.level)..' unlocked='..tostring(S.unlocked)..' solved='..tostring(S.submitted[S.level])..' help='..tostring(HELP)) end,
+    state=function() return S and ('level='..tostring(S.level)..' unlocked='..tostring(S.unlocked)..' solved='..tostring(S.submitted[S.level])..' help='..tostring(HELP)..' menu='..tostring(MENU)) end,
     load=on_load,draw=on_draw,input=on_input,leave=on_leave}
   on_load,on_draw,on_input,on_leave=guarded.load,guarded.draw,guarded.input,guarded.leave
 end

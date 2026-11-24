@@ -3,13 +3,13 @@
 from pathlib import Path
 import re
 s=(Path(__file__).resolve().parents[1]/'app'/'levels.lua').read_text()
-boards=[re.findall(r'"([A-G]+)"',raw) for raw in re.findall(r'\{rows=\{([^{}]+)\}\}',s)]
-assert len(boards)==12, len(boards)
+boards=[re.findall(r'"([A-I]+)"',raw) for raw in re.findall(r'\{rows=\{([^{}]+)\}\}',s)]
+assert len(boards)==20, len(boards)
 for z,rows in enumerate(boards,1):
  n=len(rows)
- assert n==(5 if z<=4 else 6 if z<=8 else 7)
+ assert n==(z-1)//4+5
  assert all(len(r)==n for r in rows)
- assert set(''.join(rows))==set('ABCDEFG'[:n])
+ assert set(''.join(rows))==set('ABCDEFGHI'[:n])
  # Every region must be contiguous.
  for label in set(''.join(rows)):
   cells={(x,y) for y,r in enumerate(rows) for x,c in enumerate(r) if c==label}
@@ -33,4 +33,4 @@ for z,rows in enumerate(boards,1):
  assert len(solutions)==1, f'board {z} not unique: {len(solutions)}'
  assert len(set(solutions[0]))==n
  print(f'{z:02} {n}x{n}, unique: {solutions[0]}')
-print('PASS: 12 connected-region Crowns boards, 12 unique solutions')
+print('PASS: 20 connected-region Crowns boards, 20 unique solutions')

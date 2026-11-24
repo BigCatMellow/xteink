@@ -4,6 +4,9 @@ local Theme=require('theme')
 local Levels=require('levels')
 local C,S,ERR,MSG=nil,nil,nil,nil
 local HELP=false
+local MODE=2
+local EXCLUDE=false
+local OLD_TOTAL=12
 local KEY_MS=-1000
 local TOTAL=#Levels
 local function board(level)
@@ -72,7 +75,7 @@ local function stats()
 end
 local function save()
   if not C or not C.storage or not S then return end
-  local lines={'version=1','level='..S.level,'unlocked='..S.unlocked}
+  local lines={'version=1','total='..TOTAL,'level='..S.level,'unlocked='..S.unlocked,'mode='..MODE,'exclude='..(EXCLUDE and '1' or '0')}
   for i=1,TOTAL do
     lines[#lines+1]='B'..i..'='..pack(S.marks[i])
     lines[#lines+1]='S'..i..'='..(S.submitted[i] and '1' or '0')
@@ -90,7 +93,7 @@ local function start()
     S.submitted[i]=false
     S.history[i]={}
   end
-  HELP=false;MSG='Tap: X / crown / clear'
+  HELP=false;MODE=2;EXCLUDE=false;MSG=nil
   save()
 end
 local function restore()
@@ -102,14 +105,19 @@ local function restore()
   local lvl,unlock=tonumber(fields.level),tonumber(fields.unlocked)
   if fields.version~='1' or not lvl or lvl~=math.floor(lvl) or lvl<1 or lvl>TOTAL
      or not unlock or unlock~=math.floor(unlock) or unlock<lvl or unlock>TOTAL then return false end
+  local savedTotal=tonumber(fields.total) or OLD_TOTAL
+  if savedTotal~=math.floor(savedTotal) or savedTotal<OLD_TOTAL or savedTotal>TOTAL or unlock>savedTotal then return false end
   local nextS={level=lvl,unlocked=unlock,marks={},submitted={},history={}}
   for i=1,TOTAL do
     local n=board(i).n
+    if i>savedTotal then
+      nextS.marks[i]=zeros(n*n);nextS.submitted[i]=false;nextS.history[i]={}
+    else
     local mask=unpack_mask(fields['B'..i],n*n)
     if not mask then return false end
     local won=fields['S'..i]
     if won~='0' and won~='1' then return false end
-    if won=='1' and (not valid(i,mask) or (i<TOTAL and unlock<i+1)) then return false end
+    if won=='1' and (not valid(i,mask) or (i<savedTotal and unlock<i+1)) then return false end
     nextS.marks[i]=mask
     nextS.submitted[i]=won=='1'
     local history={}
@@ -120,8 +128,12 @@ local function restore()
       history[#history+1]=m
     end
     nextS.history[i]=history
+    end
   end
-  S=nextS;HELP=false;MSG=nil
+  if nextS.submitted[savedTotal] and nextS.unlocked==savedTotal then
+    nextS.unlocked=math.min(TOTAL,savedTotal+1)
+  end
+  S=nextS;HELP=false;MSG=nil;MODE=fields.mode=='1' and 1 or 2;EXCLUDE=fields.exclude=='1'
   return true
 end
 local function visit(n)
@@ -131,14 +143,19 @@ local function visit(n)
 end
 local function prev() return S and visit(S.level-1) or false end
 local function next_level() return S and visit(S.level+1) or false end
-local function mark(i)
+local function mode(v)
+  if MODE==v then return false end
+  MODE=v;save();return true
+end
+local function mark(i,v)
   if not S or S.submitted[S.level] then return false end
   local a=S.marks[S.level]
   if not a[i] then return false end
   local h=S.history[S.level]
   if #h>=12 then table.remove(h,1) end
   h[#h+1]=clone(a)
-  a[i]=(a[i]+1)%3
+  v=v or MODE
+  a[i]=a[i]==v and 0 or v
   MSG=nil;save();return true
 end
 local function undo()
@@ -153,57 +170,71 @@ local function restart()
   S.marks[S.level]=zeros(n*n)
   S.history[S.level]={}
   S.submitted[S.level]=false
-  MSG='Fresh region grid';save();return true
+  MSG=nil;save();return true
 end
 local function check()
   if not S or S.submitted[S.level] then return false end
   if valid(S.level,S.marks[S.level]) then
     S.submitted[S.level]=true
     S.unlocked=math.min(TOTAL,math.max(S.unlocked,S.level+1))
-    MSG='ALL REGIONS SOLVED!'
+    MSG='Solved'
   else
-    MSG='Check row, column, region and touching'
+    MSG='Check crowns and regions'
   end
   save();return true
 end
 local function geometry()
   local n=board(S.level).n
-  return UI.grid_geometry(n,120,568)
+  return UI.grid_geometry(n,94,572,468)
 end
 local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
 local function button(g,x,y,w,h,s) UI.button(g,C,x,y,w,h,s) end
 local function draw_help(g)
-  text(g,240,165,'ONE IN EVERY REGION','large','center',430)
-  UI.paragraph(g,C,28,234,424,107,
-    'Place one crown in each row, each column, and each lettered region.', 'medium')
-  UI.paragraph(g,C,28,360,424,109,
-    'Crowns must never touch, even at a diagonal corner. Region letters replace colors.', 'medium')
-  UI.paragraph(g,C,28,497,424,105,
-    'Tap cells: X, crown, clear. Submit with CHECK. Use UNDO for mistakes.', 'medium')
-  button(g,76,703,328,68,'BACK TO GRID')
+  text(g,240,94,'How to play','large','center',436)
+  UI.paragraph(g,C,22,150,436,160,'Place one crown in each row, column and outlined region. Crowns must never touch, even diagonally.','medium')
+  UI.paragraph(g,C,22,320,436,172,'Select Crown or X, then tap a square. Tap the same mark again to clear. Check submits your answer. Undo restores the last change.','medium')
+  UI.button(g,C,22,530,436,62,'Auto exclusions: '..(EXCLUDE and 'On' or 'Off'),EXCLUDE)
+  button(g,76,704,328,70,'Back to grid')
+end
+local function exclusions(b,marks)
+  local blocked,conflict={},{}
+  for i,v in ipairs(marks) do
+    if v==2 then
+      local x,y=(i-1)%b.n,math.floor((i-1)/b.n)
+      for j=1,#marks do if j~=i then
+        local a,z=(j-1)%b.n,math.floor((j-1)/b.n)
+        if x==a or y==z or b.regions[i]==b.regions[j] or (math.abs(x-a)==1 and math.abs(y-z)==1) then
+          blocked[j]=true
+          if marks[j]==2 then conflict[i]=true;conflict[j]=true end
+        end
+      end end
+    end
+  end
+  return blocked,conflict
 end
 local function render(g)
   g:clear(0)
-  text(g,22,17,'CROWN FIELDS','large',nil,340)
+  text(g,80,14,'Crown Fields','large',nil,326)
   button(g,416,12,48,48,HELP and 'X' or '?')
-  if S.level<TOTAL and S.level<S.unlocked then button(g,313,13,96,45,'NEXT') end
-  text(g,22,75,'PUZZLE '..S.level..' / '..TOTAL,'medium')
   if HELP then draw_help(g);return end
+  text(g,16,66,'Puzzle '..S.level..' / '..TOTAL,'small',nil,300)
   local b=board(S.level)
   local bx,by,cell=geometry()
   UI.region(bx,by,b.n*cell,b.n*cell)
   UI.grid(g,bx,by,b.n,b.n,cell)
+  local marks=S.marks[S.level]
+  local blocked,conflict=exclusions(b,marks)
+  local clashes=0
   for y=1,b.n do
     for x=1,b.n do
       local i=(y-1)*b.n+x
       local px,py=bx+(x-1)*cell,by+(y-1)*cell
       local code=b.regions[i]
-      text(g,px+7,py+5,code,'small',nil,22)
-      local v=S.marks[S.level][i]
-      local cx,cy=px+cell/2,py+cell/2+3
+      local v=marks[i]
+      local cx,cy=px+cell/2,py+cell/2
       if v==1 then
-        UI.stroke(g,cx-12,cy-11,cx+12,cy+11,4)
-        UI.stroke(g,cx-12,cy+11,cx+12,cy-11,4)
+        UI.stroke(g,cx-12,cy-11,cx+12,cy+11,3)
+        UI.stroke(g,cx-12,cy+11,cx+12,cy-11,3)
       elseif v==2 then
         UI.stroke(g,cx-17,cy-5,cx-12,cy+12,4)
         UI.stroke(g,cx-12,cy+12,cx+12,cy+12,4)
@@ -212,24 +243,26 @@ local function render(g)
         UI.stroke(g,cx-6,cy+2,cx,cy-14,4)
         UI.stroke(g,cx,cy-14,cx+6,cy+2,4)
         UI.stroke(g,cx+6,cy+2,cx+17,cy-5,4)
+        if conflict[i] then
+          clashes=clashes+1
+          g:rect(px+5,py+5,cell-10,cell-10,{line_width=2,radius=3})
+        end
+      elseif EXCLUDE and blocked[i] then
+        g:circle(cx,cy,3,{fill=true})
       end
-      if x<b.n and code~=b.regions[i+1] then
-        UI.stroke(g,px+cell,py,px+cell,py+cell,5)
-      end
-      if y<b.n and code~=b.regions[i+b.n] then
-        UI.stroke(g,px,py+cell,px+cell,py+cell,5)
-      end
+      if x<b.n and code~=b.regions[i+1] then UI.stroke(g,px+cell,py,px+cell,py+cell,5) end
+      if y<b.n and code~=b.regions[i+b.n] then UI.stroke(g,px,py+cell,px+cell,py+cell,5) end
     end
   end
   local crowns,target=stats()
-  text(g,240,577,'CROWNS '..crowns..' / '..target,'medium','center',430)
-  text(g,240,621,MSG or (S.submitted[S.level] and 'SOLVED' or 'Place crowns and press CHECK'),
-       'small','center',438)
-  text(g,240,661,'One crown per row / column / region','small','center',430)
-  button(g,20,705,100,69,S.level>1 and 'PREV' or 'START')
-  button(g,133,705,100,69,'UNDO')
-  button(g,246,705,100,69,'RESET')
-  button(g,359,705,101,69,S.submitted[S.level] and 'DONE' or 'CHECK')
+  local status=MSG or (S.submitted[S.level] and 'Solved' or ('Crowns '..crowns..' / '..target..(clashes>0 and ' - conflict' or '')))
+  text(g,240,580,status,'medium','center',440)
+  UI.button(g,C,12,620,222,62,'Crown',MODE==2)
+  UI.button(g,C,246,620,222,62,'X',MODE==1)
+  button(g,12,704,106,70,'Prev')
+  button(g,128,704,106,70,'Undo')
+  button(g,244,704,106,70,'Reset')
+  button(g,360,704,108,70,S.submitted[S.level] and (S.level<TOTAL and 'Next' or 'Done') or 'Check')
 end
 local function hit(x,y,bx,by,w,h)
   return x>=bx and x<bx+w and y>=by and y<by+h
@@ -237,14 +270,19 @@ end
 local function tap(x,y)
   if hit(x,y,416,12,48,48) then HELP=not HELP;return true end
   if HELP then
-    if hit(x,y,76,703,328,68) then HELP=false;return true end
+    if hit(x,y,76,704,328,70) then HELP=false;return true end
+    if hit(x,y,22,530,436,62) then EXCLUDE=not EXCLUDE;save();return true end
     return false
   end
-  if hit(x,y,313,13,96,45) then return next_level() end
-  if hit(x,y,20,705,100,69) then return prev() end
-  if hit(x,y,133,705,100,69) then return undo() end
-  if hit(x,y,246,705,100,69) then return restart() end
-  if hit(x,y,359,705,101,69) then return check() end
+  if hit(x,y,12,620,222,62) then return mode(2) end
+  if hit(x,y,246,620,222,62) then return mode(1) end
+  if hit(x,y,12,704,106,70) then return prev() end
+  if hit(x,y,128,704,106,70) then return undo() end
+  if hit(x,y,244,704,106,70) then return restart() end
+  if hit(x,y,360,704,108,70) then
+    if S.submitted[S.level] then return next_level() end
+    return check()
+  end
   local b=board(S.level)
   local bx,by,cell=geometry()
   if hit(x,y,bx,by,cell*b.n,cell*b.n) then
@@ -291,7 +329,7 @@ function on_leave() Theme.release();if S then save() end end
 if rawget(_G,'__TEST') then
  __TEST.api={
    levels=Levels,board=board,valid=valid,state=function()return S end,
-   mark=mark,undo=undo,check=check,restart=restart,visit=visit,
+   mark=mark,mode=mode,undo=undo,check=check,restart=restart,visit=visit,
    next=next_level,prev=prev,geometry=geometry,tap=tap
  }
 end

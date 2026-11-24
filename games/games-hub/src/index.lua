@@ -261,3 +261,11 @@ if rawget(_G,'__TEST') then
     state=function() return {screen=S.screen,page=S.page,last=last,selected=selected,blocked=blocked,
       notice=notice,engine=active,orient=orient,shell=S} end}
 end
+
+-- Crash reports for the shell itself (each game installs its own guard).
+do
+  local guarded=UI.guard{id='gameshub',test=rawget(_G,'__TEST'),
+    state=function() return 'screen='..tostring(S and S.screen)..' game='..tostring(active and Catalogue[last] and Catalogue[last].id) end,
+    load=on_load,draw=on_draw,input=on_input,leave=on_leave}
+  on_load,on_draw,on_input,on_leave=guarded.load,guarded.draw,guarded.input,guarded.leave
+end

@@ -249,6 +249,7 @@ local TOTAL=#LEVELS
 local MAX=999999999
 local C,S,ERR,MSG=nil,nil,nil,nil
 local HELP=false
+local MENU=false
 local HINTED=0
 local KEY_MS=-1000
 local function board(level)
@@ -402,7 +403,7 @@ local function start()
     S.failed[i]=false;S.history[i]={}
   end
   assert(new_field(S.level,S.difficulty),'Could not generate a no-guess field')
-  HELP=false;HINTED=0;MSG='New random field: open S'
+  HELP=false;MENU=false;HINTED=0;MSG='New random field: open S'
   save()
 end
 local function restore()
@@ -448,7 +449,7 @@ local function restore()
   if lvl>TOTAL and not load_field(lvl) then
     error('Cannot load saved generated field; progress has not been overwritten')
   end
-  HELP=false;HINTED=0;MSG=nil;return true
+  HELP=false;MENU=false;HINTED=0;MSG=nil;return true
 end
 local function visit(n)
   if not S or n<1 or n>MAX or n>S.unlocked or n~=math.floor(n) then return false end
@@ -460,7 +461,7 @@ local function visit(n)
   if old>TOTAL and n~=old then
     S.marks[old]=nil;S.failed[old]=nil;S.history[old]=nil
   end
-  S.level=n;MSG=nil;HELP=false;HINTED=0
+  S.level=n;MSG=nil;HELP=false;MENU=false;HINTED=0
   save();return true
 end
 local function next_level()return S and visit(S.level+1) or false end
@@ -481,7 +482,7 @@ local function new_game()
     S.marks[old]=nil;S.failed[old]=nil;S.history[old]=nil
   end
   S.level=number;S.unlocked=number;S.mode='OPEN'
-  HELP=false;HINTED=0;MSG='New random field: open S'
+  HELP=false;MENU=false;HINTED=0;MSG='New random field: open S'
   save();return true
 end
 local function cycle_difficulty()
@@ -626,15 +627,23 @@ local function restart()
   S.mode='OPEN';HINTED=0
   MSG='Open S to begin';save();return true
 end
--- One geometry contract for drawing and touch. The field takes the full
--- 468px width; spare height goes to the status lines and larger keys.
-local BUTTONS={new={320,20,96,48},help={424,20,50,48},
-  prev={6,668,88,82},flag={101,668,88,82},hint={196,668,88,82},
-  undo={291,668,88,82},reset={386,668,88,82},
-  difficulty={75,610,330,54},back={75,684,330,62}}
+-- One geometry contract for drawing and touch. Screen-first layout (as
+-- Sudoku 0.7): the field is flush to the top at the full 476px width, one
+-- status line, then the Open/Flag switch and large tools. New, difficulty,
+-- field navigation and help live on the full-screen menu.
+local BUTTONS={
+  open={8,566,228,96},flag={244,566,228,96},
+  hint={8,674,110,118},undo={126,674,110,118},
+  reset={244,674,110,118},menu={362,674,110,118},
+  new={24,96,432,66},difficulty={24,174,432,66},
+  next={24,252,210,66},prev={246,252,210,66},help={24,330,432,66},
+  resume={24,712,432,72},back={24,712,432,72}}
+local STATUS_Y=500
 local function geometry()
   local n=board(S.level).n
-  return UI.grid_geometry(n,114,582,468)
+  -- Inside the Games Hub the field starts below the Hub's reserved return key.
+  if C and C.xteink_hub_embedded then return UI.grid_geometry(n,66,534,468) end
+  return UI.grid_geometry(n,2,480,476)
 end
 local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
 local function button(g,key,s,marked)
@@ -642,16 +651,24 @@ local function button(g,key,s,marked)
 end
 local DIFFICULTY={'Easy','Normal','Hard'}
 local function draw_help(g)
-  text(g,240,110,'How to play','large','center',425)
-  UI.paragraph(g,C,28,160,424,126,
+  text(g,240,40,'How to play','large','center',425)
+  UI.paragraph(g,C,28,100,424,126,
     'Open safe squares. Numbers tell how many mines touch that square, including diagonals.', 'body')
-  UI.paragraph(g,C,28,298,424,126,
+  UI.paragraph(g,C,28,238,424,126,
     'Open S first on a random field. Every accepted field has a no-guess route. Flag marks mines.', 'body')
-  UI.paragraph(g,C,28,436,424,96,
+  UI.paragraph(g,C,28,376,424,126,
     'Opening a mine loses that field. Reset restarts it. Hint finds a certain move.', 'body')
-  text(g,240,552,'Field '..S.level..'  -  New uses this level','small','center',424)
+  button(g,'back','Back to menu')
+end
+local function draw_menu(g)
+  text(g,24,30,'Menu','title',nil,300)
+  button(g,'new','New field')
   button(g,'difficulty','Difficulty: '..DIFFICULTY[S.difficulty])
-  button(g,'back','Back to field')
+  button(g,'next','Next field')
+  button(g,'prev','Previous')
+  button(g,'help','How to play')
+  text(g,240,430,'Field '..S.level..'  -  New uses '..DIFFICULTY[S.difficulty],'small','center',424)
+  button(g,'resume','Back to field')
 end
 -- Small monochrome symbols drawn from rectangles and strokes only.
 local function mine_icon(g,cx,cy,r)
@@ -671,17 +688,11 @@ local function flag_icon(g,cx,cy)
 end
 local function render(g)
   g:clear(0)
-  text(g,6,22,'Minesweeper','title',nil,300)
-  button(g,'new','New')
-  button(g,'help',HELP and 'X' or '?')
   local b=board(S.level)
   if HELP then draw_help(g);return end
+  if MENU then draw_menu(g);return end
   local tiles=S.marks[S.level]
   local safe=b.n*b.n-b.total
-  mine_icon(g,22,90,13)
-  text(g,46,75,'Mines '..(b.total-marked(S.level)),'large',nil,180)
-  g:rect(244,77,26,26,{line_width=1,radius=4})
-  text(g,282,75,'Safe '..(safe-revealed(S.level)),'large',nil,190)
   local bx,by,cell=geometry()
   UI.region(bx,by,cell*b.n,cell*b.n)
   for y=1,b.n do
@@ -720,34 +731,39 @@ local function render(g)
     end
   end
   UI.grid(g,bx,by,b.n,b.n,cell,{minor=2,frame=3})
-  -- Progress always stays visible; messages and the mode use their own line.
-  text(g,8,594,'Safe '..revealed(S.level)..' / '..safe,'body',nil,220)
-  local flags='Flags '..marked(S.level)..' / '..b.total
-  local fw=math.min(UI.width(C,flags,'body'),220)
-  text(g,472-fw,594,flags,'body',nil,220)
+  -- One status line: a message, the outcome, or mines and safe squares left.
   local status=MSG or (S.failed[S.level] and 'Mine found - Reset this field'
     or solved(S.level,tiles) and 'Field cleared'
-    or S.mode=='FLAG' and 'Flag mode: tap squares to mark mines'
-    or 'Open mode: tap a square to open it')
-  text(g,240,632,status,'small','center',464)
-  button(g,'prev','Prev')
+    or 'Mines left '..(b.total-marked(S.level))..'    Safe left '..(safe-revealed(S.level)))
+  local sy=C and C.xteink_hub_embedded and 536 or STATUS_Y
+  text(g,240,sy,status,'body','center',464)
+  -- The mode switch: the active half looks pressed in.
+  button(g,'open','Open',S.mode~='FLAG')
   button(g,'flag','Flag',S.mode=='FLAG')
   button(g,'hint','Hint',HINTED>0)
   button(g,'undo','Undo')
   button(g,'reset','Reset')
+  button(g,'menu','Menu')
 end
 local function hit(x,y,bx,by,w,h)return x>=bx and x<bx+w and y>=by and y<by+h end
 local function at(key,x,y) local b=BUTTONS[key];return hit(x,y,b[1],b[2],b[3],b[4]) end
 local function tap(x,y)
-  if at('help',x,y) then HELP=not HELP;return true end
-  if at('new',x,y) then return new_game() end
   if HELP then
-    if at('back',x,y) then HELP=false;return true end
-    if at('difficulty',x,y) then return cycle_difficulty() end
+    if at('back',x,y) then HELP=false;MENU=true;return true end
     return false
   end
-  if at('prev',x,y) then return prev() end
-  if at('flag',x,y) then return mode() end
+  if MENU then
+    if at('resume',x,y) then MENU=false;return true end
+    if at('help',x,y) then MENU=false;HELP=true;return true end
+    if at('new',x,y) then MENU=false;return new_game() end
+    if at('difficulty',x,y) then return cycle_difficulty() end
+    if at('next',x,y) then MENU=false;return next_level() end
+    if at('prev',x,y) then MENU=false;return prev() end
+    return false
+  end
+  if at('menu',x,y) then MENU=true;return true end
+  if at('open',x,y) then if S.mode=='FLAG' then return mode() end return true end
+  if at('flag',x,y) then if S.mode~='FLAG' then return mode() end return true end
   if at('hint',x,y) then return hint() end
   if at('undo',x,y) then return undo() end
   if at('reset',x,y) then return restart() end
@@ -802,6 +818,14 @@ if rawget(_G,'__TEST') then __TEST.api={
  solved=solved,geometry=geometry,tap=tap,hint=hint,infer_hint=infer_hint,controls=BUTTONS,
  hinted=function()return HINTED end
 } end
+
+-- Crash reports: errors are saved to crash.txt and shown on a recovery screen.
+do
+  local guarded=UI.guard{id='quietmines',test=rawget(_G,'__TEST'),
+    state=function() return S and ('level='..tostring(S.level)..' unlocked='..tostring(S.unlocked)) end,
+    load=on_load,draw=on_draw,input=on_input,leave=on_leave}
+  on_load,on_draw,on_input,on_leave=guarded.load,guarded.draw,guarded.input,guarded.leave
+end
 
 return {load=on_load,draw=on_draw,input=on_input,leave=on_leave,api=test and test.api,require=require}
 end

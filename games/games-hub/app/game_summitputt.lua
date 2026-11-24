@@ -472,5 +472,13 @@ if rawget(_G,'__TEST') then
   }
 end
 
+-- Crash reports: errors are saved to crash.txt and shown on a recovery screen.
+do
+  local guarded=UI.guard{id='summitputt',test=rawget(_G,'__TEST'),
+    state=function() return STATE and ('level='..tostring(STATE.level)..' unlocked='..tostring(STATE.unlocked)) end,
+    load=on_load,draw=on_draw,input=on_input,leave=on_leave}
+  on_load,on_draw,on_input,on_leave=guarded.load,guarded.draw,guarded.input,guarded.leave
+end
+
 return {load=on_load,draw=on_draw,input=on_input,leave=on_leave,api=test and test.api,require=require}
 end

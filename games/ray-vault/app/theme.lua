@@ -56,6 +56,11 @@ function Theme.draw(context,raw,draw)
     UI.set_theme(nil,false)
   end
   UI.set_shade(nil)
+  if ok and usable and fonts and not fonts.reported then
+    -- Overwrites an older failure, so the card shows whether the bitmap font works.
+    fonts.reported=true
+    Typefaces.report(context,'OK: bitmap font drawn ('..tostring(fonts.mode)..', '..fonts.count..' glyphs)')
+  end
   if not ok then error(err,0) end
 end
 return Theme

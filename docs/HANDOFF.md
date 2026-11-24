@@ -1,5 +1,20 @@
 # Project handoff — 2026-11-10
 
+## Crash reports in every game — 2026-11-19
+
+The user hit a crash in Nonogram 1.0.1 when going to the next level. It does not
+reproduce on the host: 400 generated puzzles, and 60 rounds of solve -> Next via
+both the Check-row and header buttons, with plain and bitmap drawing, all pass.
+The 32-bit generator arithmetic is safe: bounded attempts and a fixed fallback.
+So every game (and the Hub shell) now installs `UI.guard` (shared/game_ui.lua):
+errors in load/draw/input are written to `crash.txt` in the app's files (Hub:
+`<game>--crash.txt` in the Hub's files). A report holds the error and call
+chain, the last 8 inputs, memory, firmware and the game's state, newest first,
+three kept. The game then shows a recovery screen; a tap reloads from the save.
+Errors in leave are logged and re-raised (they mean a failed save). Under
+tests every error is re-raised unchanged. `tests/test_crash_guard.lua` covers
+device mode. **Next:** after the next crash, read `XTApps/nonogram/files/crash.txt`.
+
 ## Mockup redesign: Sudoku 0.6.1, Minesweeper 0.5.1, Nonogram 0.9.1 — 2026-11-18
 
 The user's device photos of 0.6.0/0.5.0/0.9.0 showed the system font: the bitmap

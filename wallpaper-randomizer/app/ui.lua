@@ -179,4 +179,123 @@ function UI.error(g,c,title,message)
   UI.text(g,c,24,32,title..' ERROR','medium')
   UI.paragraph(g,c,24,80,432,640,tostring(message),'small')
 end
+-- Crash reports. A game installs this once, after defining its callbacks:
+--   local G=UI.guard{id='nonogram',test=rawget(_G,'__TEST'),state=function() ... end,
+--     load=on_load,draw=on_draw,input=on_input,leave=on_leave}
+--   on_load,on_draw,on_input,on_leave=G.load,G.draw,G.input,G.leave
+-- An error is written to crash.txt in the game's files (newest first, three
+-- kept) with the call chain, recent input, memory and the game's own state.
+-- Errors in load/draw/input then show a recovery screen instead of crashing;
+-- a tap reloads the game from its save. Errors in leave are re-raised after
+-- logging, because they report a failed save. Under tests every error is
+-- logged and re-raised, so test expectations are unchanged.
+local CRASH_FILE,CRASH_KEEP,CRASH_LIMIT='crash.txt',3,2400
+local function crash_trace(e)
+  local ok,tb=pcall(function() return debug.traceback(tostring(e),2) end)
+  return (ok and type(tb)=='string') and tb or tostring(e)
+end
+local function crash_split(old)
+  local out,start={},1
+  while true do
+    local i=old:find('\n\n== ',start,true)
+    if not i then out[#out+1]=old:sub(start):gsub('\n+$','');break end
+    out[#out+1]=old:sub(start,i-1);start=i+2
+  end
+  return out
+end
+local function crash_field(f)
+  local ok,v=pcall(f)
+  return ok and v~=nil and tostring(v) or '?'
+end
+function UI.guard(spec)
+  local ctx,crashed,events,clock0,original=nil,nil,{},nil,nil
+  local function handler(e) original=e;return crash_trace(e) end
+  local function remember(c) if type(c)=='table' then ctx=c end end
+  local function millis()
+    local ok,v=pcall(function() return ctx.clock:millis() end)
+    return ok and type(v)=='number' and v or nil
+  end
+  local function record(where,trace)
+    local now=millis()
+    clock0=clock0 or now
+    local lines={'== '..tostring(spec.id)..' crash in '..where..' ==',
+      'uptime_ms='..tostring(now),
+      'firmware='..crash_field(function() return ctx.device.firmware end)..
+        ' api='..crash_field(function() return ctx.api.minor end),
+      'memory_kb='..crash_field(function() return math.floor(ctx.gc:count()/1024) end),
+      'state='..(spec.state and crash_field(spec.state) or '?'),
+      'recent_input='..(#events>0 and table.concat(events,' | ') or 'none'),
+      trace}
+    local report=table.concat(lines,'\n')
+    if #report>CRASH_LIMIT then report=report:sub(1,CRASH_LIMIT)..'\n[truncated]' end
+    pcall(function()
+      local old=ctx.storage:read(CRASH_FILE)
+      local kept={report}
+      if type(old)=='string' and old:sub(1,3)=='== ' then
+        for _,block in ipairs(crash_split(old)) do
+          if #kept<CRASH_KEEP then kept[#kept+1]=block end
+        end
+      end
+      ctx.storage:write(CRASH_FILE,table.concat(kept,'\n\n')..'\n')
+    end)
+    return report
+  end
+  local function fail(where,trace)
+    record(where,trace)
+    if spec.test or where=='leave' then error(original,0) end
+    crashed=tostring(trace):match('^[^\n]*') or 'Unknown error'
+  end
+  local function crash_screen(g)
+    UI.set_theme(nil,false);UI.set_shade(nil)
+    pcall(function() g:clear(0) end)
+    pcall(function()
+      UI.text(g,ctx,24,96,'Something went wrong','large')
+      UI.paragraph(g,ctx,24,150,432,150,
+        'A crash report was saved to the card (crash.txt). '..
+        'Tap anywhere to reload the game from its last save.','medium')
+      UI.paragraph(g,ctx,24,320,432,200,crashed,'small')
+    end)
+  end
+  local G={}
+  function G.load(c,...)
+    remember(c);crashed=nil
+    local args={...}
+    local ok,err=xpcall(function() return spec.load(c,(table.unpack or unpack)(args)) end,handler)
+    if not ok then fail('load',err) end
+  end
+  function G.draw(c,g,...)
+    remember(c)
+    if crashed then crash_screen(g);return end
+    local args={...}
+    local ok,err=xpcall(function() return spec.draw(c,g,(table.unpack or unpack)(args)) end,handler)
+    if not ok then fail('draw',err);crash_screen(g) end
+  end
+  function G.input(c,e,...)
+    remember(c)
+    if type(e)=='table' then
+      events[#events+1]=table.concat({tostring(e.type),tostring(e.phase or e.key or ''),
+        tostring(e.gesture or ''),tostring(e.x or ''),tostring(e.y or '')},',')
+      if #events>8 then table.remove(events,1) end
+    end
+    if crashed then
+      if type(e)=='table' and e.type=='pointer' and e.phase~='up' then return true end
+      G.load(c)
+      pcall(function() ctx:invalidate() end)
+      return true
+    end
+    local args={...}
+    local ok,result=xpcall(function() return spec.input(c,e,(table.unpack or unpack)(args)) end,handler)
+    if ok then return result end
+    fail('input',result)
+    pcall(function() ctx:invalidate() end)
+    return true
+  end
+  function G.leave(...)
+    local args={...}
+    local ok,result=xpcall(function() return spec.leave((table.unpack or unpack)(args)) end,handler)
+    if not ok then fail('leave',result) end
+    return result
+  end
+  return G
+end
 return UI

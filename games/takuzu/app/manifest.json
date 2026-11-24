@@ -1,0 +1,10 @@
+{
+  "app_id": "takuzu",
+  "display_name": "Takuzu",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Balance binary rows and columns",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

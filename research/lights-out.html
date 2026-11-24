@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
+  <title>Lights Out</title>
+  <style>
+    :root { --ink: #111111; --paper: #ffffff; --key: #f2f3f5; --muted: #92979c; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e4e6e9;
+      color: var(--ink);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+    button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+    #app {
+      position: relative;
+      flex: none;
+      width: 480px;
+      height: 800px;
+      background: var(--paper);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transform-origin: center center;
+    }
+    .play-area {
+      flex: none;
+      width: 480px;
+      height: 704px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid var(--ink);
+      border-radius: 0 0 12px 12px;
+      overflow: hidden;
+      background: var(--paper);
+    }
+    .tile-grid { display: grid; gap: 3px; flex: none; }
+    .tile {
+      position: relative;
+      display: block;
+      width: var(--tile-size);
+      height: var(--tile-size);
+      padding: 0;
+      margin: 0;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      transition: none;
+    }
+    .tile.on { background: var(--ink); }
+    .tile.ring::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border: 4px solid var(--ink);
+      border-radius: 5px;
+      pointer-events: none;
+    }
+    .tile.on.ring::after { border-color: var(--paper); }
+    .bottom-bar {
+      width: 480px;
+      height: 96px;
+      flex: none;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 116px 116px;
+      gap: 8px;
+      padding: 8px;
+      background: var(--paper);
+    }
+    .counter {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 0 0 17px;
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .counter.solved-counter {
+      padding-left: 5px;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 5px;
+    }
+    .solved-primary { font-size: 21px; font-weight: 800; }
+    .solved-sub { font-size: 16px; font-weight: 600; }
+    .btn {
+      border: 2px solid var(--ink);
+      border-radius: 14px;
+      background: var(--key);
+      box-shadow: 0 4px 0 var(--ink);
+      margin: 0 0 4px;
+      padding: 0;
+      font-weight: 650;
+      transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+    }
+    .btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+    .btn:disabled {
+      cursor: default;
+      color: var(--muted);
+      border-color: var(--muted);
+      box-shadow: 0 1px 0 var(--muted);
+      transform: translateY(3px);
+    }
+    .btn.dark, .btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+    .btn.icon-btn { display: flex; align-items: center; justify-content: center; }
+    .btn.icon-btn svg {
+      width: 40px;
+      height: 40px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.1;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .btn.next-btn { font-size: 25px; font-weight: 750; }
+    .menu {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: none;
+      padding: 16px 20px 18px;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--paper);
+    }
+    .menu.open { display: flex; }
+    .menu-header { display: flex; align-items: center; justify-content: space-between; }
+    .menu-header h1 { font-size: 30px; line-height: 1; font-weight: 800; margin: 0; }
+    .close-btn { width: 56px; height: 56px; }
+    .close-btn svg { width: 30px !important; height: 30px !important; }
+    .section-label {
+      margin: 3px 0 0;
+      color: #50555a;
+      font-size: 14px;
+      font-weight: 750;
+      letter-spacing: .065em;
+      text-transform: uppercase;
+    }
+    .size-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .size-btn {
+      height: 82px;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+    }
+    .size-btn strong { font-size: 22px; font-weight: 750; }
+    .size-btn small { font-size: 15px; font-weight: 600; }
+    .menu-action {
+      width: 100%;
+      height: 50px;
+      padding: 0 18px;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 19px;
+      font-weight: 600;
+    }
+    .menu-action strong { font-size: 18px; font-weight: 800; }
+    .par-line { margin: 3px 0 0; font-size: 18px; font-weight: 650; }
+    .howto { margin: 0; padding: 0 2px; font-size: 17px; line-height: 1.3; font-weight: 550; }
+    .resume-btn { width: 100%; height: 64px; margin-top: auto; font-size: 22px; font-weight: 750; }
+  </style>
+</head>
+<body>
+  <main id="app" aria-label="Lights Out game">
+    <section class="play-area" aria-label="Lights Out board">
+      <div id="grid" class="tile-grid" role="group" aria-label="Lights Out tiles"></div>
+    </section>
+    <div class="bottom-bar">
+      <div class="counter" id="counter" aria-live="polite" aria-label="Moves made">0</div>
+      <button class="btn icon-btn" id="undoBtn" type="button" aria-label="Undo last move">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>
+      </button>
+      <button class="btn next-btn" id="nextBtn" type="button" aria-label="Next puzzle" hidden>Next</button>
+      <button class="btn icon-btn" id="menuBtn" type="button" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+    <section class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Game menu" aria-hidden="true">
+      <div class="menu-header">
+        <h1>Menu</h1>
+        <button class="btn icon-btn close-btn" id="closeBtn" type="button" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6L18 18M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <p class="section-label">New game</p>
+      <div class="size-options" id="sizes"></div>
+      <p class="section-label">This puzzle</p>
+      <button class="btn menu-action" id="restartBtn" type="button">Restart puzzle</button>
+      <button class="btn menu-action" id="hintBtn" type="button">Show hint</button>
+      <button class="btn menu-action" id="solutionBtn" type="button" aria-pressed="false">
+        <span>Show solution</span><strong id="solutionLabel">Off</strong>
+      </button>
+      <p class="par-line" id="parLine">Par: 0 presses</p>
+      <p class="section-label">How to play</p>
+      <p class="howto">Tap a tile to flip it and its neighbors above, below, left and right. Turn every tile white. Par is the fewest presses possible.</p>
+      <button class="btn dark resume-btn" id="resumeBtn" type="button">Resume</button>
+    </section>
+  </main>
+  <script>
+    "use strict";
+    /* BEGIN ENGINE: pure logic, deliberately independent of the DOM. */
+    var LightsOutMath = (() => {
+      const sizes = {
+        classic: { label: "Classic", cols: 5, rows: 5 },
+        tall: { label: "Tall", cols: 5, rows: 7 },
+        large: { label: "Large", cols: 6, rows: 9 },
+        huge: { label: "Huge", cols: 7, rows: 10 }
+      };
+      function neighbors(index, cols, rows) {
+        const row = Math.floor(index / cols), col = index % cols;
+        const result = [index];
+        if (row > 0) result.push(index - cols);
+        if (row + 1 < rows) result.push(index + cols);
+        if (col > 0) result.push(index - 1);
+        if (col + 1 < cols) result.push(index + 1);
+        return result;
+      }
+      function press(board, index, cols, rows) {
+        for (const i of neighbors(index, cols, rows)) board[i] ^= 1;
+        return board;
+      }
+      function isOff(board) { return board.every(value => value === 0); }
+      function solve(board, cols, rows) {
+        const n = cols * rows;
+        if (board.length !== n) throw new Error("Invalid Lights Out board");
+        // A[i][j] is 1 precisely when pressing j toggles tile i.
+        // One extra column holds the observed board, b.
+        const m = Array.from({ length: n }, (_, i) => {
+          const row = new Uint8Array(n + 1);
+          row[n] = board[i];
+          return row;
+        });
+        for (let j = 0; j < n; j++) {
+          for (const i of neighbors(j, cols, rows)) m[i][j] = 1;
+        }
+        let rank = 0;
+        const pivots = [];
+        // Reduced row-echelon form over GF(2); subtraction is XOR.
+        for (let col = 0; col < n && rank < n; col++) {
+          let lead = rank;
+          while (lead < n && !m[lead][col]) lead++;
+          if (lead === n) continue; // free variable
+          if (lead !== rank) [m[rank], m[lead]] = [m[lead], m[rank]];
+          for (let r = 0; r < n; r++) {
+            if (r === rank || !m[r][col]) continue;
+            for (let c = col; c <= n; c++) m[r][c] ^= m[rank][c];
+          }
+          pivots.push(col);
+          rank++;
+        }
+        for (let r = rank; r < n; r++) {
+          if (m[r][n]) return null; // contradictory row: unreachable pattern
+        }
+        // Particular solution: all free variables are zero.
+        const particular = new Uint8Array(n);
+        for (let r = 0; r < rank; r++) particular[pivots[r]] = m[r][n];
+        const pivotSet = new Set(pivots);
+        const basis = [];
+        for (let free = 0; free < n; free++) {
+          if (pivotSet.has(free)) continue;
+          const v = new Uint8Array(n);
+          v[free] = 1;
+          for (let r = 0; r < rank; r++) v[pivots[r]] = m[r][free];
+          basis.push(v);
+        }
+        // Every solution = particular XOR a subset of null-space vectors.
+        // Enumerate ALL subsets, not merely the free-variables-zero answer.
+        const working = particular.slice();
+        let best = null, bestCount = n + 1;
+        function search(k) {
+          if (k === basis.length) {
+            let count = 0;
+            for (let i = 0; i < n; i++) count += working[i];
+            if (count < bestCount) { bestCount = count; best = working.slice(); }
+            return;
+          }
+          search(k + 1);
+          for (let i = 0; i < n; i++) working[i] ^= basis[k][i];
+          search(k + 1);
+          for (let i = 0; i < n; i++) working[i] ^= basis[k][i];
+        }
+        search(0);
+        return { presses: best, count: bestCount, nullity: basis.length };
+      }
+      function generate(cols, rows) {
+        const n = cols * rows;
+        for (;;) {
+          const board = new Uint8Array(n); // all OFF
+          for (let i = 0; i < n; i++) {
+            if (Math.random() < 0.5) press(board, i, cols, rows);
+          }
+          if (isOff(board)) continue;
+          const solution = solve(board, cols, rows);
+          if (solution && solution.count >= 4) {
+            return { board, par: solution.count };
+          }
+        }
+      }
+      return { sizes, neighbors, press, isOff, solve, generate };
+    })();
+    /* END ENGINE */
+
+    (() => {
+      const $ = id => document.getElementById(id);
+      const grid = $("grid"), counter = $("counter"), menu = $("menu");
+      const undoBtn = $("undoBtn"), nextBtn = $("nextBtn"), menuBtn = $("menuBtn");
+      const solutionBtn = $("solutionBtn"), solutionLabel = $("solutionLabel");
+      const SAVE_KEY = "lights-out-xteink-v1";
+      const settings = { showSolution: false };
+      let game = null, tiles = [], hintIndex = -1, menuOpen = false;
+
+      function makeNew(sizeKey) {
+        const size = LightsOutMath.sizes[sizeKey];
+        if (!size) return;
+        const created = LightsOutMath.generate(size.cols, size.rows);
+        game = {
+          size: sizeKey,
+          initial: Array.from(created.board),
+          board: Array.from(created.board),
+          par: created.par,
+          moves: 0,
+          history: [],
+          won: false
+        };
+        hintIndex = -1;
+        setMenuOpen(false);
+        buildGrid();
+        render();
+      }
+      function validBoard(array, n) {
+        return Array.isArray(array) && array.length === n &&
+          array.every(v => v === 0 || v === 1);
+      }
+      function tryRestore() {
+        try {
+          const raw = localStorage.getItem(SAVE_KEY);
+          if (!raw) return false;
+          const saved = JSON.parse(raw);
+          const size = LightsOutMath.sizes[saved?.size];
+          if (!size) return false;
+          const n = size.cols * size.rows;
+          if (!validBoard(saved.initial, n) || !validBoard(saved.board, n)) return false;
+          if (!Number.isSafeInteger(saved.moves) || saved.moves < 0) return false;
+          const initialSolution = LightsOutMath.solve(saved.initial, size.cols, size.rows);
+          const currentSolution = LightsOutMath.solve(saved.board, size.cols, size.rows);
+          if (!initialSolution || initialSolution.count < 4 || !currentSolution) return false;
+          let history = [];
+          if (Array.isArray(saved.history)) {
+            history = saved.history.slice(-300).filter(h =>
+              h && validBoard(h.board, n) && Number.isSafeInteger(h.moves) &&
+              h.moves >= 0 && !!LightsOutMath.solve(h.board, size.cols, size.rows));
+          }
+          game = {
+            size: saved.size, initial: saved.initial.slice(), board: saved.board.slice(),
+            par: initialSolution.count, moves: saved.moves, history,
+            won: LightsOutMath.isOff(saved.board)
+          };
+          settings.showSolution = saved.settings?.showSolution === true;
+          buildGrid();
+          return true;
+        } catch (_) { return false; }
+      }
+      function save() {
+        if (!game) return;
+        try {
+          localStorage.setItem(SAVE_KEY, JSON.stringify({
+            size: game.size, initial: game.initial, board: game.board,
+            moves: game.moves, history: game.history, settings
+          }));
+        } catch (_) { /* Browser storage can be disabled or full. Play remains possible. */ }
+      }
+      function tileSize(cols, rows) {
+        // 480x704 frame with 3px borders: 474x698 available interior.
+        const horizontalGaps = (cols - 1) * 3;
+        const verticalGaps = (rows - 1) * 3;
+        return Math.floor(Math.min((474 - horizontalGaps) / cols,
+                                   (698 - verticalGaps) / rows));
+      }
+      function buildGrid() {
+        const { cols, rows } = LightsOutMath.sizes[game.size];
+        const tile = tileSize(cols, rows);
+        const width = cols * tile + (cols - 1) * 3;
+        const height = rows * tile + (rows - 1) * 3;
+        grid.style.setProperty("--tile-size", tile + "px");
+        grid.style.gridTemplateColumns = `repeat(${cols}, ${tile}px)`;
+        grid.style.gridTemplateRows = `repeat(${rows}, ${tile}px)`;
+        grid.style.width = width + "px";
+        grid.style.height = height + "px";
+        grid.replaceChildren();
+        tiles = [];
+        for (let i = 0; i < cols * rows; i++) {
+          const tileEl = document.createElement("button");
+          tileEl.type = "button";
+          tileEl.className = "tile";
+          tileEl.addEventListener("click", () => tapTile(i));
+          grid.appendChild(tileEl);
+          tiles.push(tileEl);
+        }
+      }
+      function tapTile(index) {
+        if (menuOpen || game.won) return;
+        const { cols, rows } = LightsOutMath.sizes[game.size];
+        game.history.push({ board: game.board.slice(), moves: game.moves });
+        if (game.history.length > 300) game.history.shift();
+        LightsOutMath.press(game.board, index, cols, rows);
+        game.moves++;
+        hintIndex = -1;
+        game.won = LightsOutMath.isOff(game.board);
+        render();
+      }
+      function undo() {
+        if (!game.history.length || menuOpen) return;
+        const previous = game.history.pop();
+        game.board = previous.board;
+        game.moves = previous.moves;
+        game.won = LightsOutMath.isOff(game.board);
+        hintIndex = -1;
+        render();
+      }
+      function restart() {
+        game.board = game.initial.slice();
+        game.moves = 0;
+        game.history = [];
+        game.won = false;
+        hintIndex = -1;
+        setMenuOpen(false);
+        render();
+      }
+      function setMenuOpen(open) {
+        menuOpen = open;
+        menu.classList.toggle("open", open);
+        menu.setAttribute("aria-hidden", String(!open));
+        if (open) hintIndex = -1;
+        if (open) updateMenu();
+      }
+      function showHint() {
+        hintIndex = -1;
+        if (!game.won) {
+          const { cols, rows } = LightsOutMath.sizes[game.size];
+          const result = LightsOutMath.solve(game.board, cols, rows);
+          if (result) hintIndex = result.presses.findIndex(v => v === 1);
+        }
+        setMenuOpen(false);
+        render();
+      }
+      function toggleSolution() {
+        settings.showSolution = !settings.showSolution;
+        hintIndex = -1;
+        updateMenu();
+        render();
+      }
+      function updateMenu() {
+        for (const el of $("sizes").children) {
+          const chosen = el.dataset.size === game.size;
+          el.setAttribute("aria-pressed", String(chosen));
+        }
+        solutionBtn.setAttribute("aria-pressed", String(settings.showSolution));
+        solutionLabel.textContent = settings.showSolution ? "On" : "Off";
+        $("parLine").textContent = `Par: ${game.par} presses`;
+        $("hintBtn").disabled = game.won;
+      }
+      function render() {
+        const { cols, rows } = LightsOutMath.sizes[game.size];
+        let ring = null;
+        if (!game.won && hintIndex < 0 && settings.showSolution) {
+          const result = LightsOutMath.solve(game.board, cols, rows);
+          ring = result?.presses || null;
+        }
+        for (let i = 0; i < tiles.length; i++) {
+          const active = game.board[i] === 1;
+          tiles[i].classList.toggle("on", active);
+          tiles[i].classList.toggle("ring", i === hintIndex || !!ring?.[i]);
+          tiles[i].setAttribute("aria-label",
+            `Row ${Math.floor(i / cols) + 1} column ${i % cols + 1}, ${active ? "on" : "off"}`);
+          tiles[i].setAttribute("aria-pressed", String(active));
+          tiles[i].disabled = game.won;
+        }
+        counter.classList.toggle("solved-counter", game.won);
+        if (game.won) {
+          counter.innerHTML = `<span class="solved-primary">Solved in ${game.moves}</span>` +
+            `<span class="solved-sub">par ${game.par}</span>`;
+          counter.setAttribute("aria-label", `Solved in ${game.moves} moves, par ${game.par}`);
+        } else {
+          counter.textContent = String(game.moves);
+          counter.setAttribute("aria-label", `${game.moves} moves made`);
+        }
+        undoBtn.hidden = game.won;
+        undoBtn.disabled = game.history.length === 0;
+        nextBtn.hidden = !game.won;
+        menuBtn.setAttribute("aria-label", "Open menu");
+        save();
+      }
+      function fit() {
+        const scale = Math.min(window.innerWidth / 480, window.innerHeight / 800);
+        $("app").style.transform = `scale(${scale})`;
+      }
+      for (const [key, data] of Object.entries(LightsOutMath.sizes)) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn size-btn";
+        btn.dataset.size = key;
+        const title = document.createElement("strong"); title.textContent = data.label;
+        const subtitle = document.createElement("small");
+        subtitle.textContent = `${data.cols} × ${data.rows}`;
+        btn.append(title, subtitle);
+        btn.setAttribute("aria-label", `New ${data.label} ${data.cols} by ${data.rows} game`);
+        btn.addEventListener("click", () => makeNew(key));
+        $("sizes").appendChild(btn);
+      }
+      undoBtn.addEventListener("click", undo);
+      nextBtn.addEventListener("click", () => makeNew(game.size));
+      menuBtn.addEventListener("click", () => { hintIndex = -1; setMenuOpen(true); render(); });
+      $("closeBtn").addEventListener("click", () => setMenuOpen(false));
+      $("resumeBtn").addEventListener("click", () => setMenuOpen(false));
+      $("restartBtn").addEventListener("click", restart);
+      $("hintBtn").addEventListener("click", showHint);
+      solutionBtn.addEventListener("click", toggleSolution);
+      window.addEventListener("resize", fit);
+      fit();
+      if (!tryRestore()) makeNew("classic");
+      else render();
+    })();
+  </script>
+</body>
+</html>

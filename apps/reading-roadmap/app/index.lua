@@ -642,14 +642,68 @@ local function toggle_done(b)
     set_status('done',b.id)
   end
 end
+-- The app cannot list the SD card (its files are sandboxed to /AppFiles/<id>), and the
+-- reader's index only lists books it has opened. The card path of every listed book is
+-- baked in, so ask the reader whether it opens a file by path; can_open is a query.
+local function path_targets(b)
+  if not b.path or b.path=='' then return {} end
+  local p='/Books/'..b.path
+  return {{type='book',path=p},{type='file',path=p},{type='book',file=p},{path=p},p}
+end
+local function open_by_path(b)
+  local sys=ctx.system
+  if not sys or type(sys.can_open)~='function' or type(sys.open)~='function' then return false end
+  for _,t in ipairs(path_targets(b)) do
+    local ok,yes=pcall(function() return sys:can_open(t) end)
+    if ok and yes==true then
+      local opened,r=pcall(function() return sys:open(t) end)
+      if opened and r~=false and r~=nil then return true end
+    end
+  end
+  return false
+end
+-- Once per version, record which open requests the reader accepts (read off the card).
+local PROBE_VERSION='0.6.1'
+local function probe_open()
+  local st,sys=ctx and ctx.storage,ctx and ctx.system
+  if not st or type(st.write)~='function' then return end
+  local okr,old=pcall(function() return st:read('open-probe.txt') end)
+  if okr and type(old)=='string' and old:find('version='..PROBE_VERSION,1,true) then return end
+  local out={'version='..PROBE_VERSION}
+  local function show(t)
+    if type(t)~='table' then return tostring(t) end
+    local parts={}
+    for _,k in ipairs({'type','kind','id','path','file'}) do if t[k] then parts[#parts+1]=k..'='..tostring(t[k]) end end
+    return '{'..table.concat(parts,',')..'}'
+  end
+  local function ask(t)
+    if not sys or type(sys.can_open)~='function' then return 'no can_open' end
+    local ok,r,e=pcall(function() return sys:can_open(t) end)
+    return ok and (tostring(r)..(e~=nil and (' '..tostring(e)) or '')) or ('error '..tostring(r))
+  end
+  local sample
+  for _,b in ipairs(books) do if b.path~='' and b.fmt=='EPUB' then sample=b;break end end
+  if sample then for _,t in ipairs(path_targets(sample)) do out[#out+1]=show(t)..' -> '..ask(t) end end
+  local rid
+  for id in pairs(linked) do rid=id;break end
+  if rid then
+    for _,t in ipairs({{type='book',id=rid},{kind='book',id=rid},'book:'..rid}) do out[#out+1]=show(t)..' -> '..ask(t) end
+  end
+  out[#out+1]='quit='..type(ctx.quit)
+  pcall(function() st:write('open-probe.txt',table.concat(out,'\n')..'\n') end)
+end
 local function try_open(b)
   local s=states[b.id]
   if s.rid=='' then
+    if open_by_path(b) then return end
     notify('NOT INDEXED: open the book in Bookshelf once.')
     return
   end
   local target=linked[s.rid]
-  if not target then notify('Book not available; open it once in Bookshelf.'); return end
+  if not target then
+    if open_by_path(b) then return end
+    notify('Book not available; open it once in Bookshelf.'); return
+  end
   -- Firmware build 26110501 announced open-book APIs, but older APIs and the exact
   -- call signature differ. Only invoke a supported call on an explicit user tap.
   local function attempts(owner,method,args)
@@ -703,6 +757,7 @@ local function open_or_link(b)
   elseif code=='MULTIPLE' or code=='CHECK TITLE' or code=='LINK CHANGED' then
     begin_pick(b)  -- candidates are listed first
   elseif code=='NOT OPENED YET' then
+    if open_by_path(b) then return end
     notify('Open once in Bookshelf: Books > '..b.folder)
   elseif code=='NOT ON CARD' then
     notify('Not on the card (book list of '..CARD_DATE..').')
@@ -710,8 +765,19 @@ local function open_or_link(b)
     notify('NOT INDEXED: check Bookshelf, then tap CHECK.')
   end
 end
+local function leave_app()
+  if ctx and type(ctx.quit)=='function' and pcall(function() ctx:quit() end) then return end
+  notify('Press the Back key to leave the app.')
+end
+-- Back sits top left on the main screens (detail and picker have their own).
+local function back_button(g)
+  g:rect(10,8,58,40,{line_width=2,radius=8})
+  g:line(44,18,30,28,{line_width=3});g:line(30,28,44,38,{line_width=3})
+  hit(10,8,58,40,leave_app)
+end
 local function draw_head(g,title,subtitle)
-  text(g,14,10,title,'large',452)
+  back_button(g)
+  text(g,80,10,title,'large',386)
   text(g,14,47,subtitle,'small',452)
   line(g,75)
 end
@@ -720,7 +786,8 @@ local function draw_progress_head(g,title)
   local done=done_count()
   local count=done..' / '..#books..' read'
   local cw=measure('medium',count)
-  text(g,14,10,title,'large',466-cw-24)
+  back_button(g)
+  text(g,80,10,title,'large',466-cw-24-66)
   text(g,466-cw,16,count,'medium',cw+2)
   g:rect(14,52,452,14,{line_width=2,radius=7})
   local fill=math.floor(448*done/#books+.5)
@@ -886,6 +953,7 @@ function on_load(c)
   load()
   refresh_library()
   page=path_page()  -- open where the reader left off
+  pcall(probe_open)
 end
 function on_draw(c,g)
   ctx=c or ctx
@@ -902,15 +970,25 @@ end
 function on_input(c,e)
   ctx=c or ctx
   if not e then return end
+  if e.type=='key' and e.key=='back' then
+    local ph=e.phase or e.action or e.state
+    local release=ph=='up' or ph=='release' or e.pressed==false or ph==nil
+    local inside=view=='pick' or view=='detail' or view=='check' or view=='done'
+    if not release then return inside end
+    if view=='pick' then leave_pick()
+    elseif view=='detail' then back_from_detail()
+    elseif view=='check' or view=='done' then set_view('path')
+    else return false end  -- on the path: the reader asks whether to exit
+    invalidate()
+    return true
+  end
   if e.type=='key' then
     local ph=e.phase or e.action or e.state
     if ph=='up' or ph=='release' or e.pressed==false then return end
     local ms=tonumber(e.time_ms)
     if last_key==e.key and ms and last_ms and ms-last_ms>=0 and ms-last_ms<230 then return end
     last_key,last_ms=e.key,ms
-    if e.key=='back' then
-      if view=='pick' then leave_pick() elseif view=='detail' then back_from_detail() end
-    elseif e.key=='right' or e.key=='down' then page=page+1;invalidate()
+    if e.key=='right' or e.key=='down' then page=page+1;invalidate()
     elseif e.key=='left' or e.key=='up' then page=math.max(1,page-1);invalidate()
     elseif e.key=='ok' and view=='path' then open_or_link(current_book() or books[1])
     end
@@ -921,7 +999,7 @@ function on_input(c,e)
     if not x or not y then return end
     for i=#hits,1,-1 do
       local h=hits[i]
-      if x>=h.x and x<h.x+h.w and y>=h.y and y<h.y+h.h then h.fn();invalidate();return end
+      if x>=h.x and x<h.x+h.w and y>=h.y and y<h.y+h.h then h.fn();invalidate();return true end
     end
   end
 end

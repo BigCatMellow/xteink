@@ -28,7 +28,7 @@ local ctx={
   dialog={toast=function(_,s)toasts[#toasts+1]=s end},
   invalidate=function()end,
   system={
-    can_open=function(_,target)return type(target)=='table' and target.type=='book' end,
+    can_open=function(_,target)return type(target)=='table' and target.type=='book' and target.id~=nil end,
     open=function(_,target)opened[#opened+1]=target;return true end
   }
 }
@@ -114,6 +114,35 @@ tap(100,87+40)
 assert(#opened==3 and opened[3].id=='dupe-b','picked copy opens')
 tap(NEXT[1],NEXT[2]); tap(row(3))  -- page 2, book 9
 assert(#opened==3 and last_toast():find('Books > Children and Fairy Tales > Standalone',1,true),'not opened yet: say where it is')
+
+-- Firmware that opens a file by its card path: an unopened book launches directly.
+do
+  local sys=ctx.system
+  ctx.system={can_open=function(_,t) return type(t)=='table' and t.type=='file' and type(t.path)=='string' end,
+    open=function(_,t) opened[#opened+1]=t;return true end}
+  local n=#opened
+  tap(row(3))
+  assert(#opened==n+1 and opened[#opened].path=='/Books/Children and Fairy Tales/Standalone/Holes - Louis Sachar.epub',
+    'NOT OPENED YET book opens by its card path when the reader accepts paths')
+  ctx.system=sys
+end
+-- Back: the key closes a screen on release; on the path the reader may offer to exit.
+tap(PATH[1],PATH[2]);tap(435,125);assert(has('Book 1 of 211'),'details open')
+assert(on_input(ctx,{type='key',key='back',phase='down'})==true,'press inside a screen is ours')
+assert(on_input(ctx,{type='key',key='back',phase='up'})==true);draw()
+assert(has('Reading Roadmap'),'Back closes the details')
+tap(CHECK[1],CHECK[2]);assert(on_input(ctx,{type='key',key='back',phase='up'})==true);draw()
+assert(has('Reading Roadmap'),'Back from CHECK returns to the path')
+assert(on_input(ctx,{type='key',key='back',phase='up'})==false,'Back on the path is left to the reader (exit?)')
+-- On-screen Back leaves through ctx:quit, or explains the Back key without it.
+local quits=0
+ctx.quit=function() quits=quits+1 end
+tap(39,28);assert(quits==1,'Back button asks the reader to close the app')
+ctx.quit=nil
+tap(39,28)
+assert(last_toast():find('Back key',1,true) or has('Press the Back key'),'without quit the button explains the Back key')
+assert(memory['open-probe.txt'] and memory['open-probe.txt']:find('version=0.6.1',1,true),'open probe recorded once')
+assert(memory['open-probe.txt']:find('{type=file,path=/Books/',1,true),'probe lists the path requests')
 
 -- Up next skips optional rereads; the path opens on the page holding it.
 memory['progress.txt']='#roadmap2\nallsystemsred\tdone\t\ntruegrit\tdone\t\ndungeoncrawlercarl\tdone\t\nthehauntingoftramcar015\tdone\t\n'

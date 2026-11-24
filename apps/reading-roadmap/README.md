@@ -42,6 +42,25 @@ The reader API gives book IDs and statistics for books that have already been op
 
 This app ships no copyrighted books, downloads no books, changes no reader positions, and does not alter firmware.
 
+## Why a book may need opening in Bookshelf once
+
+Mini apps cannot list the SD card: their files are sandboxed to `/AppFiles/<app id>` (the card's
+`XTApps/<id>/files/`). The reader's API (`ctx.reader:all_books()`) lists only books the reader has
+opened. So the app knows where every listed book is (the card list baked from
+`directory-tree.md`), but not the reader's ID for a book it has never opened.
+
+From 0.6.1, tapping such a book first asks the reader whether it can open the file by its card
+path (`ctx.system:can_open`, a yes/no question, with `{type='file', path='/Books/…'}` and similar
+shapes). If the firmware accepts one, the book opens directly. Otherwise the app says which
+Bookshelf folder to open it from once. On first launch the app writes `open-probe.txt` (in
+`XTApps/readingpath/files/`) with the reader's answer to each request shape, so the working
+one can be confirmed from the card.
+
+**Back:** the button at the top left of the main screens closes the app through `ctx:quit()`
+where the reader offers it (otherwise it says to use the Back key). The Back key closes details or
+the picker, takes DONE and CHECK back to the path, and on the path is left to the reader, which
+asks whether to exit.
+
 ## Installing
 
 1. Verify your X4 Pro runs XTOS Licorice (not Android or alternate firmware).

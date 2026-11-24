@@ -1,6 +1,6 @@
 # Reading Roadmap planning data
 
-These are **reference datasets**, not yet the runtime catalogue for the X4 Pro. The current Lua InkApp and HTML preview still embed the earlier **33-book** recommendation set. Do not claim that the 211-book route is installed on the device.
+`quality-first-211.json` is now the **runtime catalogue** (since app 0.6.0): `tools/build_catalog.py --write` bakes it into the Lua app and HTML preview, and CI fails if that copy is stale. The other files are reference data. `duplicate-audit.json` drives `tools/dedupe_card.py`.
 
 ## Source and intended meaning
 
@@ -18,10 +18,12 @@ These are **reference datasets**, not yet the runtime catalogue for the X4 Pro. 
 - MOBI entries are **owned**, not purchases. The device may need EPUB conversion; no conversion has been performed.
 - The native reader's opened-books API does **not** scan every file on the SD card; that limitation must remain visible if these datasets become active.
 
-## Integrating later into Lua + HTML
+## How the app uses it
 
-**Do not paste the 211 entries into the runtime list without a save migration.** The current app saves progress against positional IDs for its original 33 titles. Reordering those IDs would misassign progress.
+- Progress is keyed by title, so reordering or replacing entries keeps it. Saves from the 33-book app migrate automatically (see the app README).
+- Each `relative_path` tells the app where the book is on the card. Re-check after card changes with `tools/card_from_tree.py`.
+- `reader-titles.json` (generated from the card) supplies match aliases for files with junk metadata titles.
+- Optional continuations and the wishlist are not shown in the app.
+- Direct reader launch still requires physical-device verification.
 
-A later integration should use stable, title-and-edition aware identifiers, migrate existing statuses by original entry, preserve the linked reader ID where verified, update both the Lua app and `preview.html` in the same change, and extend the parity tests. The JSON relative paths are identifiers from a directory listing, **not confirmed readable files or public download URLs**. Any direct-reader launch still requires a physical-device verification.
-
-Nothing here alters ebook files, removes duplicates, changes the installed application or purchases books.
+Nothing here alters ebook files or purchases books. Duplicate removal only happens when you run `tools/dedupe_card.py --apply`, which backs up every file first.

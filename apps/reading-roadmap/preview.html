@@ -36,8 +36,7 @@ code{background:#f3f3f3;border-radius:4px;padding:1px 4px}textarea{width:100%;mi
     <p style="font-size:13px">Tap the mock device normally to test the Path, All, Done, book details and Link Book screens.</p>
     <label for="scene">Open a screen directly</label>
     <select id="scene">
-      <option value="path">Main reading path</option>
-      <option value="all">All 33 books</option>
+      <option value="path">Reading path (211 books)</option>
       <option value="done">Finished books</option>
       <option value="check">Book complications</option>
       <option value="detail">Book detail</option>
@@ -46,7 +45,7 @@ code{background:#f3f3f3;border-radius:4px;padding:1px 4px}textarea{width:100%;mi
     <label for="book">Select a book</label>
     <select id="book"></select>
     <div class="row" style="margin-top:13px">
-      <button id="simulate">Simulate opened EPUBs</button>
+      <button id="simulate">Simulate opened books</button>
       <button id="reset">Reset preview progress</button>
     </div>
     <div class="row"><button id="unavailable">Simulate reader unavailable</button></div>
@@ -65,42 +64,224 @@ code{background:#f3f3f3;border-radius:4px;padding:1px 4px}textarea{width:100%;mi
 </div>
 <script>
 'use strict';
-// The BOOKS order is copied from apps/reading-roadmap/app/index.lua: RAW.
-// Keep IDs stable, since the native progress store uses the index as the ID.
-const RAW = `A Knight of the Seven Kingdoms|George R. R. Martin|Fantasy|Three warm, witty Dunk and Egg stories in familiar Westeros.|A Knight of the Seven Kingdoms TV series
-All Systems Red|Martha Wells|Sci-fi|A sarcastic security android with more personality than patience.|Murderbot TV series
-The Thin Man|Dashiell Hammett|Mystery|Nick and Nora make witty conversation the real attraction.|The Thin Man film
-Penric's Demon|Lois McMaster Bujold|Fantasy|A young man and a very opinionated demon learn to cooperate.|
-The Blacktongue Thief|Christopher Buehlman|Fantasy|A sharp-tongued thief crosses a dangerous, lived-in world.|
-True Grit|Charles Portis|Western|A remarkable narrator, dry humor, and a determined quest.|True Grit films
-Guards! Guards!|Terry Pratchett|Fantasy|A ramshackle city watch meets a dragon and civic absurdity.|
-Slow Horses|Mick Herron|Thriller|Disgraced spies, elaborate insults, and dangerous schemes.|Slow Horses TV series
-The Blade Itself|Joe Abercrombie|Fantasy|Morally complicated people and bitterly funny conversations.|
-The Martian|Andy Weir|Sci-fi|Scientific problem solving and a narrator worth spending time with.|The Martian film
-We Are Legion (We Are Bob)|Dennis E. Taylor|Sci-fi|A witty engineer becomes a spacefaring intelligence.|
-The Long Way to a Small, Angry Planet|Becky Chambers|Sci-fi|Found-family spaceship life with strong character chemistry.|
-I Am Legend|Richard Matheson|Sci-fi|Isolation, changed humanity, and an unsettling moral question.|I Am Legend film
-The Last Wish|Andrzej Sapkowski|Fantasy|Self-contained Witcher adventures, monsters, wit, and ethics.|The Witcher games and TV series
-The Princess Bride|William Goldman|Fantasy|A playful, self-aware adventure with unforgettable characters.|The Princess Bride film
-Kings of the Wyld|Nicholas Eames|Fantasy|An aging adventuring band reunites for one last quest.|
-The Tainted Cup|Robert Jackson Bennett|Fantasy|A clever detective partnership solves an impossible mystery.|
-Theft of Swords|Michael J. Sullivan|Fantasy|Two very different partners stumble into kingdom-wide trouble.|
-The Black Company|Glen Cook|Fantasy|A mercenary physician chronicles a morally murky company.|
-The Curse of Chalion|Lois McMaster Bujold|Fantasy|A weary veteran navigates politics, faith, and duty.|
-The Lies of Locke Lamora|Scott Lynch|Fantasy|Schemes, hilarious dialogue, friendship, and dangerous rivals.|
-The Hobbit|J. R. R. Tolkien|Fantasy|The classic warm adventure through a richly imagined world.|The Hobbit films
-The Lord of the Rings|J. R. R. Tolkien|Fantasy|An ancient world, friendship, and stakes that feel earned.|The Lord of the Rings films
-We Have Always Lived in the Castle|Shirley Jackson|Horror|A distinctive and unsettling voice drives a family mystery.|
-The Sisters Brothers|Patrick deWitt|Western|Two hired-killer brothers in a darkly comic Western.|The Sisters Brothers film
-The Last Policeman|Ben H. Winters|Mystery|A detective investigates a death with the apocalypse approaching.|
-The Friends of Eddie Coyle|George V. Higgins|Crime|Remarkably natural dialogue inside a bleak criminal world.|The Friends of Eddie Coyle film
-The Stepford Wives|Ira Levin|Horror|A seemingly perfect town hides a disturbing social mystery.|The Stepford Wives films
-The Queen's Gambit|Walter Tevis|Literary|Competing, obsession, and controlled character-focused prose.|The Queen's Gambit TV series
-A Walk in the Woods|Bill Bryson|Nonfiction|Observant comedy during an ill-prepared long hike.|A Walk in the Woods film
-Smoke Gets in Your Eyes|Caitlin Doughty|Nonfiction|Funeral-home work opens questions about mortality and society.|
-The Disaster Artist|Greg Sestero and Tom Bissell|Nonfiction|A hilarious and affecting account of an unlikely friendship.|The Disaster Artist film
-The Big Year|Mark Obmascik|Nonfiction|The obsessive real-world competition behind the film.|The Big Year film`;
-const books=RAW.split('\n').map((line,i)=>{const [title,author,genre,note,anchor]=line.split('|');return {id:i+1,title,author,genre,note,anchor:anchor||''};});
+// CATALOG:BEGIN generated by tools/build_catalog.py from data/quality-first-211.json; do not edit
+const CARD_DATE='2026-11-23';
+// title|author|section|stage|reread|path under Books/|why|visual reference|heads-up|reader title
+const RAW=`All Systems Red|Martha Wells|Science Fiction|1|0|Science Fiction/Murderbot Diaries/[Murderbot Diaries 01] All Systems Red - Martha Wells.epub|Compact, dryly funny science fiction; strong narrator and character appeal.|Murderbot series||
+True Grit|Charles Portis|Adventure|1|0|Adventure/Standalone/True Grit - Charles Portis.epub|A funny, unmistakable first-person voice and a clear Western adventure.|True Grit films||
+Dungeon Crawler Carl|Matt Dinniman|Fantasy|1|0|Fantasy/Dungeon Crawler Carl/[Dungeon Crawler Carl 01] Dungeon Crawler Carl - Matt Dinniman.epub|A loud, fast, irreverent fantasy adventure with a strong central partnership.||Strong profanity and graphic violence.|
+The Haunting of Tram Car 015|P. Djèlí Clark|Fantasy|1|0|Fantasy/Standalone/The Haunting of Tram Car 015 - P. Djèlí Clark.epub|Short fantasy mystery with an appealing investigative pairing.|||
+Priest|Matthew Colville|Fantasy|1|1|Fantasy/Ratcatchers/Priest - Matthew Colville.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+Good Omens|Neil Gaiman & Terry Pratchett|Fantasy|1|0|Fantasy/Standalone/Good Omens - Neil Gaiman & Terry Pratchett.epub|Witty supernatural banter and genuine warmth behind the absurdity.|Good Omens series|A screen reference helps, but the book and show differ.|
+The Maltese Falcon|Dashiell Hammett|Mystery and Thrillers|1|0|Mystery and Thrillers/Standalone/The Maltese Falcon - Dashiell Hammett.epub|Classic noir driven by brisk dialogue, not scenery.|||
+The Martian|Andy Weir|Science Fiction|1|0|Science Fiction/Standalone/The Martian - Andy Weir.epub|A familiar Weir voice, optimism, technical problem-solving, and pace.|The Martian film||
+Holes|Louis Sachar|Children and Fairy Tales|1|0|Children and Fairy Tales/Standalone/Holes - Louis Sachar.epub|An unusually satisfying plot in a compact, approachable book.|Holes film||
+A Short Stay in Hell|Steven L Peck|Horror|1|1|Horror/Standalone/A Short Stay in Hell - Steven L Peck.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+Dirk Gently's Holistic Detective Agency|Douglas Adams|Science Fiction|1|0|Science Fiction/Dirk Gently/[Dirk Gently 01] Dirk Gently's Holistic Detective Agency - Douglas Adams.epub|Douglas Adams at his most oddball and philosophical.|||Douglas Adams. Dirk Gently's Holistic Detective Agency
+The Hitchhiker's Guide to the Galaxy|Douglas Adams|Science Fiction|1|1|Science Fiction/The Hitchhiker's Guide to the Galaxy/The Hitchhiker's Guide to the Galaxy - Douglas Adams.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+A Man Called Ove|Fredrik Backman|Classics and Literature|1|0|Classics and Literature/Standalone/A Man Called Ove - Fredrik Backman.epub|Dry character humor that gradually reveals tenderness.|||
+A Confederacy of Dunces|John Kennedy Toole|Classics and Literature|1|1|Classics and Literature/Standalone/A Confederacy of Dunces - John Kennedy Toole.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+Cat's Cradle|Kurt Vonnegut|Science Fiction|1|0|Science Fiction/Standalone/Cat’s Cradle - Kurt Vonnegut.epub|Very short chapters and huge philosophical questions delivered with satire.|||
+Jurassic Park|Michael Chrichton|Science Fiction|1|0|Science Fiction/Standalone/Jurassic Park - Michael Chrichton.epub|A familiar visual world and irresistible thriller momentum.|Jurassic Park film||
+The Anthropocene Reviewed|John Green|Biography and Journalism|1|0|Biography and Journalism/Standalone/The Anthropocene Reviewed - John Green.epub|Reflective, personable nonfiction in easy-to-read pieces.|||
+Elder Race|Adrian Tchaikovsky|Science Fiction|1|0|Science Fiction/Standalone/Elder Race - Adrian Tchaikovsky.epub|A short speculative story that plays with perspective and genre.|||
+The Hound of the Baskervilles|Arthur Conan Doyle|Mystery and Thrillers|1|0|Mystery and Thrillers/Sherlock Holmes/[Sherlock Holmes 05] The Hound of the Baskervilles - Arthur Conan Doyle.epub|Classic Holmes chemistry with a strong recognizable setting.|Sherlock Holmes adaptations||
+The Giver|Lois Lowry|Science Fiction|1|0|Science Fiction/The Giver/The Giver - Lois Lowry.epub|Short, direct speculative storytelling with a lasting ethical question.|||
+The Empress of Salt and Fortune|Nghi Vo|Fantasy|2|0|Fantasy/The Singing Hills Cycle/[The Singing Hills Cycle 01] The Empress of Salt and Fortune - Nghi Vo.epub|Compact fantasy rich in cultural texture and understated revelation.|||
+A Christmas Carol|Charles Dickens|Classics and Literature|2|0|Classics and Literature/Standalone/A Christmas Carol - Charles Dickens.epub|Short, funny and humane classic with abundant screen references.|A Christmas Carol adaptations||
+The Lost World|Sir Arthur Conan Doyle|Adventure|2|0|Adventure/Professor Challenger/The Lost World - Sir Arthur Conan Doyle.epub|Fast classic adventure with familiar dinosaur imagery.|The Lost World adaptations||
+The Princess Bride|William Goldman|Fantasy|2|0|Fantasy/Standalone/Princess Bride S. Morgenstern The - William Goldman.mobi|Self-aware adventure, humor, and characters you can anchor to the film.|The Princess Bride film||
+Going Postal|Terry Pratchett|Fantasy|2|0|Fantasy/Discworld/[Discworld 33] Going Postal - Terry Pratchett.mobi|A brilliantly talkative comic-fantasy protagonist with social satire.|||
+The Restaurant at the End of the Universe|Douglas Adams|Science Fiction|2|1|Science Fiction/The Hitchhiker's Guide to the Galaxy/The Restaurant at the End of the Universe - Douglas Adams.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The First Fifteen Lives of Harry August|Claire North|Science Fiction|2|0|Science Fiction/Standalone/The First Fifteen Lives of Harry August - Claire North.epub|A high-concept premise sustained by a distinctive human voice.|||
+The Time Machine|H. G Wells|Science Fiction|2|0|Science Fiction/Standalone/The Time Machine - H. G Wells.epub||The Time Machine films||
+Small Gods|Terry Pratchett|Fantasy|2|0|Fantasy/Discworld/[Discworld 13] Small Gods - Terry Pratchett.mobi|Philosophy about belief and power hidden in an unusually funny fantasy.|||
+Artemis Fowl|Eoin Colfer|Fantasy|2|0|Fantasy/Artemis Fowl/[Artemis Fowl 01] Artemis Fowl - Eoin Colfer.epub||||
+The Eyre Affair|Jasper Fforde|Fantasy|2|0|Fantasy/Thursday Next/The Eyre Affair A Novel - Jasper Fforde.mobi|Playful literary detective fiction; may reward a few familiar classics first.|||A Thursday Next Digital Collection: Novels 1-5
+Old Man's War|John Scalzi|Science Fiction|2|0|Science Fiction/Old Man's War/[Old Man'S War 01] Old Man's War - John Scalzi.mobi|Accessible military SF with a wisecracking human narrator.|||
+The Forever War|Joe Haldeman|Science Fiction|2|1|Science Fiction/Forever War/The Forever War - Joe Haldeman.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+Life, the Universe and Everything|Douglas Adams|Science Fiction|2|1|Science Fiction/The Hitchhiker's Guide to the Galaxy/Life, the Universe and Everything - Douglas Adams.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Adventures of Sherlock Holmes|Sir Arthur Conan Doyle|Mystery and Thrillers|2|0|Mystery and Thrillers/Sherlock Holmes/The Adventures of Sherlock Holmes - Sir Arthur Conan Doyle.epub||||
+The Lathe of Heaven|Ursula K. Le Guin|Science Fiction|2|0|Science Fiction/Standalone/The Lathe of Heaven - Ursula K. Le Guin.epub||||
+The Andromeda Strain|Michael Crichton|Science Fiction|2|0|Science Fiction/Standalone/The Andromeda Strain - Michael Crichton.epub||||
+The Call of the Wild|Jack London|Adventure|2|0|Adventure/Standalone/The Call of the Wild - Jack London.epub||||
+Ender's Game|Orson Scott Card|Science Fiction|2|0|Science Fiction/Ender/Ender’s Game - Orson Scott Card.epub||Ender's Game film||
+The Player of Games|Iain M Banks|Science Fiction|2|0|Science Fiction/Culture/[Culture 02] The Player of Games - Iain M Banks.epub|Strong Culture entry: a competitive mind encounters social and political questions.|||
+The Picture of Dorian Gray|Oscar Wilde|Classics and Literature|3|0|Classics and Literature/Standalone/The Picture of Dorian Gray - Oscar Wilde.epub||Film adaptations||
+The Hunger Games|Suzanne Collins|Science Fiction|3|0|Science Fiction/The Hunger Games/The Hunger Games - Suzanne Collins.epub||The Hunger Games film||
+The Wind in the Willows|Kenneth Grahame|Children and Fairy Tales|3|0|Children and Fairy Tales/Standalone/The Wind in the Willows - Kenneth Grahame.epub||||
+The Secret History|The Secret History|Mystery and Thrillers|3|0|Mystery and Thrillers/Standalone/Donna Tartt - The Secret History.epub|||Long and psychologically dark.|
+How to Be Perfect|Michael Schur|Philosophy and Personal Growth|3|0|Philosophy and Personal Growth/Standalone/How to Be Perfect - Michael Schur.epub|Conversational moral philosophy with comedy and approachable examples.|||
+The Story of Your Life|Ted Chiang|Science Fiction|3|0|Science Fiction/Standalone/The Story of Your Life - Ted Chiang.epub||||
+Caves of Steel|Isaac Asimov|Science Fiction|3|0|Science Fiction/R. Daneel Olivaw/[R. Daneel Olivaw 01] Caves of Steel - Isaac Asimov.mobi|A classic robot-and-human detective partnership built around ideas.|||
+A Canticle for Leibowitz|Walter M Miller|Science Fiction|3|0|Science Fiction/Leibowitz/A Canticle For Leibowitz - Walter M Miller.epub|Religion, survival, time and civilization approached with irony and poignancy.|||
+Foundation|Isaac Asimov|Science Fiction|3|1|Science Fiction/Foundation/[Foundation 03] Foundation - Isaac Asimov.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+A Short History of Nearly Everything|Bill Bryson|Science and Reference|3|0|Science and Reference/Standalone/A Short History of Nearly Everything - Bill Bryson.epub||||
+Treasure Island|Robert Louis Stevenson|Adventure|3|0|Adventure/Standalone/Treasure Island - Robert Louis Stevenson.epub||||
+In Cold Blood|Truman Capote|Biography and Journalism|3|0|Biography and Journalism/Standalone/In Cold Blood - Truman Capote.epub||In Cold Blood film||
+Stardust|Neil Gaiman|Fantasy|3|0|Fantasy/Standalone/Stardust - Neil Gaiman.mobi||||
+The Remains of the Day|Kazuo Ishiguro|Classics and Literature|3|0|Classics and Literature/Standalone/The Remains of the Day - Kazuo Ishiguro.epub||||
+The Moon is a Harsh Mistress|Robert A Heinlein|Science Fiction|3|0|Science Fiction/Standalone/The Moon is a Harsh Mistress - Robert A Heinlein.epub||||
+Stranger in a Strange Land|Robert A Heinlein|Science Fiction|3|1|Science Fiction/Standalone/Stranger in a Strange Land - Robert A Heinlein.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Bourne Identity|Robert Ludlum|Mystery and Thrillers|3|0|Mystery and Thrillers/Bourne/The Bourne Identity - Robert Ludlum.epub||Bourne film||
+The Dispossessed|Ursula K. Le Guin|Science Fiction|3|0|Science Fiction/Standalone/The Dispossessed - Ursula K. Le Guin.epub|Intelligent speculative fiction grounded in questions about society.|||
+Foundation and Empire|Isaac Asimov|Science Fiction|3|1|Science Fiction/Foundation/[Foundation 04] Foundation and Empire - Isaac Asimov.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+Children of Time|Adrian Tchaikovsky|Science Fiction|3|0|Science Fiction/Children of Time/[Children of Time 01] Children of Time - Adrian Tchaikovsky.epub|Big ideas and unexpected perspectives; more concept-driven than banter.|||
+Dune|Frank Herbert|Science Fiction|4|1|Science Fiction/Dune/Dune - Frank Herbert.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+Animal Farm|George Orwell|Classics and Literature|4|0|Classics and Literature/Standalone/Animal Farm - George Orwell.epub||||
+The Day of the Jackal|Frederick Forsyth|Mystery and Thrillers|4|0|Mystery and Thrillers/Standalone/The Day of the Jackal - Frederick Forsyth.epub||The Day of the Jackal film||
+The Name of the Wind|Patrick Rothfuss|Fantasy|4|0|Fantasy/Kingkiller Chronicle/[Kingkiller Chronicle 01] The Name of the Wind - Patrick Rothfuss.mobi|A characterful first-person story; begins a currently unfinished series.||Series is unfinished.|
+The Old Man and the Sea|Ernest Hemingway|Classics and Literature|4|0|Classics and Literature/Standalone/The Old Man and the Sea - Ernest Hemingway.epub||||
+The Spy Who Came In From The Cold|John Le Carre|Mystery and Thrillers|4|0|Mystery and Thrillers/Standalone/The Spy Who Came In From The Cold - John Le Carre.epub||||
+Twenty Thousand Leagues Under the Sea|Jules Verne|Science Fiction|4|0|Science Fiction/Les Voyages Extraordinaires/Twenty Thousand Leagues Under the Sea - Jules Verne.epub||||
+Exhalation|Ted Chiang|Science Fiction|4|0|Science Fiction/Standalone/Exhalation - Ted Chiang.epub||||
+The Left Hand of Darkness|Ursula K. le Guin|Science Fiction|4|0|Science Fiction/Standalone/The Left Hand of Darkness - Ursula K. le Guin.mobi||||
+Second Foundation|Isaac Asimov|Science Fiction|4|1|Science Fiction/Foundation/[Foundation 05] Second Foundation - Isaac Asimov.mobi|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Employees|Olga Ravn|Science Fiction|4|0|Science Fiction/Standalone/The Employees - Olga Ravn.epub||||
+Homeland|R. A. Salvatore|Fantasy|4|0|Fantasy/Drizzt/[Drizzt 01] Homeland - R. A. Salvatore.mobi||||Forgotten Realms: Homeland
+Red Dragon|Thomas Harris|Mystery and Thrillers|4|0|Mystery and Thrillers/Hannibal Lecter/Red Dragon - Thomas Harris.epub||Red Dragon film||
+The Shadow of the Wind|Carlos Ruiz Zafon|Mystery and Thrillers|4|0|Mystery and Thrillers/Standalone/The Shadow of the Wind - Carlos Ruiz Zafon.epub|Mysterious, atmospheric story about books, people and secrets.|Spoiler-free Barcelona images||
+A Game of Thrones|George R. R Martin|Fantasy|4|1|Fantasy/A Song of Ice and Fire/[ASOIAF 01] A Game of Thrones - George R. R Martin.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Hike|Drew Magary|Fantasy|4|0|Fantasy/Standalone/The Hike - Drew Magary.epub|Unpredictable absurdist journey with literary-strange humor.|||
+The Silence of the Lambs|Thomas Harris|Mystery and Thrillers|4|0|Mystery and Thrillers/Hannibal Lecter/The Silence of the Lambs - Thomas Harris.epub||The Silence of the Lambs film||
+The Library at Mount Char|Scott Hawkins|Fantasy|4|0|Fantasy/Standalone/The Library at Mount Char - Scott Hawkins.epub|Strange, dark and ambitious; not a light-comedy choice.||Extreme violence and disturbing themes.|
+Between Two Fires|Christopher Buehlman|Horror|4|0|Horror/Standalone/Between Two Fires - Christopher Buehlman.epub|Religiously inflected medieval horror, much darker than Priest.||Religious horror, graphic and bleak.|
+The Crystal Shard|R. A. Salvatore|Fantasy|4|0|Fantasy/Drizzt/[Drizzt 04] The Crystal Shard - R. A. Salvatore.mobi||||
+Shogun|James Clavell|Historical Fiction|5|0|Historical Fiction/Standalone/Shogun - James Clavell.epub|A major historical commitment with television visuals to ground the world.|Shōgun television series|Very long; extensive cast and historical setting.|
+World War Z|Max Brooks|Horror|5|0|Horror/Standalone/World War Z An Oral History o War - Max Brooks.mobi||World War Z film (different story)|The movie is very different from the book.|
+The Talented Mr. Ripley|Patricia Highsmith|Mystery and Thrillers|5|0|Mystery and Thrillers/Ripley/[Ripley 01] Talented Mr.Ripley - Patricia Highsmith.epub||||Ripley - 01 - Talented Mr.Ripley
+The Girl with the Dragon Tattoo|Stieg Larsson|Mystery and Thrillers|5|0|Mystery and Thrillers/Millennium/The Girl with the Dragon Tattoo - Stieg Larsson.epub||Film adaptations||
+Contact|Carl Sagan|Science Fiction|5|0|Science Fiction/Standalone/Contact - Carl Sagan.epub||Contact film||
+The Great Gatsby|F. Scott Fitzgerald|Classics and Literature|5|0|Classics and Literature/Standalone/The Great Gatsby - F. Scott Fitzgerald.epub||The Great Gatsby films||
+The Martian Chronicles|Ray Bradbury|Science Fiction|5|0|Science Fiction/Standalone/The Martian Chronicles - Ray Bradbury.mobi||||
+The Count of Monte Cristo|Alexandre Dumas|Adventure|5|0|Adventure/Standalone/The Count of Monte Cristo - Alexandre Dumas.epub|Extremely long but propulsive classic revenge adventure.|Film adaptations|Very long; choose a reputable, unabridged edition.|
+The Ghost Brigades|John Scalzi|Science Fiction|5|0|Science Fiction/Old Man's War/[Old Man'S War 02] The Ghost Brigades - John Scalzi.mobi||Old Man's War cover art||
+The Gunslinger|Stephen King|Fantasy|5|0|Fantasy/Dark Tower/[Dark Tower 01] The Gunslinger - Stephen King.mobi||Cover/character illustrations||
+The Once and Future King|T. H. White|Fantasy|5|0|Fantasy/Standalone/The Once and Future King - T. H. White.mobi|||Length and style vary across the sections.|
+Jonathan Strange and Mr Norrell|Susanna Clarke|Fantasy|5|0|Fantasy/Clarke's Faerie Stories/[Clarke'S Faerie Stories 01] Jonathan Strange and Mr Norrell - Susanna Clarke.mobi|||Very long; deliberately slow opening.|
+A Clash of Kings|George R. R Martin|Fantasy|5|1|Fantasy/A Song of Ice and Fire/[ASOIAF 02] A Clash of Kings - George R. R Martin.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Drawing of the Three|Stephen King|Fantasy|5|0|Fantasy/Dark Tower/[Dark Tower 02] The Drawing of the Three - Stephen King.mobi||||
+American Gods|Neil Gaiman|Fantasy|5|0|Fantasy/Standalone/American Gods - Neil Gaiman.epub||||
+Neverwhere|Neil Gaiman|Fantasy|5|0|Fantasy/Standalone/Neverwhere A Novel - Neil Gaiman.mobi||||
+The Waste Lands|Stephen King|Fantasy|5|0|Fantasy/Dark Tower/[Dark Tower 03] The Waste Lands - Stephen King.mobi||||
+The Lion, the Witch and the Wardrobe|C. S. Lewis|Fantasy|5|0|Fantasy/The Chronicles of Narnia/The Lion, the Witch and the Wardrobe - C. S. Lewis.epub||Narnia film||CHAPTER ONE
+The Hobbit|J. R. R Tolkien|Fantasy|5|1|Fantasy/The Lord of the Rings/[LOTR 00] The Hobbit Or There and Back Again - J. R. R Tolkien.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Crystal Cave|Mary Stewart|Fantasy|5|0|Fantasy/Arthurian Saga/[Arthurian Saga 01] The Crystal Cave - Mary Stewart.mobi||||
+The Fellowship of the Ring|J. R. R Tolkien|Fantasy|6|1|Fantasy/The Lord of the Rings/[LOTR 01] The Fellowship of the Ring - J. R. R Tolkien.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Coming of Conan the Cimmerian|Robert E. Howard|Fantasy|6|0|Fantasy/Conan/The Coming of Conan the Cimmerian - Robert E. Howard.mobi||||
+The Jungle Book|Rudyard Kipling|Children and Fairy Tales|6|0|Children and Fairy Tales/Standalone/The Jungle Book - Rudyard Kipling.epub||||
+The Hollow Hills|Mary Stewart|Fantasy|6|0|Fantasy/Arthurian Saga/[Arthurian Saga 02] The Hollow Hills - Mary Stewart.mobi||||
+The Two Towers|J. R. R Tolkien|Fantasy|6|1|Fantasy/The Lord of the Rings/[LOTR 02] The Two Towers - J. R. R Tolkien.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Wonderful Wizard of Oz|L. Frank Baum|Children and Fairy Tales|6|0|Children and Fairy Tales/Standalone/The Wonderful Wizard of Oz - L. Frank Baum.epub||The Wizard of Oz film||
+The Adventures of Tom Sawyer|Mark Twain|Classics and Literature|6|0|Classics and Literature/Tom Sawyer/[Tom Sawyer 01] The Adventures of Tom Sawyer - Mark Twain.epub||Screen adaptations||
+The Return of the King|J. R. R Tolkien|Fantasy|6|1|Fantasy/The Lord of the Rings/[LOTR 03] The Return of the King - J. R. R Tolkien.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Adventures of Huckleberry Finn|Mark Twain|Classics and Literature|6|0|Classics and Literature/Tom Sawyer/[Tom Sawyer 02] The Adventures of Huckleberry Finn - Mark Twain.epub||Screen adaptations||
+Watership Down|Richard Adams|Fantasy|6|0|Fantasy/Watership Down/Watership Down - Richard Adams.epub|Serious adventure and community built from vivid animal characters.|||Watership Down.rtf
+Rebecca|Daphne du Maurier|Mystery and Thrillers|6|0|Mystery and Thrillers/Standalone/Rebecca - Daphne du Maurier.epub|Unreliable-feeling atmosphere, strong voice and emotional suspense.|Rebecca films||Microsoft Word - Daphne Du Maurier Rebecca
+And Then There Were None||Mystery and Thrillers|6|0|Mystery and Thrillers/Standalone/And Then There Were None - Unknown.epub|An especially efficient, suspenseful puzzle mystery.|Screen adaptations||
+A Simple Plan|Scott Smith|Mystery and Thrillers|6|0|Mystery and Thrillers/Standalone/A Simple Plan - Scott Smith.epub||||
+Shutter Island|Shutter Island [html]|Mystery and Thrillers|6|0|Mystery and Thrillers/Standalone/Dennis Lehane - Shutter Island [html].epub||Shutter Island film||Dennis Lehane
+The Thirty-Nine Steps|John Buchan|Mystery and Thrillers|6|0|Mystery and Thrillers/Standalone/The Thirty-Nine Steps - John Buchan.epub||||
+Gorky Park|Martin Cruz Smith|Mystery and Thrillers|6|0|Mystery and Thrillers/Arkady Renko/[Arkady Renko 01] Gorky Park - Martin Cruz Smith.epub||||
+Tinker, Tailor, Soldier, Spy|John Le Carre|Mystery and Thrillers|6|0|Mystery and Thrillers/Standalone/Tinker, Tailor, Soldier, Spy - John Le Carre.epub||||
+Project Hail Mary|Andy Weir|Science Fiction|6|1|Science Fiction/Standalone/Project Hail Mary - Andy Weir.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+The Moonstone|Wilkie Collins|Mystery and Thrillers|6|0|Mystery and Thrillers/Standalone/The Moonstone - Wilkie Collins.epub||||
+The Woman in White|Wilkie Collins|Mystery and Thrillers|6|0|Mystery and Thrillers/Standalone/The Woman in White - Wilkie Collins.epub||||
+No Country for Old Men|Cormac McCarthy|Mystery and Thrillers|7|0|Mystery and Thrillers/Standalone/No Country for Old Men - Cormac McCarthy.epub||||
+Mystic River|Dennis Lehane|Mystery and Thrillers|7|0|Mystery and Thrillers/Standalone/Mystic River - Dennis Lehane.epub||||
+Gone, Baby, Gone|Dennis Lehane|Mystery and Thrillers|7|0|Mystery and Thrillers/Kenzie and Gennaro/Gone, Baby, Gone - Dennis Lehane.epub||||
+The Deep Blue Good-Bye|John D MacDonald|Mystery and Thrillers|7|0|Mystery and Thrillers/Travis McGee/The Deep Blue Good-Bye - John D MacDonald.epub||||
+Killing Floor|Lee Child|Mystery and Thrillers|7|0|Mystery and Thrillers/Jack Reacher/[Jack Reacher 01] Killing Floor - Lee Child.epub||||
+The Hunt for Red October|Tom Clancy|Mystery and Thrillers|7|0|Mystery and Thrillers/Jack Ryan/The Hunt for Red October - Tom Clancy.epub||The Hunt for Red October film||
+Casino Royale|Casino Royale - Ian Fleming|Mystery and Thrillers|7|0|Mystery and Thrillers/James Bond/Bond 1 - Casino Royale - Ian Fleming.epub||Casino Royale film||Bond 1 - Casino Royale
+Presumed Innocent|Presumed Innocent - Scott|Mystery and Thrillers|7|0|Mystery and Thrillers/Kindle County/Kindle County 01 Turow - Presumed Innocent - Scott.epub||||
+The Alienist|Caleb Carr|Mystery and Thrillers|7|0|Mystery and Thrillers/Standalone/The Alienist - Caleb Carr.epub||||
+The Bone Collector|Jeffery Deaver|Mystery and Thrillers|7|0|Mystery and Thrillers/Lincoln Rhyme/The Bone Collector - Jeffery Deaver.epub||||
+In the Woods|Tana French|Mystery and Thrillers|7|0|Mystery and Thrillers/Dublin Murder Squad/In the Woods - Tana French.epub||||
+2001 A Space Odyssey|Arthur C. Clarke|Science Fiction|7|0|Science Fiction/Space Odyssey/[Space Odyssey 01] 2001 A Space Odyssey - Arthur C. Clarke.mobi||2001: A Space Odyssey film||
+The War of the Worlds|H. G Wells|Science Fiction|7|0|Science Fiction/Standalone/The War of the Worlds - H. G Wells.epub||War of the Worlds adaptations||
+Ringworld|Larry Niven|Science Fiction|7|0|Science Fiction/Ringworld/[Ringworld 01] Ringworld - Larry Niven.mobi||||
+The Mote in God's Eye|Larry Niven & Jerry Pournelle|Science Fiction|7|0|Science Fiction/Standalone/The Mote in God's Eye - Larry Niven & Jerry Pournelle.mobi||||
+2010|Arthur C. Clarke|Science Fiction|7|0|Science Fiction/Space Odyssey/[Space Odyssey 02] 2010 - Arthur C. Clarke.mobi||||
+The Island of Doctor Moreau|H. G Wells|Science Fiction|7|0|Science Fiction/Standalone/The Island of Doctor Moreau - H. G Wells.epub||||
+Dune Messiah|Frank Herbert|Science Fiction|7|0|Science Fiction/Dune/[Dune 02] Dune Messiah - Frank Herbert.mobi|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+Use of Weapons|Iain M Banks|Science Fiction|7|0|Science Fiction/Culture/[Culture 03] Use of Weapons - Iain M Banks.epub||||
+A Storm of Swords|George R. R Martin|Fantasy|7|1|Fantasy/A Song of Ice and Fire/[ASOIAF 03] A Storm of Swords - George R. R Martin.epub|Familiar-world choice; rereading is optional, not required.||Optional reread or series continuation; skip freely|
+Rendezvous With Rama|Arthur C. Clarke|Science Fiction|8|0|Science Fiction/Standalone/Rendezvous With Rama - Arthur C. Clarke.mobi||||
+Childhood's End|Arthur C. Clarke|Science Fiction|8|0|Science Fiction/Standalone/Childhood's End - Arthur C. Clarke.mobi||||
+The Freeze-Frame Revolution|Peter Watts|Science Fiction|8|0|Science Fiction/Standalone/The Freeze-Frame Revolution - Peter Watts.epub||||
+Shards of Earth|Adrian Tchaikovsky|Science Fiction|8|0|Science Fiction/The Final Architecture/[The Final Architecture 01] Shards of Earth - Adrian Tchaikovsky.epub||||
+Blindsight|Peter Watts|Science Fiction|8|0|Science Fiction/Standalone/Blindsight - Peter Watts.epub||||
+Excession|Iain M Banks|Science Fiction|8|0|Science Fiction/Culture/[Culture 05] Excession - Iain M Banks.epub||||
+Nine Princes in Amber|Roger Zelazny|Fantasy|8|0|Fantasy/Chronicles Of Amber/[Chronicles Of Amber 01] Nine Princes in Amber - Roger Zelazny.mobi||||
+Furies of Calderon|Jim Butcher|Fantasy|8|0|Fantasy/Codex Alera/[Codex Alera 01] Furies of Calderon - Jim Butcher.mobi||||
+Pawn of Prophecy|David Eddings|Fantasy|8|0|Fantasy/Belgariad/[Belgariad 01] Pawn of Prophecy - David Eddings.mobi||||
+Magician|Raymond E. Feist|Fantasy|8|0|Fantasy/Riftwar Saga/[Riftwar Saga 01] Magician - Raymond E. Feist.mobi||||
+Elric of Melnibone|Michael Moorcock|Fantasy|8|0|Fantasy/Elric/[Elric 01] Elric of Melnibone - Michael Moorcock.mobi||||
+The Guns of Avalon|Roger Zelazny|Fantasy|8|0|Fantasy/Chronicles Of Amber/[Chronicles Of Amber 02] The Guns of Avalon - Roger Zelazny.mobi||||
+Metamorphosis|Franz Kafka|Classics and Literature|8|0|Classics and Literature/Standalone/Metamorphosis - Franz Kafka.epub||||
+Notes from Underground|Fyodor Dostoevsky|Classics and Literature|8|0|Classics and Literature/Standalone/Notes from Underground - Fyodor Dostoevsky.epub||||
+Siddhartha|Hermann Hesse|Classics and Literature|8|0|Classics and Literature/Standalone/Siddhartha - Hermann Hesse.epub||||
+Of Mice and Men|John Steinbeck|Classics and Literature|8|0|Classics and Literature/Standalone/Of Mice and Men - John Steinbeck.epub||||
+To Kill a Mockingbird|Harper Lee|Classics and Literature|8|0|Classics and Literature/Standalone/To Kill a Mockingbird - Harper Lee.epub||To Kill a Mockingbird film||
+One Flew Over the Cuckoo's Nest|Ken Kesey|Classics and Literature|8|0|Classics and Literature/Standalone/One Flew Over the Cuckoo's Nest - Ken Kesey.epub||||
+Catch-22|Joseph Heller|Classics and Literature|8|0|Classics and Literature/Standalone/Catch-22 - Joseph Heller.epub|Abrasive, circular satirical humor with serious human stakes.|||
+Slaughterhouse-Five|Kurt Vonnegut|Classics and Literature|8|0|Classics and Literature/Standalone/Slaughterhouse-Five Or, the C ath - Kurt Vonnegut.mobi|||Your only selected copy is MOBI; conversion will be needed.|
+Breakfast of Champions|Kurt Vonnegut|Classics and Literature|9|0|Classics and Literature/Standalone/Breakfast of Champions - Kurt Vonnegut.epub||||
+East of Eden|John Steinbeck|Classics and Literature|9|0|Classics and Literature/Standalone/East of Eden - John Steinbeck.epub|A large, psychologically observant novel about families and choices.|||
+Brideshead Revisited|Evelyn Waugh|Classics and Literature|9|0|Classics and Literature/Standalone/Brideshead Revisited - Evelyn Waugh.epub||||Microsoft Word - Waugh, Evelyn - Brideshead Revisited.doc
+Persuasion|Jane Austen|Classics and Literature|9|0|Classics and Literature/Standalone/Persuasion - Jane Austen.epub||||
+Emma|Jane Austen|Classics and Literature|9|0|Classics and Literature/Standalone/Emma - Jane Austen.epub||||
+Pride and Prejudice|Jane Austen|Classics and Literature|9|0|Classics and Literature/Standalone/Pride and Prejudice - Jane Austen.epub||Screen adaptations||
+Jane Eyre|e-booksdirectory.com|Classics and Literature|9|0|Classics and Literature/Standalone/Jane Eyre - e-booksdirectory.com.epub||Screen adaptations||
+Little Women|Louisa May Alcott|Classics and Literature|9|0|Classics and Literature/Standalone/Little Women - Louisa May Alcott.epub||||
+Crime and Punishment|Fyodor Dostoevsky|Classics and Literature|9|0|Classics and Literature/Standalone/Crime and Punishment - Fyodor Dostoevsky.epub||||
+The Brothers Karamazov|Fyodor Dostoevsky|Classics and Literature|9|0|Classics and Literature/Standalone/The Brothers Karamazov - Fyodor Dostoevsky.epub||||
+A Tale of Two Cities|Charles Dickens|Classics and Literature|9|0|Classics and Literature/Standalone/A Tale of Two Cities - Charles Dickens.epub||||
+Dubliners|James Joyce|Classics and Literature|9|0|Classics and Literature/Standalone/Dubliners - James Joyce.epub||||
+Hyperion|Dan Simmons|Science Fiction|9|0|Science Fiction/Hyperion Cantos/[Hyperion Cantos 01] Hyperion - Dan Simmons.mobi|Multiple distinct voices and ideas; intricate and demanding.|||
+Red Mars|Kim Stanley Robinson|Science Fiction|9|0|Science Fiction/Mars Trilogy/[Mars Trilogy 01] Red Mars - Kim Stanley Robinson.mobi||||
+Neuromancer|William Gibson|Science Fiction|9|0|Science Fiction/Sprawl/[Sprawl 01] Neuromancer - William Gibson.mobi||||
+Speaker for the Dead|Orson Scott Card|Science Fiction|9|0|Science Fiction/Ender/[Ender 02] Speaker for the Dead - Orson Scott Card.mobi||||
+Out of the Silent Planet|C. S. Lewis|Science Fiction|9|0|Science Fiction/Space Trilogy/[Space Trilogy 01] Out of the Silent Planet - C. S. Lewis.mobi||||
+The Fall of Hyperion|Dan Simmons|Science Fiction|9|0|Science Fiction/Hyperion Cantos/[Hyperion Cantos 02] The Fall of Hyperion - Dan Simmons.mobi||||
+Snow Crash|Neal Stephenson|Science Fiction|9|0|Science Fiction/Standalone/Snow Crash - Neal Stephenson.mobi||||
+Perelandra|C. S. Lewis|Science Fiction|9|0|Science Fiction/Space Trilogy/[Space Trilogy 02] Perelandra - C. S. Lewis.mobi||||
+The Diamond Age|Neal Stephenson|Science Fiction|10|0|Science Fiction/Standalone/The Diamond Age - Neal Stephenson.mobi||||
+Anathem|Neal Stephenson|Science Fiction|10|0|Science Fiction/Standalone/Anathem - Neal Stephenson.mobi||||
+Cryptonomicon|Neal Stephenson|Science Fiction|10|0|Science Fiction/Standalone/Cryptonomicon - Neal Stephenson.epub||||
+Do Androids Dream of Electric Sheep|Philip K Dick|Science Fiction|10|0|Science Fiction/Standalone/Do Androids Dream of Electric Sheep - Philip K Dick.epub||||
+Starship Troopers|Robert A Heinlein|Science Fiction|10|0|Science Fiction/Standalone/Starship Troopers - Robert A Heinlein.epub||||
+Assassin's Apprentice|Robin Hobb|Fantasy|10|0|Fantasy/Farseer Trilogy/[Farseer Trilogy 01] Assassin's Apprentice - Robin Hobb.mobi||||
+Perdido Street Station|China Mieville|Fantasy|10|0|Fantasy/Bas-Lag/[Bas-Lag 01] Perdido Street Station - China Mieville.mobi||||
+Wizard and Glass|Stephen King|Fantasy|10|0|Fantasy/Dark Tower/[Dark Tower 04] Wizard and Glass - Stephen King.mobi||||
+Royal Assassin|Robin Hobb|Fantasy|10|0|Fantasy/Farseer Trilogy/[Farseer Trilogy 02] Royal Assassin - Robin Hobb.mobi||||
+The Elfstones of Shannara|Terry Brooks|Fantasy|10|0|Fantasy/Shannara/[Shannara 03] The Elfstones of Shannara - Terry Brooks.mobi||||
+The Scar|China Mieville|Fantasy|10|0|Fantasy/Bas-Lag/[Bas-Lag 02] The Scar - China Mieville.mobi||||The Scar
+Don Quixote|Miguel De Cervantes Saavedra|Classics and Literature|10|0|Classics and Literature/Standalone/Don Quixote - Miguel De Cervantes Saavedra.epub|An epic meditation on story and identity with absurd comedy.|||
+The Book|Alan W Watts|Philosophy and Personal Growth|10|0|Philosophy and Personal Growth/Standalone/The Book - Alan W Watts.epub|||Reflective nonfiction, not narrative fantasy.|
+Moby Dick|Herman Melville|Classics and Literature|10|0|Classics and Literature/Standalone/Moby Dick - Herman Melville.epub|A major stylistic adventure; best saved until reading endurance is established.||Digressive and stylistically demanding.|
+Fear And Loathing In Las Vegas|Hunter S Thompson|Biography and Journalism|10|0|Biography and Journalism/Standalone/Fear And Loathing In Las Vegas - Hunter S Thompson.epub||||
+War and Peace|Leo Tolstoy|Classics and Literature|10|0|Classics and Literature/Standalone/War and Peace - Leo Tolstoy.epub|||Very long, with many character names.|
+The Great Shark Hunt|Hunter S Thompson|Biography and Journalism|10|0|Biography and Journalism/Standalone/The Great Shark Hunt - Hunter S Thompson.epub||||
+Anna Karenina|Leo Tolstoy|Classics and Literature|10|0|Classics and Literature/Standalone/Anna Karenina - Leo Tolstoy.epub|||Very long classic.|
+The autobiography of Malcolm X|Malcolm X|Biography and Journalism|10|0|Biography and Journalism/Standalone/The autobiography of Malcolm X - Malcolm X.epub||||
+Les Misrables|Victor Hugo|Classics and Literature|10|0|Classics and Literature/Standalone/Les Misrables - Victor Hugo.epub|||Very long; numerous philosophical digressions.|
+The Lonesome Dove Chronicles|Larry McMurtry|Historical Fiction|11|0|Historical Fiction/Lonesome Dove/[Lonesome Dove 01-04] The Lonesome Dove Chronicles - Larry McMurtry.epub|||One omnibus file holding multiple novels; do not treat as one short book.|
+Middlemarch|George Eliot|Classics and Literature|11|0|Classics and Literature/Standalone/Middlemarch - George Eliot.epub||||
+The Iliad|Homer|Classics and Literature|11|0|Classics and Literature/Standalone/The Iliad - Homer.epub|||Older epic verse; translation greatly affects readability.|The Illiad
+Vanity Fair|William Makepeace Thackeray|Classics and Literature|11|0|Classics and Literature/Standalone/Vanity Fair - William Makepeace Thackeray.epub||||
+The Odyssey|Homer|Classics and Literature|11|0|Classics and Literature/Standalone/The Odyssey - Homer.epub|||Older epic verse; translation greatly affects readability.|
+A people's history of the United States|Howard Zinn|History and Politics|11|0|History and Politics/A People's History of the United States/[People's History 01] A people's history of the United States 1492-present - Howard Zinn.epub||||
+The Rum Diary|Hunter S. Thompson|Classics and Literature|11|0|Classics and Literature/Standalone/The Rum Diary - Hunter S. Thompson.epub||||
+Gulliver's Travels|Jonathan Swift|Classics and Literature|11|0|Classics and Literature/Standalone/Gulliver's Travels - Jonathan Swift.epub||||
+The Curse of Lono|Hunter S. Thompson|Biography and Journalism|11|0|Biography and Journalism/Standalone/The Curse of Lono - Hunter S. Thompson.epub||||
+Fear and Loathing on the Campaign Trail '72|Hunter S Thompson|Biography and Journalism|11|0|Biography and Journalism/Standalone/Fear and Loathing on the Campaign Trail '72 - Hunter S Thompson.epub||||
+Fight Club|Chuck Palahniuk|Science Fiction|11|0|Science Fiction/Standalone/Fight Club - Chuck Palahniuk.epub|Provocative, very dark satire with a deliberately disorienting voice.||Disturbing themes and unreliable narration.|`;
+const V1_KEYS={2:'allsystemsred',6:'truegrit',10:'themartian',15:'theprincessbride',22:'thehobbit'};
+// CATALOG:END
+// Same parse as app/index.lua. Progress is keyed by title (b.key), never by position.
+const books=RAW.split('\n').map((line,i)=>{const f=line.split('|'),path=f[5]||'',folder=path.includes('/')?path.slice(0,path.lastIndexOf('/')).split('/').join(' > '):'';return {id:i+1,title:f[0],author:f[1]||'',genre:f[2]||'',stage:+f[3]||1,reread:f[4]==='1',path,folder,fmt:(path.match(/\.(\w+)$/)||['',''])[1].toUpperCase(),note:f[6]||'',anchor:f[7]||'',warning:f[8]||'',alias:f[9]||''};});
 const canvas=document.getElementById('screen');
 const g=canvas.getContext('2d');
 const el=id=>document.getElementById(id);
@@ -112,9 +293,10 @@ let scan={ok:true,found:0,issues:[],indexed:0};
 let readerAvailable=true;
 let pickOrigin='path',pickPage=1;
 let detailOrigin='path',detailPage=1;
-const rawSaved=()=>{try{return JSON.parse(localStorage.getItem('reading-roadmap-preview')||'{}')}catch{return {}}};
-Object.entries(rawSaved()).forEach(([id,s])=>{if(status[id]&&['todo','reading','done'].includes(s.status)) status[id]={status:s.status,rid:s.rid||''};});
-function save(){try{localStorage.setItem('reading-roadmap-preview',JSON.stringify(status))}catch{}}
+const rawSaved=()=>{try{return JSON.parse(localStorage.getItem('reading-roadmap-preview-2')||'{}')}catch{return {}}};
+const byKey=new Map();
+Object.entries(rawSaved()).forEach(([key,s])=>{const b=byKey.get(key);if(b&&['todo','reading','done'].includes(s.status)) status[b.id]={status:s.status,rid:s.rid||''};});
+function save(){try{localStorage.setItem('reading-roadmap-preview-2',JSON.stringify(Object.fromEntries(books.filter(b=>status[b.id].status!=='todo'||status[b.id].rid).map(b=>[b.key,status[b.id]]))))}catch{}}
 function safe(s){return String(s??'');}
 function measure(name,s){g.font=font(name);return g.measureText(safe(s)).width;}
 function font(name){return `${design[name]}px Arial, Helvetica, sans-serif`;}
@@ -124,25 +306,60 @@ function rect(x,y,w,h,lw=1,radius=0){g.lineWidth=lw*design.stroke;g.strokeStyle=
 function line(y){g.lineWidth=1*design.stroke;g.strokeStyle='#000';g.beginPath();g.moveTo(12,y);g.lineTo(468,y);g.stroke();}
 function hit(x,y,w,h,fn){if(fn)hits.push({x,y,w,h,fn});}
 function button(x,y,w,h,label,fn,selected=false){rect(x,y,w,h,3,9);g.fillStyle='#000';g.fillRect(x+9,y+h-1,w-18,1);if(selected)rect(x+5,y+5,w-10,h-10,1,5);const s=shorten('medium',label,w-20),tw=measure('medium',s);text(x+Math.max(10,Math.floor((w-tw)/2)),y+Math.floor((h-24)/2),s,'medium',w-20);hit(x,y,w,h,fn);}
-function chevron(x,y){g.lineWidth=2;g.beginPath();g.moveTo(x,y);g.lineTo(x+6,y+6);g.lineTo(x,y+12);g.stroke();}
-function wrap(s,name,width,maxlines){const out=[];let cur='';for(const word of safe(s).split(/\s+/)){if(!word)continue;const next=cur?cur+' '+word:word;if(cur&&measure(name,next)>width){out.push(cur);cur=word;if(out.length>=maxlines-1)break;}else cur=next;}if(cur&&out.length<maxlines)out.push(cur);return out;}
+function wrap(s,name,width,maxlines){const out=[],ws=safe(s).split(/\s+/).filter(Boolean);let cur='',rest=null;for(let i=0;i<ws.length;i++){const word=ws[i],next=cur?cur+' '+word:word;if(cur&&measure(name,next)>width){out.push(cur);cur=word;if(out.length>=maxlines-1){rest=ws.slice(i).join(' ');break;}}else cur=next;}if(rest!==null)cur=shorten(name,rest,width);if(cur&&out.length<maxlines)out.push(cur);return out;}
+function shownStatus(b){const st=status[b.id].status;return st==='todo'&&(percent(b)||0)>0?'reading':st;}
+function toggleDone(b){const s=status[b.id];s.status=s.status==='done'?((percent(b)||0)>0?'reading':'todo'):'done';save();}
+function checkbox(x,y,st){rect(x,y,40,40,3,9);g.lineWidth=4;g.strokeStyle='#000';g.fillStyle='#000';if(st==='done'){g.beginPath();g.moveTo(x+9,y+21);g.lineTo(x+17,y+29);g.lineTo(x+31,y+12);g.stroke();}else if(st==='reading'){g.beginPath();g.roundRect(x+12,y+12,16,16,3);g.fill();}}
+function drawProgressHead(title){const done=doneCount(),count=done+' / '+books.length+' read',cw=measure('medium',count);text(14,10,title,'large',466-cw-24);text(466-cw,16,count,'medium',cw+2);rect(14,52,452,14,2,7);const fill=Math.round(448*done/books.length);if(fill>0){g.fillStyle='#000';g.beginPath();g.roundRect(16,54,Math.max(fill,10),10,5);g.fill();}line(75);}
 function doneCount(){return Object.values(status).filter(s=>s.status==='done').length;}
 function percent(b){const r=library.find(x=>x.id===status[b.id].rid);return r?(r.finished?100:Math.max(0,Math.min(100,Math.round(r.percent)))):null;}
-function collect(which){return books.filter(b=>which==='all'||which==='path'&&b.id<=9||which==='done'&&status[b.id].status==='done');}
-function titleKey(s){return safe(s).toLowerCase().replace(/\.(epub|txt)$/i,'').replace(/[^a-z0-9]/g,'');}
+function collect(which){return which==='path'?books:books.filter(b=>status[b.id].status==='done');}
+// Up next: a book in progress, else the first unread book that is not an optional reread.
+function currentBook(){return books.find(b=>status[b.id].status==='reading')||books.find(b=>status[b.id].status!=='done'&&!b.reread)||books.find(b=>status[b.id].status!=='done');}
+function pathPage(){const b=currentBook();return b?Math.floor((b.id-1)/6)+1:1;}
+// Title matching. Keep identical to classify() in app/index.lua and tools/card_from_tree.py.
+function normKey(s){return safe(s).toLowerCase().replace(/[^a-z0-9]+/g,'');}
+function words(s){return safe(s).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(/\s+/).filter(Boolean);}
+function titleForms(t){
+ let s=safe(t).toLowerCase().trim().replace(/\.(epub|mobi|azw3|txt|pdf|prc|fb2)$/,'').replace(/^\s*\[[^\]]*\]\s*/,'');
+ let tail='';const m=s.match(/^(.*?)\s+-\s+(.+)$/);if(m){s=m[1];tail=m[2];}
+ const a=s.match(/^(.*\S)\s+(the|a|an)$/);if(a)s=a[2]+' '+a[1];
+ const main=s.replace(/\s*[:;].*$/,'').replace(/\s*\([^)]*\)\s*$/,'');
+ return [normKey(s),normKey(main),tail,s];
+}
+function surnames(author){return safe(author).toLowerCase().replace(/\s+and\s+/g,',').replace(/&/g,',').split(',').map(words).filter(w=>w.length).map(w=>w[w.length-1]);}
+function authorOk(catAuthor,readerAuthor){const rw=words(readerAuthor);if(rw.every(w=>['unknown','author','none'].includes(w)))return true;const rn=normKey(readerAuthor);return surnames(catAuthor).some(sn=>rw.includes(sn)||rn.includes(sn));}
+function wordPrefix(a,b){return b.length<=a.length&&b.every((w,i)=>a[i]===w);}
+function classify(b,readerTitle,readerAuthor){
+ const [key,keymain,,ct]=titleForms(b.title),[full,main,tail,rt]=titleForms(readerTitle);
+ if(b.alias&&normKey(readerTitle)===normKey(b.alias))return 'exact';
+ const ak=normKey(readerAuthor);if(ak&&(ak===key||ak===keymain))return 'exact';
+ const ra=safe(readerAuthor)||tail;
+ if(!authorOk(b.author,ra))return null;
+ if(full===key||full===keymain||(main&&(main===key||main===keymain)))return 'exact';
+ const a=words(ct),w=words(rt);
+ if(key.length>=8&&full.length>=8&&Math.min(a.length,w.length)>=2&&(wordPrefix(a,w)||wordPrefix(w,a)))return 'similar';
+ return null;
+}
+const ISSUE_ORDER={'LINK CHANGED':1,'MULTIPLE':2,'CHECK TITLE':3,'NOT OPENED YET':4,'NOT INDEXED':5,'NOT ON CARD':6};
+function onCard(b){return b.path!==''||status[b.id].rid!=='';}
+books.forEach(b=>{b.key=normKey(b.title);byKey.set(b.key,b);});
 function scanLibrary(){
  if(!readerAvailable){
-  scan={ok:false,found:0,indexed:0,issues:[{id:0,title:'Reader access unavailable',code:'NO ACCESS',reason:'Check reader permission or update'}]};
+  scan={ok:false,found:0,indexed:0,byBook:{},cands:{},issues:[{id:0,title:'Reader access unavailable',code:'NO ACCESS',reason:'Check reader permission or update'}]};
   return;
  }
  const ids=new Map();
  for(const r of library){if(r&&r.id&&r.title)ids.set(String(r.id),r);}
- library=[...ids.values()].sort((a,b)=>safe(a.title).toLowerCase().localeCompare(safe(b.title).toLowerCase()));
- scan={ok:true,found:0,issues:[],indexed:library.length};
+ library=[...ids.values()].sort((a,b)=>safe(a.title).toLowerCase().localeCompare(safe(b.title).toLowerCase())||safe(b.last_date).localeCompare(safe(a.last_date))||safe(a.id).localeCompare(safe(b.id)));
+ scan={ok:true,found:0,issues:[],indexed:library.length,byBook:{},cands:{}};
  for(const b of books){
-  const sb=status[b.id], key=titleKey(b.title);
-  const exact=library.filter(r=>titleKey(r.title)===key);
-  const similar=library.filter(r=>{const k=titleKey(r.title);return k!==key&&key.length>=8&&k.length>=8&&(k.includes(key)||key.includes(k));});
+  const sb=status[b.id];
+  let exact=library.filter(r=>classify(b,r.title,r.author)==='exact');
+  const similar=library.filter(r=>classify(b,r.title,r.author)==='similar');
+  scan.cands[b.id]=[...exact,...similar];
+  // "Dune" vs "Dune: House Atreides": when only one exact match is the whole title, it wins.
+  if(exact.length>1){const [key,keymain]=titleForms(b.title),whole=exact.filter(r=>{const full=titleForms(r.title)[0];return full===key||full===keymain;});if(whole.length===1)exact=whole;}
   let code='',reason='';
   if(sb.rid){
    if(ids.has(sb.rid)){scan.found++;}
@@ -150,103 +367,111 @@ function scanLibrary(){
   }else if(exact.length===1){sb.rid=String(exact[0].id);scan.found++;}
   else if(exact.length>1){code='MULTIPLE';reason='Choose the correct edition';}
   else if(similar.length){code='CHECK TITLE';reason='Verify similar title before link';}
+  else if(b.path!==''){code='NOT OPENED YET';reason=b.folder;}
+  else if(CARD_DATE!==''){code='NOT ON CARD';reason='Copy to Books/, open in Bookshelf';}
   else{code='NOT INDEXED';reason='Open it once in Bookshelf';}
-  if(code)scan.issues.push({id:b.id,title:b.title,code,reason});
+  if(code){scan.byBook[b.id]=code;scan.issues.push({id:b.id,title:b.title,code,reason});}
  }
+ scan.issues.sort((x,y)=>(ISSUE_ORDER[x.code]||9)-(ISSUE_ORDER[y.code]||9)||x.id-y.id);
 }
 function drawHead(title,subtitle){text(14,10,title,'large',452);text(14,47,subtitle,'small',452);line(75);}
 function drawList(){
- const ls=view==='check'?scan.issues:collect(view),nextBook=books.find(b=>status[b.id].status==='reading'&&b.id<=9)||books.find(b=>status[b.id].status!=='done'&&b.id<=9)||books.find(b=>status[b.id].status==='reading')||books.find(b=>status[b.id].status!=='done');
- const sub=view==='check'?(scan.ok?scan.found+' / '+books.length+' identified   |   '+scan.issues.length+' issues':'Reader index unavailable'):(doneCount()+' / '+books.length+' finished    |    '+(view==='path'?'Main path':view==='all'?'All books':'Finished'));
- drawHead(view==='check'?'BOOK CHECK':'READING ROADMAP',sub);
+ const ls=view==='check'?scan.issues:collect(view),nextBook=currentBook();
+ if(view==='check')drawHead('Book Check',scan.ok?scan.found+' / '+books.length+' identified   |   '+scan.issues.length+' issues':'Reader index unavailable');
+ else drawProgressHead('Reading Roadmap');
  const pages=Math.max(1,Math.ceil(ls.length/6));page=Math.min(page,pages);const off=(page-1)*6;
  for(let slot=0;slot<6;slot++){
   const b=ls[off+slot];if(!b)continue;
-  const y=86+slot*91,st=status[b.id]?.status||'todo',focused=view!=='check'&&nextBook&&nextBook.id===b.id;
+  const y=86+slot*91,st=status[b.id]?shownStatus(b):'todo',focused=view!=='check'&&nextBook&&nextBook.id===b.id;
   if(focused)rect(9,y,462,84,3,8);else{g.lineWidth=1;g.beginPath();g.moveTo(15,y+83);g.lineTo(465,y+83);g.stroke();}
-  text(18,y+18,b.id>0?String(b.id).padStart(2,'0'):'!!','medium',42);
   if(view==='check'){
+   text(18,y+18,b.id>0?String(b.id).padStart(2,'0'):'!!','medium',42);
    text(67,y+4,b.title,'medium',314);
    text(67,y+32,b.code,'small',314);
    text(67,y+58,b.reason,'small',314);
   }else{
-   const titleLines=wrap(b.title,'medium',314,2),titleY=y+(titleLines.length>1?4:14);
-   titleLines.forEach((s,i)=>text(67,titleY+i*27,s,'medium',314));
-   const p=percent(b);const stateLabel=st==='done'?'FINISHED':st==='reading'?'READING':focused?'READ NEXT':'TO READ';
-   const info=b.genre+'  |  '+stateLabel+(p!==null?'  |  '+p+'%':'');
-   text(67,y+(titleLines.length>1?59:48),info,'small',314);
+   checkbox(20,y+22,st);
+   const titleLines=wrap(b.title,'medium',318,2),titleY=y+(titleLines.length>1?4:14);
+   titleLines.forEach((s,i)=>text(76,titleY+i*27,s,'medium',318));
+   const p=percent(b);
+   const meta=st==='done'?'Finished':st==='reading'?(p!==null?p+'% read':'Reading'):!onCard(b)?'Not on card':focused?'Up next  |  '+b.author:b.reread?'Optional reread':b.author;
+   text(76,y+(titleLines.length>1?59:48),meta,'small',318);
   }
-  chevron(391,y+32);
-  if(view!=='check'){g.lineWidth=1;g.beginPath();g.moveTo(407,y+9);g.lineTo(407,y+75);g.stroke();text(416,y+32,'INFO','small',50);}
-  else{text(413,y+32,'INFO','small',56);}
+  if(view!=='check'){g.lineWidth=1;g.beginPath();g.moveTo(407,y+9);g.lineTo(407,y+75);g.stroke();}
+  text(416,y+32,'INFO','small',50);
   if(view==='check')hit(9,y,462,84,()=>{if(b.id>0)detail(books[b.id-1]);else message='Reader index unavailable.';});
-  else{hit(9,y,399,84,()=>openOrLink(b));hit(408,y,63,84,()=>detail(b));}
+  else{hit(9,y,58,84,()=>toggleDone(b));hit(67,y,340,84,()=>openOrLink(b));hit(408,y,63,84,()=>detail(b));}
  }
  if(!ls.length){text(28,257,view==='check'?'No indexing issues':'No finished books yet','large',428);text(28,309,view==='check'?'All titles have reader matches.':'Finish a book to see it here.','medium',424);button(40,422,400,54,'BACK TO PATH',()=>setView('path'));}
- if(view==='check')text(15,628,'Opened books only; SD not scanned','small',450);
+ if(view==='check')text(15,628,CARD_DATE!==''?'Opened books + card list of '+CARD_DATE:'Opened books only; SD not scanned','small',450);
  page>1&&button(12,652,118,54,'< PREV',()=>{page--;draw()});text(183,669,page+' / '+pages,'medium',110);
  page<pages&&button(349,652,119,54,'NEXT >',()=>{page++;draw()});
- button(8,725,109,58,'PATH',()=>setView('path'),view==='path');
- button(126,725,109,58,'ALL',()=>setView('all'),view==='all');
- button(244,725,109,58,'DONE',()=>setView('done'),view==='done');
- button(362,725,109,58,'CHECK',()=>setView('check'),view==='check');
+ button(8,725,148,58,'PATH',()=>setView('path'),view==='path');
+ button(166,725,148,58,'DONE',()=>setView('done'),view==='done');
+ button(324,725,148,58,'CHECK',()=>setView('check'),view==='check');
 }
-function setView(v){view=v;page=1;scanLibrary();draw();}
+function setView(v){view=v;page=v==='path'?pathPage():1;scanLibrary();draw();}
 function detail(b){if(view!=='detail'){detailOrigin=view;detailPage=page;}chosen=b.id;setView('detail');}
 function backFromDetail(){const prev=detailPage,target=detailOrigin;setView(target);if(target==='check'){page=Math.min(prev,Math.max(1,Math.ceil(scan.issues.length/6)));draw();}}
 function setStatus(v){status[chosen].status=v;save();draw();}
-function beginPick(b){chosen=b.id;pickOrigin=view;pickPage=page;view='pick';page=1;draw();}
+let pickList=[];
+function beginPick(b){chosen=b.id;pickOrigin=view;pickPage=page;view='pick';page=1;scanLibrary();const c=scan.cands[b.id]||[];pickList=[...c,...library.filter(r=>!c.includes(r))];draw();}
 function leavePick(){view=pickOrigin;page=pickPage;draw();}
 function openOrLink(b){
  chosen=b.id;
  const sb=status[b.id];
  scanLibrary();
+ const code=scan.byBook[b.id];
  if(sb.rid&&library.some(x=>x.id===sb.rid)){openBook(b);}
+ else if(!scan.ok){message='Reader index unavailable; check permission.';}
+ else if(['MULTIPLE','CHECK TITLE','LINK CHANGED'].includes(code)){beginPick(b);}
+ else if(code==='NOT OPENED YET'){message='Open once in Bookshelf: Books > '+b.folder;}
+ else if(code==='NOT ON CARD'){message='Not on the card (book list of '+CARD_DATE+').';}
  else{message='NOT INDEXED: check Bookshelf, then tap CHECK.';}
 }
 function drawDetail(){
  const b=books[chosen-1],st=status[b.id].status;
- const label=st==='done'?'Finished':st==='reading'?'Reading':'Not started';
- drawHead('BOOK '+b.id+' / '+books.length,b.genre+'  |  '+label);
+ drawHead('Book '+b.id+' of '+books.length,b.genre+'  |  Stage '+b.stage+(b.reread?'  |  Optional reread':''));
  const titleLines=wrap(b.title,'large',444,2);titleLines.forEach((s,i)=>text(18,91+i*35,s,'large',444));
  const ay=91+titleLines.length*35+7;
- text(18,ay,b.author,'medium',444);
+ text(18,ay,b.author!==''?b.author:'Author not in file name','medium',444);
  const ruleY=ay+38;line(ruleY);
- const noteHead=ruleY+18;text(18,noteHead,'WHY THIS BOOK','small',442);
- const ls=wrap(b.note,'medium',430,3);ls.forEach((s,i)=>text(18,noteHead+29+i*30,s,'medium',438));
- let y=noteHead+29+ls.length*30+22;
- if(b.anchor!==''){text(18,y,'VISUAL REFERENCE','small',440);const anchorLines=wrap(b.anchor,'medium',430,2);anchorLines.forEach((s,i)=>text(18,y+28+i*28,s,'medium',438));y=y+28+anchorLines.length*28+20;}
+ // Optional sections in priority order; shortened or left out so the card section and controls never move.
+ const LIMIT=572,CARD_H=83;let y=ruleY+18;
+ for(const [label,body,max] of [['WHY THIS BOOK',b.note,3],['HEADS-UP',b.warning,2],['VISUAL REFERENCE',b.anchor,2]]){
+  if(body==='')continue;let n=max;while(n>0&&y+29+n*30+22+CARD_H>LIMIT)n--;if(n<=0)continue;
+  text(18,y,label,'small',442);const ls=wrap(body,'medium',430,n);ls.forEach((s,i)=>text(18,y+29+i*30,s,'medium',438));y=y+29+ls.length*30+22;
+ }
  const p=percent(b);
  text(18,y,'ON YOUR XTEINK','small',440);
  text(18,y+29,p!==null?'Reader progress: '+p+'%':status[b.id].rid!==''?'Linked: no progress reported':'Not linked to an opened book','medium',440);
- if(y+59<513)text(18,y+59,'Link an EPUB after opening it in Bookshelf.','small',440);
- button(15,522,218,48,'< PREVIOUS',chosen>1?()=>detail(books[chosen-2]):null);
- button(247,522,218,48,'NEXT BOOK >',chosen<books.length?()=>detail(books[chosen]):null);
- button(15,584,218,55,'START',()=>setStatus('reading'),st==='reading');
- button(247,584,218,55,'FINISHED',()=>setStatus('done'),st==='done');
- if(status[b.id].rid===''){button(15,650,450,55,'LINK AN EPUB',()=>beginPick(b));}
+ text(18,y+59,b.path!==''?'Books > '+b.folder+' ('+b.fmt+')':'Not in the card list of '+CARD_DATE,'small',440);
+ button(15,584,146,55,'TO READ',()=>setStatus('todo'),st==='todo');
+ button(167,584,146,55,'READING',()=>setStatus('reading'),st==='reading');
+ button(319,584,146,55,'FINISHED',()=>setStatus('done'),st==='done');
+ if(status[b.id].rid===''){button(15,650,450,55,'LINK BOOK',()=>beginPick(b));}
  else{button(15,650,218,55,'LINK BOOK',()=>beginPick(b));button(247,650,218,55,'OPEN BOOK',()=>openBook(b));}
  button(15,723,450,59,'BACK TO LIST',()=>backFromDetail());
 }
-function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Bookshelf.');const pages=Math.max(1,Math.ceil(library.length/6));page=Math.min(page,pages);for(let slot=0;slot<6;slot++){const r=library[(page-1)*6+slot];if(!r)continue;let y=87+slot*90;rect(10,y,460,82);text(19,y+8,r.title,'medium',440);text(19,y+42,r.author,'small',440);hit(10,y,460,82,()=>{status[chosen].rid=r.id;save();const from=pickOrigin;leavePick();if(from!=='detail'){openBook(books[chosen-1]);draw();}});}
- if(library.length===0){text(18,115,'No opened books were reported by the reader.','medium',440);text(18,154,'Open the EPUB in Bookshelf first.','medium',440);}
+function drawPick(){drawHead('LINK A BOOK','Choose a book you have opened in Bookshelf.');const pages=Math.max(1,Math.ceil(pickList.length/6));page=Math.min(page,pages);for(let slot=0;slot<6;slot++){const r=pickList[(page-1)*6+slot];if(!r)continue;let y=87+slot*90;rect(10,y,460,82);text(19,y+8,r.title,'medium',440);let sub=safe(r.author);if(!sub&&r.last_date)sub='Last read '+r.last_date;if((page-1)*6+slot+1<=(scan.cands[chosen]||[]).length)sub='MATCH  |  '+sub;text(19,y+42,sub,'small',440);hit(10,y,460,82,()=>{status[chosen].rid=r.id;save();const from=pickOrigin;leavePick();if(from!=='detail'){openBook(books[chosen-1]);draw();}});}
+ if(pickList.length===0){text(18,115,'No opened books were reported by the reader.','medium',440);text(18,154,'Open the book in Bookshelf first.','medium',440);}
  page>1&&button(12,652,118,54,'< PREV',()=>{page--;draw()});text(190,669,`${page} / ${pages}`,'medium',92);page<pages&&button(349,652,119,54,'NEXT >',()=>{page++;draw()});button(15,725,450,56,'BACK',()=>leavePick());
 }
-function openBook(b){if(status[b.id].rid){message='PREVIEW: Would open '+b.title+'.';}else{message='Open the EPUB in Bookshelf first.';}el('parity').textContent='PREVIEW ONLY: '+message+' The browser cannot launch the physical reader.';}
+function openBook(b){if(status[b.id].rid){message='PREVIEW: Would open '+b.title+'.';}else{message='Open the book in Bookshelf first.';}el('parity').textContent='PREVIEW ONLY: '+message+' The browser cannot launch the physical reader.';}
 function draw(){hits=[];g.fillStyle='#fff';g.fillRect(0,0,480,800);g.lineJoin='miter';g.lineCap='butt';if(view==='detail')drawDetail();else if(view==='pick')drawPick();else drawList();if(message){text(15,['detail','pick'].includes(view)?782:628,message,'small',450);message='';}el('scene').value=view;el('book').value=String(chosen);}
 canvas.addEventListener('pointerup',e=>{const b=canvas.getBoundingClientRect(),x=(e.clientX-b.left)*480/b.width,y=(e.clientY-b.top)*800/b.height;for(let i=hits.length-1;i>=0;i--){const h=hits[i];if(x>=h.x&&x<h.x+h.w&&y>=h.y&&y<h.y+h.h){h.fn();draw();return;}}});
 document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;if(e.key==='Escape'){if(view==='pick')leavePick();else if(view==='detail')backFromDetail();}
- if(e.key==='Enter'&&view==='path'){openOrLink(books.find(b=>status[b.id].status==='reading'&&b.id<=9)||books.find(b=>status[b.id].status!=='done'&&b.id<=9)||books[0]);}if(e.key==='ArrowRight'||e.key==='ArrowDown'){page++;draw();}if(e.key==='ArrowLeft'||e.key==='ArrowUp'){page=Math.max(1,page-1);draw();}});
+ if(e.key==='Enter'&&view==='path'){openOrLink(currentBook()||books[0]);}if(e.key==='ArrowRight'||e.key==='ArrowDown'){page++;draw();}if(e.key==='ArrowLeft'||e.key==='ArrowUp'){page=Math.max(1,page-1);draw();}});
 el('scene').addEventListener('change',e=>setView(e.target.value));el('book').addEventListener('change',e=>{chosen=+e.target.value;if(view==='detail'||view==='pick')draw();});
 books.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=`${b.id}. ${b.title}`;el('book').append(o);});
-el('simulate').addEventListener('click',()=>{readerAvailable=true;el('unavailable').textContent='Simulate reader unavailable';library=[{id:'sample-01',title:'A Knight of the Seven Kingdoms',author:'George R. R. Martin',percent:43},{id:'sample-02',title:'All Systems Red',author:'Martha Wells',percent:12},{id:'sample-03',title:'Project Hail Mary',author:'Andy Weir',percent:86},{id:'sample-04',title:'The Martian Extended Edition',author:'Andy Weir',percent:0},{id:'sample-05',title:'True Grit',author:'Charles Portis',percent:0},{id:'sample-06',title:'True Grit',author:'Charles Portis',percent:0}];scanLibrary();save();draw();el('simulate').textContent='Sample index enabled';});
+el('simulate').addEventListener('click',()=>{readerAvailable=true;el('unavailable').textContent='Simulate reader unavailable';library=[{id:'sample-01',title:'[Murderbot Diaries 01] All Systems Red',author:'Martha Wells',percent:43},{id:'sample-02',title:'True Grit',author:'Charles Portis',percent:12},{id:'sample-03',title:'Dungeon Crawler Carl',author:'Matt Dinniman',percent:0},{id:'sample-04',title:'The Martian: A Novel',author:'Andy Weir',percent:0},{id:'sample-05',title:'The Martian Chronicles',author:'Ray Bradbury',percent:0},{id:'sample-06',title:'Good Omens',author:'Neil Gaiman',percent:0},{id:'sample-07',title:'Good Omens',author:'Neil Gaiman',percent:0},{id:'sample-08',title:'Thompson, Hunter S',author:'The Rum Diary',percent:0},{id:'sample-09',title:'none',author:'',percent:0},{id:'sample-10',title:'Microsoft Word - Daphne Du Maurier   Rebecca',author:'',percent:0}];scanLibrary();save();draw();el('simulate').textContent='Sample index enabled';});
 el('unavailable').addEventListener('click',()=>{readerAvailable=!readerAvailable;el('unavailable').textContent=readerAvailable?'Simulate reader unavailable':'Restore reader access';scanLibrary();view='check';page=1;draw();});
 el('reset').addEventListener('click',()=>{readerAvailable=true;el('unavailable').textContent='Simulate reader unavailable';books.forEach(b=>status[b.id]={status:'todo',rid:''});scanLibrary();save();view='path';page=1;chosen=1;draw();});
-function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.4.1',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.4.1 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
+function writeProposal(){let changed=Object.keys(DEFAULTS).some(k=>+design[k]!==DEFAULTS[k]);let obj={origin:'reading-roadmap-xtapp-0.6.0',screen:{width:480,height:800},preview_only:changed,typography_px:{small:+design.small,medium:+design.medium,large:+design.large},stroke_multiplier:+design.stroke,layout:'Lua v0.6.0 coordinates unchanged'};el('details').value=JSON.stringify(obj,null,2);el('parity').textContent=changed?'UNSYNCED PREVIEW EXPERIMENT: These font / stroke changes are not yet in the Lua app. Export them and update the native renderer before treating this as 1:1.':'DEFAULT MODE: Matches the current native layout geometry. Font rasterization is simulated; actual Licorice system fonts still need device calibration.';}
 for(const key of Object.keys(DEFAULTS)){el(key).addEventListener('input',e=>{design[key]=+e.target.value;el(key+'Out').textContent=key==='stroke'?`${design[key]}×`:`${design[key]} px`;writeProposal();draw();});}
 el('defaults').addEventListener('click',()=>{Object.assign(design,DEFAULTS);for(let key of Object.keys(DEFAULTS)){el(key).value=design[key];el(key+'Out').textContent=key==='stroke'?'1×':`${design[key]} px`;}writeProposal();draw();});
 el('copy').addEventListener('click',async()=>{const s=el('details').value;try{await navigator.clipboard.writeText(s);el('copy').textContent='Copied';setTimeout(()=>el('copy').textContent='Copy changes for native app',1600);}catch{el('details').focus();el('details').select();}});
-scanLibrary();writeProposal();draw();
+scanLibrary();page=pathPage();writeProposal();draw();
 </script>
 </body>
 </html>

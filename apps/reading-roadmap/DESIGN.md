@@ -1,6 +1,6 @@
 # Reading Roadmap — visual and interaction contract
 
-Status: adopted for the standalone X4 Pro InkApp v0.4.1 and its matching 480×800 HTML canvas preview. Host rendering is not physical X4 Pro evidence. Owner: Reading Roadmap app. This document does **not** change the games' design contract.
+Status: adopted for the standalone X4 Pro InkApp v0.5.0 and its matching 480×800 HTML canvas preview. Host rendering is not physical X4 Pro evidence. Owner: Reading Roadmap app. This document does **not** change the games' design contract.
 
 ## Source of authority
 
@@ -32,7 +32,7 @@ Do not add a dashboard, clock, streak, animation, or decorative cover images mer
 | Selected tab/state | inset outline, never color alone |
 | Rows | 84px high, 91px pitch, six per page; full 462×84 touch rect |
 | Selected/next row | 3px frame, 8px radius; primary open target is x9–408, secondary INFO target x408–471 |
-| Other rows | quiet 1px bottom divider; the title/chevron means Open, the separately outlined INFO area means manage |
+| Other rows | quiet 1px bottom divider; checkbox (x9–67) = mark read, title (x67–407) = open, divided INFO (x408–471) = manage |
 | Screen | 76px title/progress header; controls below the scroll-free rows |
 
 Text and padding should be bounded based on measured glyphs, not character counts. Reserve two title lines if needed; keep the metadata distinct. Long descriptions and visual references should wrap instead of clipping. The fixed six-row screen deliberately uses its whole useful vertical band while leaving touch gutters between high-frequency footer controls.
@@ -73,21 +73,69 @@ User requested that the app **search for the books** and **list any complication
 - A successful unique match counts as identified; never silently claim every EPUB is found on the SD card. Previously saved progress and explicit manual links have priority, and no file content is altered.
 - Direct opening remains dependent on firmware behavior, which still needs physical confirmation. An absent or ambiguous match must not trigger a guessed EPUB launch.
 
+## v0.5.0: card-aware matching and link persistence
+
+Reviewed against the card's `Books/directory-tree.md` (693 files, verified identical to the card) and each book's metadata title.
+
+| Problem in v0.4.1 | Change | Evidence |
+| --- | --- | --- |
+| `safe_text` returned gsub's count too; `save()` wrote `id\tstatus\trid\t0`, so after a relaunch every link read back as `rid\t0` and became LINK CHANGED | `safe_text`/`norm` return one value; test relaunches the app and reopens a linked book | regression fails on v0.4.1 code |
+| Exact match only on the whole normalized title: `The Martian: A Novel`, `The Hobbit: Or There and Back Again`, `The Princess Bride: S. Morgenstern's…` stayed CHECK TITLE | Match the title without subtitle / series tag / edition note / file-name author tail | real card: 5 of the 7 present books auto-link if opened (was 3) |
+| Substring suggestions: *In the Woods* offered for *A Walk in the Woods*; *The Martian Chronicles* for *The Martian* | Suggestions need shared leading words; a known different author vetoes | cross-language case table |
+| NOT INDEXED said "open it in Bookshelf" for 26 books that are not on the card at all | Generated card list: NOT OPENED YET (with folder) vs NOT ON CARD; path rows say NOT ON CARD | `tools/card_from_tree.py` report |
+| Missing books (most of the list) buried the fixable issues | CHECK sorts LINK CHANGED, MULTIPLE, CHECK TITLE, NOT OPENED YET, then NOT ON CARD | test asserts order |
+| Tapping an unlinked book only toasted, though this design said it should go to the picker | MULTIPLE / CHECK TITLE / LINK CHANGED open the picker with candidates first (MATCH, newest last-read first); others toast the specific reason | host tests |
+| Same-title records sorted nondeterministically (LuaJIT order differed) | Tie-break by last read date, then ID | repeated LuaJIT runs |
+
+Known limits: the card list is a snapshot (date shown in CHECK footer and detail); a book added later is still found once opened in Bookshelf. `LINK AN EPUB` wording is kept for parity although some books are MOBI.
+
+## v0.5.0: simpler rows, one-tap tracking
+
+User goal: "simple and clean, but also allow you to track what you have read". Reviewed against VISUAL-001 (hierarchy), INT-001/002 (targets match grouping, concrete labels), STATE-002 (truthful state) and the screen-space rules in `docs/GAME_DESIGN.md`.
+
+| Problem | Change | Why |
+| --- | --- | --- |
+| Marking a book read took INFO → FINISHED → BACK | 40px checkbox on every row (9px radius, 3px ink, check mark / filled square for reading); its own 58×84 target | Tracking is the primary repeat task; one tap, reversible |
+| No way back from Finished or Reading | TO READ / READING / FINISHED segmented choice on INFO, selected inset | Every state choice can be undone (STATE-002) |
+| Header `0 / 33 finished | Main path` repeated the tab name | `N / 33 read` plus a 452×14 progress bar | Progress at a glance; tab state is already shown by the selected tab |
+| Rows carried number, chevron, divider, INFO and a `Genre | STATE | %` line | Title plus one quiet line: state when it matters (`Finished`, `43% read`, `Not on card`, `Up next | author`), otherwise author. Numbers kept in Check and on INFO (`Book 12 of 33`); genre moved to INFO | Less ink per row; the order is the list order |
+| Two-line titles silently lost words ("…Small, / Angry") | Last line carries the remainder, shortened with `...` | Never hide information without a cue |
+| Previous / Next Book row on INFO | Removed; list is one tap away | Fewer controls; frees room for long notes |
+| Reader progress ignored by status | Unticked books with reader progress show as reading (display only) | Tracks what the reader already knows without auto-finishing |
+
+**Documented gap exception:** on INFO the controls stay bottom-anchored (y=584–782) so they never move between books. Short notes leave up to ~90px above them; the longest entries (two-line title, three-line note, visual reference, card line) use that band.
+
+Fonts: still the firmware's native roles (not the games' Inter bitmaps; this is a utility like Wallpaper Randomizer). Physical legibility of the 20px meta line and checkbox hit accuracy remain device checks.
+
+## v0.6.0: the 211-book owned-library path
+
+The catalogue is now `data/quality-first-211.json` (generated into both surfaces by `tools/build_catalog.py`).
+
+| Problem at 211 books | Change | Why |
+| --- | --- | --- |
+| Positional save IDs would misassign progress when the list changed | Save by title key (`#roadmap2`); `#roadmap1` migrates via `V1_KEYS`; unknown rows kept | data/README.md migration requirement; no lost progress |
+| PATH (9) / ALL (33) split no longer meaningful; 36 pages of ALL | Tabs PATH / DONE / CHECK (3 × 148px). PATH is the whole order and opens on the page with the book up next | One list, always landing where you are |
+| 20 optional rereads in the order | Row meta `Optional reread`; "Up next" skips them | Favourites stay without becoming obligations |
+| Detail content varies (143 books have no note; 42 have warnings) | Sections in priority order (WHY THIS BOOK 3 lines, HEADS-UP 2, VISUAL REFERENCE 2) shortened or dropped to keep ON YOUR XTEINK and controls fixed | CONTEXT-001 stable controls; no overlap |
+| 54 listed books are MOBI | `LINK AN EPUB` became `LINK BOOK`; card line shows the format | Concrete, accurate labels (INT-002) |
+| Junk metadata titles on the card (`Microsoft Word - …`, swapped title/author) | Per-file reader-title alias (unique only) and swapped-field rule; whole-title match wins among exact matches | Predicted auto-links: 168/211 now, 198/211 after duplicate cleanup |
+| 211 × N title comparisons on an ESP32 | Book forms computed once; reader records memoised and bucketed by key and first two words | Host: 250 ms → 57 ms first scan, ~21 ms after; results identical to brute force |
+
 ## HTML and Lua parity
 
 - The HTML canvas is the **preview**, not an alternate product. Editor sliders outside the 480×800 screen are preview-only experiments.
 - Native and browser code have matching book IDs/order, row geometry, tap areas, tab labels, buttons, and display states. `tests/test_preview_parity.py` enforces major invariants and must be updated when the approved design changes.
 - Any mockup change must be reproduced in Lua and the package version bumped **in the same PR**. A passing HTML screenshot alone is not a native-app delivery.
-- For layout changes, inspect 480×800 captures of Path (initial, active, done), All (longest title), Done (empty and populated), Detail (with/without visual reference, longest title), and Link (empty and populated). Check no text/touch overlap under both normal and enlarged glyph metrics.
+- For layout changes, inspect 480×800 captures of Path (initial, active, done, longest title), Done (empty and populated), Detail (with/without visual reference, longest title), and Link (empty and populated). Check no text/touch overlap under both normal and enlarged glyph metrics.
 - Hardware acceptance is separate: installed-app screenshot alongside HTML, readable font weight, tap on each target (including corner and edge points), screen refresh/ghosting, state persistence and actual EPUB-open action where supported.
 
 ## Outstanding risks, verification and next steps
 
 - **Unverified physical device:** real font width, contrast, rounded corner support, native text raster, tap coordinates and EPUB handoff.
 - The firmware's system font and the browser's fallback font are not byte- or pixel-identical. We must measure a physical test or package the already-approved Inter bitmap system, then regenerate both renderers from the same font metrics.
-- The 33 book entries are stable numeric IDs used in saved progress: append new entries, do not reorder without migration.
+- Saved progress is keyed by title; changing a title in the JSON orphans that book's row (kept, but unmatched). Rename only with a migration entry.
 - Every update must retain status/linked-reader data after a device reinstall-over, and should not require uninstalling the prior app.
 
 ## Review outcome
 
-The v0.4.1 source and preview use the same screen design as verified by the catalog/geometry regression, host Lua tests and browser interaction rendering. Hardware fidelity is **not** yet verified. Existing 11-game UI rules remain authoritative for games; this is the specific app's design owner.
+The v0.6.0 source and preview use the same screen design as verified by the catalog/geometry regression, host Lua tests and browser interaction rendering. Hardware fidelity is **not** yet verified. Existing 11-game UI rules remain authoritative for games; this is the specific app's design owner.

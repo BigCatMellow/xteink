@@ -34,7 +34,7 @@ local ctx={storage={read=function(_,k)return files[k]end,write=function(_,k,v)fi
   invalidate=function()count=count+1 end}
 local initial={'version=1','total='..#A.levels,'level=1','unlocked=1','mode=2'}
 for i,p in ipairs(A.levels) do
- initial[#initial+1]='B'..i..'='..string.rep('0',#p.rows^2)
+ initial[#initial+1]='B'..i..'='..string.rep('0',(#p.rows)^2)
  initial[#initial+1]='S'..i..'=0';initial[#initial+1]='H'..i..'='
 end
 files['crown-fields.txt']=table.concat(initial,'\n')

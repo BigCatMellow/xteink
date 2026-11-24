@@ -2,7 +2,7 @@
 
 **Purpose:** Retain only games with evidence of multi-step deduction, cross-constraint reasoning, or consequential route planning. These are source-level assessments, **not human playtest scores**. A unique solution or a passing test proves correctness, not difficulty.
 
-## Retained: 11 games
+## Retained: 12 games
 
 | Game | Evidence from the actual game/tests | Known difficulty risk | Decision |
 |---|---|---|---|
@@ -15,6 +15,7 @@
 | Island Links (Hashi) | 12 unique noncrossing connected bridge networks with 7–9 islands, including double-bridge constraints. | Sparse 7–9-island layouts may be shallow. | **Keep**, test reasoning beyond corner-island forcing. |
 | Quiet Mines | New sessions now use bounded seeded random placements in three 8×8/10×10/12×12 tiers. Only candidates completely solved by number/subset deductions from S are accepted; independent samples are re-solved in Python. The 24 old authored boards remain archived in place for existing saves. Hints use visible clues and player flags. | Rejection sampling can fail for a seed rather than publishing an unchecked fallback. Solver passes do not prove human challenge; the 12×12 38px targets and device generation latency need physical review. | **Keep**; playtest tier depth, generation latency and save storage. |
 | Ray Vault (Black Box) | 12 6×6 hidden-atom cases with 3–4 atoms; full beam signatures unique and at least three informative probes needed in greedy filtering. | Unlimited probing may eventually trivialize the board; count of probes is not difficulty of inference. | **Keep**, test deliberate probe-choice challenges. |
+| Lights Out | Random boards built from random presses (always solvable), four sizes from 5×5 to 7×10; par is the exact minimum from a light-chasing solver that tries every first-row press set. Boards need at least 4 presses. | Light chasing is a known mechanical method, so larger boards reward persistence more than insight; hints and the solution overlay can trivialise a board. | **Keep at user request** (ported from the user's HTML prototype, PR #29); assess challenge through playtesting. |
 | Ten Pairs | 12 original 8-column, 32-digit starting sheets; an independent interval-matching solver verifies a full 16-pair clearing sequence for each. Pair order matters and the ADD mechanic extends the search space. | The solver demonstrates solvability, not difficulty; some pair matches may be routine. Restored at the user's explicit request rather than on a claim of Sudoku-equivalent complexity. | **Keep at user request**, assess challenge through playtesting. |
 | Summit Putt | Ten 7×7 finite-card routing boards, 3–5 shot cards; wrong sequences become dead ends. Level four, for example, has 12 winning action sequences versus thousands of dead-end action sequences under exhaustive action enumeration. | Five-shot ceiling and ten boards limit sustained challenge; brute-force retries are possible. | **Keep provisionally** for consequential planning, review before calling it premium. |
 

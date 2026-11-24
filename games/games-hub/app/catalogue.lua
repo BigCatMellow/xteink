@@ -10,5 +10,6 @@ return {
 {id="crownfields",name="Crown Fields",version="0.2.5",description="One crown in every region",source="e8f3fdc161f3983382d968d107618837e017573ed390446bb1c70995fa0f6358"},
 {id="quietmines",name="Quiet Mines",version="0.7.0",description="Deduce every safe square",source="00f8f85ec3ee68fae49ba1e22b6169c965fc2b9f0cf5c86d8e01c4bc5cd1b8b9"},
 {id="sumcross",name="Sum Cross",version="0.2.6",description="Solve the crossing sums",source="d44659df7b3bd32f5f2101fed5f655b394749063945889bd1eaf6e35ea1985a4"},
-{id="tenpairs",name="Ten Pairs",version="0.2.5",description="Pair numbers, clear the sheet",source="7e3543b72c81382ef3396f4bbf02a3fec7b5bb5806a6aa663a0b8df36e6eb604"}
+{id="tenpairs",name="Ten Pairs",version="0.2.5",description="Pair numbers, clear the sheet",source="7e3543b72c81382ef3396f4bbf02a3fec7b5bb5806a6aa663a0b8df36e6eb604"},
+{id="lightsout",name="Lights Out",version="0.1.0",description="Turn every tile white",source="73c339ca7238ebcd7c052e3b0d11014734ffc8abbd0d9b77d2cfbfd29bc35c10"}
 }

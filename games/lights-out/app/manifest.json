@@ -1,0 +1,10 @@
+{
+  "app_id": "lightsout",
+  "display_name": "Lights Out",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Turn every tile white: four board sizes, undo, hints and par",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

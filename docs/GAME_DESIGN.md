@@ -1,6 +1,6 @@
 # Game design contract and change record
 
-This is the design owner for the **11 active games** in
+This is the design owner for the **active games** in
 `scripts/sync_game_ui.py`. Use it with [game quality checks](GAME_QUALITY.md).
 The user's approved direction is crisp monochrome graphics, rounder controls,
 stronger lines, welcoming typography and a generous, clearly centered play area.
@@ -672,3 +672,8 @@ remain usable and unobstructed. Embedded Sudoku uses a 441px square board at
 (19,66); standalone Sudoku uses the 477px board at (1,1). The same hitbox
 geometry is used for drawing and taps in each host mode. The Hub provides an
 explicit internal host flag; no firmware API detection is assumed.
+
+
+## 2026-11-24 — current lineup and next family
+
+Only Nonogram, Sudoku, Quiet Mines and Lights Out are currently in use. Park the other eight projects intact under `games/inactive/` and keep historical archives separate. The approved next candidates are Takuzu, Mosaic, Hitori, an improved existing Akari (Lantern Logic), and improved Crown Fields. Follow the established screen-space and visual acceptance contracts; no candidate is device-tested or active merely because its source exists. See [candidate acceptance](../games/inactive/README.md).

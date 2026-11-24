@@ -1,3 +1,7 @@
+# Current game-family direction — 2026-11-24
+
+Four games in current use: Nonogram, Sudoku, Lights Out, Quiet Mines. Other previously active projects are parked in `games/inactive/`. Next build candidates: Takuzu, Mosaic, Akari (existing Lantern Logic), Hitori and improved Crown Fields. See [candidate acceptance](../games/inactive/README.md). This change is source-only; no SD card or installed saves touched. Verify the new Hub quality gate before publishing or deployment.
+
 # Project handoff — 2026-11-10
 
 ## Crash reports in every game — 2026-11-19

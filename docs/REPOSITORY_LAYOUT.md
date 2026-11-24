@@ -4,7 +4,7 @@ Reorganized on 2026-11-08 to keep projects together and reduce root clutter.
 
 | Folder | Owner / contents |
 | --- | --- |
-| `games/` | 17 active games, Games Hub and shelved Paper Golf; start at its README |
+| `games/` | Four active games, Games Hub, inactive and archived projects, and shelved Paper Golf; start at its README |
 | `shell/` | Shell research/protocols/roadmap in docs, diagnostic in probe, host tools and focused tests |
 | `wallpaper-randomizer/` | Wallpaper utility |
 | `shared/`, `assets/` | Shared UI, fonts, licenses and icon sources |

@@ -5,7 +5,7 @@ Apps and experiments for the Xteink X4 Pro running XTOS Licorice.
 **Resuming after closing the chat?** Read the [saved handoff](docs/HANDOFF.md).
 
 - [Shell / OS project](shell/README.md) — the card-loaded shell (Games Hub 0.4.2 source candidate: Home, reading progress, Library, Games, landscape), plus research, roadmap and diagnostics.
-- [Games](games/README.md) — 11 active games, Games Hub and the shelved Paper Golf source.
+- [Games](games/README.md) — four active games, Games Hub, inactive projects and shelved Paper Golf.
 - [Wallpaper Randomizer](wallpaper-randomizer/README.md) — sleep wallpaper utility.
 
 ## Shared infrastructure

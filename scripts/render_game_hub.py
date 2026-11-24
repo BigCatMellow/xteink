@@ -37,15 +37,15 @@ def main():
                 ('library-landscape', READER + LANDSCAPE, "A.go('library')", landscape),
                 ('games-landscape', READER + LANDSCAPE, "A.go('games')", landscape),
                 ('settings-landscape', READER + LANDSCAPE, "A.go('settings')", landscape),
-                ('nonogram', '', 'assert(A.launch(10))\nA.state().engine.api.paint(1,1)', portrait),
-                ('sudoku', '', 'assert(A.launch(13))', portrait),
-                ('crown-fields', '', 'assert(A.launch(14))', portrait), ('ten-pairs', '', 'assert(A.launch(15))', portrait),
-                ('quiet-mines', '', 'assert(A.launch(16))', portrait), ('sum-cross', '', 'assert(A.launch(17))', portrait)]
+                ('nonogram', '', 'assert(A.launch(1))\nA.state().engine.api.paint(1,1)', portrait),
+                ('sudoku', '', 'assert(A.launch(2))', portrait),
+                ('quiet-mines', '', 'assert(A.launch(3))', portrait),
+                ('lights-out', '', 'assert(A.launch(4))', portrait)]
     cell = 852
     sheet = Image.new('RGB', (3*cell-24, ((len(fixtures)+2)//3)*cell), '#e9e9e9')
     for i, (name, before, setup, canvas) in enumerate(fixtures):
         fixture = before + 'dofile(SOURCE)\non_load(ctx)\nlocal A=__TEST.api\n' + setup
-        check = "if BITMAP then local s=A.state();assert(s.selected==10 and s.engine.api.typefaces() or require('theme').state()) end"
+        check = "if BITMAP then local s=A.state();assert(s.selected==1 and s.engine.api.typefaces() or require('theme').state()) end"
         shot = render(project_path('games-hub')/'app/index.lua', 1, name, bitmap=True, game='games-hub',
                       fixture=fixture, bitmap_check=check, canvas=canvas)
         shot.save(folder/(name+'.png'))

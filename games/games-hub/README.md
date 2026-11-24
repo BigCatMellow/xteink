@@ -93,3 +93,8 @@ and excluded. See the [design contract](../../docs/GAME_DESIGN.md) and
 Games Hub 0.4.7 contains Nonogram 0.7.0, with stronger grids,
 clue-only hints, Fill/X controls and logic-checked new patterns.
 Historic saved levels retain the original generator.
+
+
+## Current collection (2026-11-24)
+
+The active catalogue now contains four games: Nonogram, Sudoku, Quiet Mines and Lights Out. The original 17-slot resume mapping remains unchanged; inactive IDs are not remapped to another game's saved board. Previous lineup descriptions above are historical. A fresh verified package and physical check are required before deployment.

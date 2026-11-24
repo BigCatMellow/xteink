@@ -8,7 +8,7 @@ import re
 import subprocess
 import sys
 
-from sync_game_ui import GAMES, COLLECTIONS, OTHER_APPS, SHELVED, ARCHIVED, ROOT, project_path
+from sync_game_ui import GAMES, COLLECTIONS, OTHER_APPS, SHELVED, ARCHIVED, INACTIVE, ROOT, project_path
 from verify_package_icons import verify_icon
 
 
@@ -30,6 +30,8 @@ def verify_project_layout(root=ROOT):
         if manifest.parents[1].name not in SHELVED
     }
     assert games == set(GAMES + COLLECTIONS), f'Game registry mismatch: {games ^ set(GAMES + COLLECTIONS)}'
+    inactive = {p.parents[1].name for p in (root/'games/inactive').glob('*/app/manifest.json')}
+    assert inactive == set(INACTIVE), f'Inactive registry mismatch: {inactive ^ set(INACTIVE)}'
     archives = {p.parents[1].name for p in (root/'games/archive').glob('*/app/manifest.json')}
     assert archives == set(ARCHIVED), f'Archive registry mismatch: {archives ^ set(ARCHIVED)}'
 

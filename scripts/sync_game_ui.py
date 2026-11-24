@@ -4,8 +4,8 @@ import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-GAMES = ('summit-putt', 'lantern-logic', 'ray-vault', 'island-links', 'nonogram', 'rectangle-rooms', 'sudoku',
-         'crown-fields', 'quiet-mines', 'sum-cross', 'ten-pairs', 'lights-out')
+GAMES = ('nonogram', 'sudoku', 'quiet-mines', 'lights-out')
+INACTIVE = ('summit-putt', 'lantern-logic', 'ray-vault', 'island-links', 'rectangle-rooms', 'crown-fields', 'sum-cross', 'ten-pairs')
 OTHER_APPS = ('wallpaper-randomizer',)
 COLLECTIONS = ('games-hub',)  # Generated from GAMES; audited by check_games.py.
 SHELVED = ('paper-golf',)
@@ -16,6 +16,8 @@ ARCHIVED = ('line-lift', 'oddity-hunt', 'word-hunt',
 def project_path(name, root=ROOT):
     """Locate sources without changing stable release/game keys."""
     root = Path(root)
+    if name in INACTIVE:
+        return root / 'games' / 'inactive' / name
     if name in ARCHIVED:
         return root / 'games' / 'archive' / name
     return root / 'games' / name if name in GAMES + COLLECTIONS + SHELVED else root / name

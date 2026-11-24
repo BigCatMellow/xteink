@@ -1,6 +1,10 @@
 # XTEINK repository rules
 
 Active games, Games Hub, and separately shelved Paper Golf live in `games/`.
+User-parked games live in `games/inactive/`; they retain source, IDs and saves,
+but must not enter active builds, registries or releases until explicitly restored.
+The current active baseline is Nonogram, Sudoku, Quiet Mines and Lights Out.
+See `games/inactive/README.md` for the planned new game family.
 Archived reasoning-light games live in `games/archive/` with original sources,
 IDs, tests, icons, and workflow definitions preserved. Do not accidentally
 restore them to active registries, the Hub, or new release catalogues. Preserve
@@ -76,7 +80,7 @@ The user requested a complete family workflow, without repeated per-game design
 approval or manual package installation. Before a family pass, fetch origin and
 integrate new active games while preserving local work. Register every new game
 in GAMES, theme/font syncing, hub descriptions, render fixtures and the quality
-gate. Append to the existing game order so legacy numeric hub resumes stay
+gate. Keep the retained relative order, and append new games so legacy numeric hub resumes stay
 valid; current resumes use stable app IDs. Keep code/file budgets enforced.
 
 Use `python3 scripts/release_games.py --card <mount>` for the complete verified

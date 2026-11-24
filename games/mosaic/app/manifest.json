@@ -1,7 +1,7 @@
 {
   "app_id": "mosaic",
   "display_name": "Mosaic",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "BigCatMellow",
   "description": "Shade cells using local number clues",
   "entry": "index.lua",

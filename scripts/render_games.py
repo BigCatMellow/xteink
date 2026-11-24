@@ -9,9 +9,9 @@ from render_nonogram import ROOT, FONT, render
 from sync_game_ui import GAMES, project_path
 
 FIXTURES={
- 'takuzu': ('A.state().unlocked=#A.levels;A.visit(LEVEL)',12,'A.tap(440,32)'),
- 'mosaic': ('A.state().unlocked=#A.levels;A.visit(LEVEL)',12,'A.tap(440,32)'),
- 'hitori': ('A.state().unlocked=#A.levels;A.visit(LEVEL)',12,'A.tap(440,32)'),
+ 'takuzu': ("if LEVEL>1 then assert(A.new(10,101)) end",12,'A.tap(440,32)'),
+ 'mosaic': ("if LEVEL>1 then assert(A.new(10,101)) end",12,'A.tap(440,32)'),
+ 'hitori': ("if LEVEL>1 then assert(A.new(8,101)) end",12,'A.tap(440,32)'),
  'line-lift': ('A.fresh(LEVEL,#A.raw)',12,'A.tap(415,40)'),
  'summit-putt': ('A.start(LEVEL,#A.levels)',10,'A.touch(420,32)'),
  'link-grid': ('A.start(LEVEL,#A.levels)',20,None),

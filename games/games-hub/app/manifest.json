@@ -1,7 +1,7 @@
 {
   "app_id": "gameshub",
   "display_name": "Games Hub",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "author": "BigCatMellow",
   "description": "Card-loaded shell: Home, reading progress, Library and nine games",
   "entry": "index.lua",

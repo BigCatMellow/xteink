@@ -13,9 +13,6 @@ ESTABLISHED = frozenset(('nonogram', 'sudoku', 'quiet-mines'))
 
 MIGRATION_GAPS = {
     'lights-out': 'Remove deterministic fixed scatter fallback; verify safe retry.',
-    'takuzu': 'Wire fresh procedural puzzles and durable generated saves.',
-    'mosaic': 'Wire fresh procedural puzzles and durable generated saves.',
-    'hitori': 'Wire fresh procedural puzzles and durable generated saves.',
     'lantern-logic': 'Wire fresh procedural puzzles and durable generated saves.',
     'crown-fields': 'Wire fresh procedural puzzles and durable generated saves.',
 }

@@ -94,22 +94,19 @@ local function random_bit()
   end
   return math.random(0,1)
 end
-local function generate(cols,rows)
+local function generate(cols,rows,source,exclude)
+  source=source or random_bit
   local n=cols*rows
   for _=1,200 do
     local board={}
     for i=1,n do board[i]=0 end
-    for i=1,n do if random_bit()==1 then press(board,i,cols,rows) end end
+    for i=1,n do if source()==1 then press(board,i,cols,rows) end end
     if not all_off(board) then
       local s=solve(board,cols,rows)
-      if s and s.count>=4 then return board,s.count end
+      if s and s.count>=4 and table.concat(board)~=exclude then return board,s.count end
     end
   end
-  -- Fallback that always works: a fixed scatter of presses.
-  local board={}
-  for i=1,n do board[i]=0 end
-  for i=1,n,3 do press(board,i,cols,rows) end
-  return board,solve(board,cols,rows).count
+  return nil,'No puzzle - retry'
 end
 
 -- Saves ------------------------------------------------------------------
@@ -127,17 +124,24 @@ local function save()
   local data=table.concat({'version=1','size='..size().key,'initial='..code(S.initial),
     'board='..code(S.board),'moves='..S.moves,'show='..(S.show and '1' or '0'),
     'history='..table.concat(past,';')},'\n')
-  local ok=pcall(function() C.storage:write(SAVE,data) end)
+  local ok=pcall(function()
+    local success,err=C.storage:write(SAVE,data)
+    if success==false or (success==nil and err) then error(tostring(err)) end
+  end)
   if not ok then MSG='Save failed - keep this puzzle open' end
   return ok
 end
-local function new_game(index)
+local function new_game(index,source)
   local sz=SIZES[index]
-  local board,par=generate(sz.cols,sz.rows)
+  local old=S
+  local exclude=old and old.size==index and code(old.initial) or nil
+  local board,par=generate(sz.cols,sz.rows,source,exclude)
+  if not board then MSG='No puzzle - retry';return false end
   local show=S and S.show or false
   S={size=index,initial=board,board=copy(board),par=par,moves=0,history={},won=false,show=show}
+  if not save() then S=old;return false end
   MENU=false;HINT=0;SOLUTION=nil;MSG=nil
-  save();return true
+  return true
 end
 local function restore()
   if not C or not C.storage then return false end
@@ -242,7 +246,7 @@ local function draw_menu(g)
   button(g,MENU_BOX.restart,'Restart puzzle')
   button(g,MENU_BOX.hint,S.won and 'Solved - no hint needed' or 'Show hint')
   button(g,MENU_BOX.solution,'Show solution: '..(S.show and 'On' or 'Off'),S.show)
-  text(g,22,502,'Par: '..S.par..' presses','body',nil,436)
+  text(g,22,502,MSG or ('Par: '..S.par..' presses'),'body',nil,436)
   text(g,22,540,'HOW TO PLAY','small',nil,300)
   UI.paragraph(g,C,22,564,436,146,
     'Tap a tile to flip it and the tiles above, below, left and right. Turn every tile white. Par is the fewest presses.','small')
@@ -280,7 +284,7 @@ local function hit(x,y,b) return x>=b[1] and x<b[1]+b[3] and y>=b[2] and y<b[2]+
 local function tap(x,y)
   layout_for_host()
   if MENU then
-    for i=1,#SIZES do if hit(x,y,MENU_BOX['size'..i]) then return new_game(i) end end
+    for i=1,#SIZES do if hit(x,y,MENU_BOX['size'..i]) then new_game(i);return true end end
     if hit(x,y,MENU_BOX.restart) then return restart() end
     if hit(x,y,MENU_BOX.hint) then return hint() end
     if hit(x,y,MENU_BOX.solution) then return toggle_solution() end
@@ -289,7 +293,7 @@ local function tap(x,y)
   end
   if hit(x,y,BAR.menu) then MENU=true;HINT=0;return true end
   if hit(x,y,BAR.undo) then
-    if S.won then return new_game(S.size) end
+    if S.won then new_game(S.size);return true end
     return undo()
   end
   local sz=size()
@@ -307,7 +311,7 @@ local function on_load(context)
   Theme.release()
   C=context or ctx;S=nil;ERR=nil;MENU=false;HINT=0;SOLUTION=nil;MSG=nil
   layout_for_host()
-  local ok,e=pcall(function() if not restore() then new_game(1) end end)
+  local ok,e=pcall(function() if not restore() then assert(new_game(1),'No verified puzzle - reopen to retry') end end)
   if not ok then ERR=tostring(e) end
 end
 local function on_draw(context,g)

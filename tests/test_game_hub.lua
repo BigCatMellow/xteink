@@ -159,7 +159,9 @@ for _,bitmap in ipairs({false,true}) do
      if below then assert(not tap(first.x+10,first.y+first.h+4),'gap between rows acted') end
      for nth=1,rows() do
       local n=target('game',nth).item.game
-      assert(press('game',nth));eq(A.state().selected,n);opened=opened+1
+      assert(press('game',nth))
+      assert(A.state().selected==n, Catalogue[n].id..': launch failed: '..tostring(saves[Catalogue[n].id..'--crash.txt'] or A.state().notice))
+      opened=opened+1
       eq(dims(),480)
       assert(tap(35,35));assert(not A.state().selected);eq(A.state().screen,'games');eq(A.state().page,page)
       eq(dims(),o=='landscape' and 800 or 480)

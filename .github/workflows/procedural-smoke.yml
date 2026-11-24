@@ -1,0 +1,22 @@
+name: Procedural integration smoke tests
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y lua5.4
+      - name: Standalone and hosted procedural sessions
+        run: |
+          set -e
+          find shared games -path '*/app/*.lua' -o -path 'shared/*.lua' | while IFS= read -r file; do luac -p "$file"; done
+          for game in nonogram takuzu mosaic hitori lights-out lantern-logic crown-fields; do
+            if test -f "games/$game/tests/test_procedural.lua"; then
+              (cd "games/$game" && lua tests/test_procedural.lua && lua ../../tests/run_hub_game.lua --procedural)
+            fi
+          done
+          lua tests/test_game_hub.lua

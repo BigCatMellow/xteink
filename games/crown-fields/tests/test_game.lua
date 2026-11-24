@@ -32,6 +32,12 @@ local font={line_height=24,measure=function(_,s)return #s*11 end}
 local ctx={storage={read=function(_,k)return files[k]end,write=function(_,k,v)files[k]=v end},
   fonts={small=font,medium=font,large=font},clock={millis=function()return 14500 end},
   invalidate=function()count=count+1 end}
+local initial={'version=1','total='..#A.levels,'level=1','unlocked=1','mode=2'}
+for i,p in ipairs(A.levels) do
+ initial[#initial+1]='B'..i..'='..string.rep('0',(#p.rows)^2)
+ initial[#initial+1]='S'..i..'=0';initial[#initial+1]='H'..i..'='
+end
+files['crown-fields.txt']=table.concat(initial,'\n')
 on_load(ctx)
 local S=A.state()
 eq(S.level,1);eq(#A.levels,20);assert(not A.next())
@@ -119,7 +125,9 @@ on_load(ctx)
 assert(A.state().submitted[12] and A.valid(12,A.state().marks[12]))
 assert(A.state().unlocked==13 and A.next())
 assert(A.state().level==13 and #A.state().marks[13]==64)
-files['crown-fields.txt']='version=1\nlevel=999\nunlocked=999\n'
-on_load(ctx);eq(A.state().level,1,'corrupt save reset')
+local corrupt='version=1\nlevel=999\nunlocked=999\n'
+files['crown-fields.txt']=corrupt
+on_load(ctx);assert(A.state()==nil and files['crown-fields.txt']==corrupt,'corrupt save retained')
+A.start()
 assert(type(on_tick)=='nil','no animation')
 print('Crown Fields: 20 unique region boards, partial saves, direct crown modes, layouts PASS')

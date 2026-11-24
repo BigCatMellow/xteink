@@ -55,6 +55,16 @@ contract, per-game exceptions, change reasons and required visual evidence.
   Record design changes and their reasons in `docs/GAME_DESIGN.md`.
 - Update the manifest version for changed installable apps. Install over existing
   apps; do not uninstall or discard saves to test an update.
+- **Procedural generation is mandatory for every active puzzle game.** Fresh
+  installs and New must generate original offline puzzles, not select a fixed
+  bank or merely transform an authored board. Validate solutions, bound work,
+  offer retry without losing progress, and prove seed replay, variety, and
+  save compatibility. Fixed boards are permitted only as legacy-save records
+  or test fixtures, never as the default or a fallback. Difficulty must be
+  based on reasoning evidence, not just board size. Register generation
+  evidence in the procedural acceptance gate; no new game may enter without
+  gameplay-level generation tests. Existing named migration gaps block family
+  release until resolved. See [procedural contract](docs/PROCEDURAL_PUZZLES.md).
 - Generated puzzle seeds are a save format: keep v1 boards stable or migrate
   them explicitly. Sync `shared/puzzle_store.lua` with
   `python3 scripts/sync_puzzle_store.py`. Numbered puzzle history must stay below

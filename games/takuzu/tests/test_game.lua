@@ -8,6 +8,15 @@ local saves={};local redraw=0
 local f={line_height=24,measure=function(_,s)return #s*10 end}
 local ctx={storage={read=function(_,k)return saves[k] end,write=function(_,k,v)saves[k]=v;return true end},
 fonts={small=f,medium=f,large=f},invalidate=function()redraw=redraw+1 end}
+-- All old authored boards remain readable, but a clean install starts generated.
+local lines={'version=1','level=1','unlocked=1','mode=1'}
+for i,p in ipairs(A.levels) do
+ local b={}
+ for j=1,p.n*p.n do local ch=p.clues:sub(j,j);b[j]=(P.id=='takuzu' and ch~='.') and tonumber(ch)+1 or 0 end
+ lines[#lines+1]='B'..i..'='..table.concat(b)
+ lines[#lines+1]='W'..i..'=0';lines[#lines+1]='H'..i..'='
+end
+saves[P.id..'.txt']=table.concat(lines,'\n')
 on_load(ctx)
 assert(#A.levels>=12)
 for i,p in ipairs(A.levels) do

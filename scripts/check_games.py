@@ -10,6 +10,7 @@ import sys
 
 from sync_game_ui import GAMES, COLLECTIONS, OTHER_APPS, SHELVED, ARCHIVED, INACTIVE, ROOT, project_path
 from verify_package_icons import verify_icon
+import procedural_gate
 
 
 def run(command, cwd=ROOT, env=None):
@@ -40,10 +41,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--packer', type=Path)
     parser.add_argument('--linter', type=Path)
+    parser.add_argument('--require-procedural', action='store_true', help='Reject all known procedural migration gaps')
     args = parser.parse_args()
     verify_project_layout()
+    procedural_gate.verify(strict=args.require_procedural)
+    run([sys.executable, ROOT / 'tests/test_procedural_gate.py'])
     run([sys.executable, ROOT / 'tests/test_game_discovery.py'])
     run([sys.executable, ROOT / 'tests/test_reasoning_audit.py'])
+    run([sys.executable, ROOT / 'tests/validate_procedural_puzzles.py'])
+    run(['lua', ROOT/'tests/test_puzzle_reasoning.lua'])
+    run(['lua', ROOT/'tests/test_sudoku_reasoning.lua'])
     run([sys.executable, ROOT / 'scripts/sync_game_ui.py', '--check'])
     run([sys.executable, ROOT / 'scripts/sync_puzzle_store.py', '--check'])
     run([sys.executable, ROOT / 'scripts/sync_game_theme.py', '--check'])
@@ -74,6 +81,9 @@ def main():
         run(['lua', ROOT/'tests/run_themed_game.lua'], folder, {'DEVICE_IMAGES': '1'})
         run(['lua', ROOT/'tests/run_hub_game.lua'], folder)
         run(['lua', ROOT/'tests/run_hub_game.lua', '--bitmap'], folder)
+        if (folder / 'tests/test_procedural.lua').exists():
+            run(['lua', 'tests/test_procedural.lua'], folder)
+            run(['lua', ROOT/'tests/run_hub_game.lua', '--procedural'], folder)
         if (folder / 'tests/test_fonts.lua').exists():
             run(['lua', 'tests/test_fonts.lua'], folder)
         if (folder / 'tests/validate_fonts.py').exists():

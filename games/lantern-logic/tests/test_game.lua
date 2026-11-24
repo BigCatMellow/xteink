@@ -49,6 +49,7 @@ local ctx={
   fonts={small=font,medium=font,large=font},
   invalidate=function() redraws=redraws+1 end
 }
+store['lantern-logic.txt']='version=1\nlevel=1\nunlocked=1\nmarks='..string.rep('0',25)..'\nhistory=\nmode=1'
 on_load(ctx)
 eq(A.state().level,1)
 eq(A.state().unlocked,1)
@@ -200,10 +201,12 @@ for level=1,16 do
 end
 assert(type(on_tick)=='nil','no background redraw loop')
 
--- Corrupt save file resets safely.
-store['lantern-logic.txt']='version=1\nlevel=1000\nunlocked=5000\n'
+-- Malformed old saves are retained, never silently overwritten.
+local corrupt='version=1\nlevel=1000\nunlocked=5000\n'
+store['lantern-logic.txt']=corrupt
 on_load(ctx)
-eq(A.state().level,1)
+assert(A.state()==nil and store['lantern-logic.txt']==corrupt)
+A.start(1,1)
 -- Regression: visiting other levels must not discard unfinished work.
 A.start(2,16)
 local p=SOLUTIONS[2][1]

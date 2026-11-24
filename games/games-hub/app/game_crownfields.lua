@@ -46,10 +46,15 @@ local C,S,ERR,MSG=nil,nil,nil,nil
 local HELP=false
 local MODE=2
 local EXCLUDE=false
+local Random=require('random_session')
+local Store=require('puzzle_store')
+local SIZE=5
+
 local OLD_TOTAL=12
 local KEY_MS=-1000
 local TOTAL=#Levels
 local function board(level)
+  if level>TOTAL and S and S.generated and S.generated.number==level then return S.b end
   local rows=Levels[level].rows
   local n=#rows
   local regions={}
@@ -80,8 +85,7 @@ local function unpack_mask(raw,n)
   for i=1,#raw do a[i]=tonumber(raw:sub(i,i)) end
   return a
 end
-local function valid(n,marks)
-  local b=board(n)
+local function valid_board(b,marks)
   local row,col,reg={},{},{}
   local total=0
   local prev=-9
@@ -106,6 +110,7 @@ local function valid(n,marks)
   end
   return true
 end
+local function valid(n,marks)return valid_board(board(n),marks)end
 local function stats()
   local b=board(S.level)
   local a=S.marks[S.level]
@@ -113,8 +118,31 @@ local function stats()
   for _,v in ipairs(a) do if v==2 then count=count+1 end end
   return count,b.n
 end
+local function generated_state(p,max)
+  local b={n=p.n,regions={}}
+  for i=1,#p.clues do b.regions[i]=p.clues:sub(i,i) end
+  local answer={}
+  for i=1,#p.answer do answer[i]=p.answer:sub(i,i)=='1' and 2 or 0 end
+  assert(valid_board(b,answer),'Invalid stored solution')
+  local marks=assert(unpack_mask(p.marks,p.n*p.n),'Invalid marks')
+  assert(not p.won or valid_board(b,marks),'Invalid solved board')
+  local h={}
+  for _,raw in ipairs(p.history) do h[#h+1]=assert(unpack_mask(raw,p.n*p.n),'Invalid undo') end
+  local i=p.number
+  return {level=i,unlocked=max,b=b,generated=p,marks={[i]=marks},submitted={[i]=p.won},history={[i]=h}}
+end
+local function generated_record()
+  local p=S.generated
+  local record={}
+  for k,v in pairs(p) do record[k]=v end
+  record.marks=pack(S.marks[S.level]);record.history={}
+  for i,h in ipairs(S.history[S.level]) do record.history[i]=pack(h) end
+  record.mode=MODE;record.won=S.submitted[S.level];record.extra=EXCLUDE
+  return record
+end
 local function save()
   if not C or not C.storage or not S then return end
+  if S.generated then Random.save(C.storage,generated_record(),S.unlocked,SIZE);return end
   local lines={'version=1','total='..TOTAL,'level='..S.level,'unlocked='..S.unlocked,'mode='..MODE,'exclude='..(EXCLUDE and '1' or '0')}
   for i=1,TOTAL do
     lines[#lines+1]='B'..i..'='..pack(S.marks[i])
@@ -123,7 +151,7 @@ local function save()
     for j,m in ipairs(S.history[i]) do history[j]=pack(m) end
     lines[#lines+1]='H'..i..'='..table.concat(history,';')
   end
-  pcall(function() C.storage:write('crown-fields.txt',table.concat(lines,'\n')) end)
+  Store.write(C.storage,'crown-fields.txt',table.concat(lines,'\n'))
 end
 local function start()
   S={level=1,unlocked=1,marks={},submitted={},history={}}
@@ -176,13 +204,52 @@ local function restore()
   S=nextS;HELP=false;MSG=nil;MODE=fields.mode=='1' and 1 or 2;EXCLUDE=fields.exclude=='1'
   return true
 end
+local function new_game(n,forced,limit)
+  local pointer=Random.pointer(C.storage,TOTAL)
+  local max=pointer and pointer.max or TOTAL
+  local p=Random.generate(C,'crowns',n,max+1,S and S.generated and S.generated.clues,forced,limit)
+  if not p then MSG='No puzzle - retry New';return false end
+  p.mode=2;p.extra=EXCLUDE
+  local nextS=generated_state(p,max+1)
+  local ok=pcall(function()
+    if S then save() end
+    Random.save(C.storage,p,max+1,n)
+  end)
+  if not ok then MSG='Save failed - retry New';return false end
+  S=nextS;SIZE=n;MODE=p.mode;HELP=false;MSG=nil;return true
+end
+local function load_generated()
+  local ptr=Random.pointer(C.storage,TOTAL)
+  if not ptr then return false end
+  assert(Random.supported('crowns',ptr.size),'Invalid selected size')
+  local p=Random.read(C.storage,'crowns',ptr.level)
+  S=generated_state(p,ptr.max);SIZE=ptr.size;MODE=p.mode;EXCLUDE=p.extra;MSG=nil
+  return true
+end
+local function visit_generated(n)
+  if n<=TOTAL or n>S.unlocked or n==S.level then return false end
+  local ok,nextS=pcall(function()
+    save()
+    local p=Random.read(C.storage,'crowns',n)
+    local nextS=generated_state(p,S.unlocked)
+    Random.select(C.storage,n,S.unlocked,SIZE)
+    return nextS
+  end)
+  if not ok then MSG='Cannot open puzzle';return false end
+  S=nextS;MODE=S.generated.mode;EXCLUDE=S.generated.extra;MSG=nil;HELP=false;return true
+end
 local function visit(n)
-  if not S or n<1 or n>TOTAL or n>S.unlocked then return false end
+  if not S then return false end
+  if S.generated then return visit_generated(n) end
+  if n<1 or n>TOTAL or n>S.unlocked then return false end
   S.level=n;MSG=nil;HELP=false;save()
   return true
 end
 local function prev() return S and visit(S.level-1) or false end
-local function next_level() return S and visit(S.level+1) or false end
+local function next_level()
+  if S and S.generated and S.level==S.unlocked and S.submitted[S.level] then new_game(SIZE);return true end
+  return S and visit(S.level+1) or false
+end
 local function mode(v)
   if MODE==v then return false end
   MODE=v;save();return true
@@ -216,7 +283,7 @@ local function check()
   if not S or S.submitted[S.level] then return false end
   if valid(S.level,S.marks[S.level]) then
     S.submitted[S.level]=true
-    S.unlocked=math.min(TOTAL,math.max(S.unlocked,S.level+1))
+    if not S.generated then S.unlocked=math.min(TOTAL,math.max(S.unlocked,S.level+1)) end
     MSG='Solved'
   else
     MSG='Check crowns and regions'
@@ -231,9 +298,12 @@ local function text(g,x,y,s,style,align,w) UI.text(g,C,x,y,s,style,align,w) end
 local function button(g,x,y,w,h,s) UI.button(g,C,x,y,w,h,s) end
 local function draw_help(g)
   text(g,240,94,'How to play','large','center',436)
-  UI.paragraph(g,C,22,150,436,160,'Place one crown in each row, column and outlined region. Crowns must never touch, even diagonally.','medium')
-  UI.paragraph(g,C,22,320,436,172,'Select Crown or X, then tap a square. Tap the same mark again to clear. Check submits your answer. Undo restores the last change.','medium')
-  UI.button(g,C,22,530,436,62,'Auto exclusions: '..(EXCLUDE and 'On' or 'Off'),EXCLUDE)
+  UI.paragraph(g,C,22,150,436,250,'Place one crown in each row, column and region. Crowns cannot touch, even diagonally. Choose Crown or X, then tap. Tap the same mark again to clear. Check submits; Undo restores.','medium')
+  if MSG then text(g,240,406,MSG,'small','center',440) end
+  UI.button(g,C,22,446,436,56,'Auto exclusions: '..(EXCLUDE and 'On' or 'Off'),EXCLUDE)
+  local sizes=Random.sizes.crowns;local w=math.floor(456/#sizes)
+  for k,n in ipairs(sizes) do UI.button(g,C,12+(k-1)*w,530,w-3,62,n..'x'..n,SIZE==n,{font='small'}) end
+  button(g,76,620,328,62,'New puzzle')
   button(g,76,704,328,70,'Back to grid')
 end
 local function exclusions(b,marks)
@@ -257,7 +327,7 @@ local function render(g)
   text(g,80,14,'Crown Fields','large',nil,326)
   button(g,416,12,48,48,HELP and 'X' or '?')
   if HELP then draw_help(g);return end
-  text(g,16,66,'Puzzle '..S.level..' / '..TOTAL,'small',nil,300)
+  text(g,16,66,S.generated and ('Puzzle '..(S.level-TOTAL)..'  '..S.b.n..'x'..S.b.n) or ('Legacy '..S.level..' / '..TOTAL),'small',nil,440)
   local b=board(S.level)
   local bx,by,cell=geometry()
   UI.region(bx,by,b.n*cell,b.n*cell)
@@ -302,7 +372,7 @@ local function render(g)
   button(g,12,704,106,70,'Prev')
   button(g,128,704,106,70,'Undo')
   button(g,244,704,106,70,'Reset')
-  button(g,360,704,108,70,S.submitted[S.level] and (S.level<TOTAL and 'Next' or 'Done') or 'Check')
+  button(g,360,704,108,70,S.submitted[S.level] and 'Next' or 'Check')
 end
 local function hit(x,y,bx,by,w,h)
   return x>=bx and x<bx+w and y>=by and y<by+h
@@ -311,7 +381,12 @@ local function tap(x,y)
   if hit(x,y,416,12,48,48) then HELP=not HELP;return true end
   if HELP then
     if hit(x,y,76,704,328,70) then HELP=false;return true end
-    if hit(x,y,22,530,436,62) then EXCLUDE=not EXCLUDE;save();return true end
+    if hit(x,y,22,446,436,56) then EXCLUDE=not EXCLUDE;save();return true end
+    if hit(x,y,76,620,328,62) then new_game(SIZE);return true end
+    local sizes=Random.sizes.crowns;local w=math.floor(456/#sizes)
+    for k,n in ipairs(sizes) do
+      if hit(x,y,12+(k-1)*w,530,w-3,62) then SIZE=n;save();return true end
+    end
     return false
   end
   if hit(x,y,12,620,222,62) then return mode(2) end
@@ -320,7 +395,10 @@ local function tap(x,y)
   if hit(x,y,128,704,106,70) then return undo() end
   if hit(x,y,244,704,106,70) then return restart() end
   if hit(x,y,360,704,108,70) then
-    if S.submitted[S.level] then return next_level() end
+    if S.submitted[S.level] then
+      if not S.generated and S.level==TOTAL then new_game(SIZE);return true end
+      return next_level()
+    end
     return check()
   end
   local b=board(S.level)
@@ -331,8 +409,14 @@ local function tap(x,y)
   return false
 end
 local function invalidate() if C then pcall(function() C:invalidate() end) end end
-local function on_load(ctx) Theme.release();C=ctx or context;ERR=nil
-  local ok,e=pcall(function() if not restore() then start() end end)
+local function on_load(ctx) Theme.release();C=ctx or context;ERR=nil;S=nil;HELP=false;MODE=2;EXCLUDE=false;SIZE=5
+  local ok,e=pcall(function()
+    if load_generated() then return end
+    local raw,err=C.storage:read('crown-fields.txt')
+    if raw==nil and err and err~='not_found' then error(err) end
+    if raw then assert(restore(),'Invalid legacy save; data retained')
+    else assert(new_game(SIZE),'No verified puzzle; reopen to retry') end
+  end)
   if not ok then ERR=tostring(e) end
 end
 local function on_draw(ctx,g) if ctx then C=ctx end
@@ -370,7 +454,7 @@ if rawget(_G,'__TEST') then
  __TEST.api={
    levels=Levels,board=board,valid=valid,state=function()return S end,
    mark=mark,mode=mode,undo=undo,check=check,restart=restart,visit=visit,
-   next=next_level,prev=prev,geometry=geometry,tap=tap
+   next=next_level,prev=prev,geometry=geometry,tap=tap,new=new_game,start=start
  }
 end
 

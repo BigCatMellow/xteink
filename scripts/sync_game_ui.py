@@ -42,11 +42,33 @@ def main():
             ('shared/logic_grid.lua', 'app/index.lua'),
             ('tests/logic_grid_game.lua', 'tests/test_game.lua'),
             ('tests/validate_logic_grid.py', 'tests/validate_levels.py'),
+            ('shared/procedural_puzzles.lua', 'app/procedural_puzzles.lua'),
+            ('tests/logic_grid_procedural.lua', 'tests/test_procedural.lua'),
         ):
             target = project_path(game) / dest
             data = (ROOT / source).read_bytes()
             if args.check:
                 if not target.exists() or target.read_bytes() != data:
+                    bad.append(str(target.relative_to(ROOT)))
+            else:
+                target.write_bytes(data)
+    for game in ('takuzu', 'mosaic', 'hitori', 'lantern-logic', 'crown-fields'):
+        for source, dest in (
+            ('shared/random_session.lua', 'app/random_session.lua'),
+            ('shared/procedural_puzzles.lua', 'app/procedural_puzzles.lua'),
+        ):
+            target = project_path(game) / dest
+            data = (ROOT / source).read_bytes()
+            if args.check:
+                if not target.exists() or target.read_bytes() != data:
+                    bad.append(str(target.relative_to(ROOT)))
+            else:
+                target.write_bytes(data)
+        if game in ('lantern-logic', 'crown-fields'):
+            target = project_path(game) / 'tests/test_procedural.lua'
+            data = (ROOT / 'tests/region_procedural.lua').read_bytes()
+            if args.check:
+                if target.read_bytes() != data:
                     bad.append(str(target.relative_to(ROOT)))
             else:
                 target.write_bytes(data)

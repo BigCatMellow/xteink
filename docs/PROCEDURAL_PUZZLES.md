@@ -57,3 +57,23 @@ The added Python test invokes Lua for multiple seeds at every size and solves
 the results independently; it also checks deterministic seed replay, diversity,
 bounded exhaustion and minimum successful seed count. No runtime or installed
 data was modified by this backend-only step.
+
+
+## Verified host evidence
+
+The backend quality gate at commit d30a8c173606846528d2f9338555a6ade5596576
+passed: [run 45469559990](https://github.com/BigCatMellow/xteink/actions/runs/45469559990).
+All 126 sampled puzzles (six seeds for each of 21 game/size combinations)
+were independently verified unique, with seed replay and diversity checks.
+Largest observed work counts included 5,013,014 for Crowns 9x9 and 3,372,126
+for Mosaic 10x10. These are operation counts, not physical-device timing.
+
+## Mandatory policy and mechanical safeguard
+
+Procedural generation is a release requirement, not a stretch goal.
+The explicit migration registry in `scripts/procedural_gate.py` records the
+existing exceptions as blockers, not permissions to ship. New games without
+an acceptance test fail the ordinary quality gate; a family release fails
+while any named migration gap remains. Passing the backend sample solver
+does not establish gameplay integration. Keep the existing four games and
+historic packages intact while resolving the gaps.

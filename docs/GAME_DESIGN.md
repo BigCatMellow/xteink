@@ -677,3 +677,15 @@ explicit internal host flag; no firmware API detection is assumed.
 ## 2026-11-24 — current lineup and next family
 
 Only Nonogram, Sudoku, Quiet Mines and Lights Out are currently in use. Park the other eight projects intact under `games/inactive/` and keep historical archives separate. The approved next candidates are Takuzu, Mosaic, Hitori, an improved existing Akari (Lantern Logic), and improved Crown Fields. Follow the established screen-space and visual acceptance contracts; no candidate is device-tested or active merely because its source exists. See [candidate acceptance](../games/inactive/README.md).
+
+
+## Non-negotiable replayability — 2026-11-24
+
+Every puzzle game must offer original procedurally generated boards by default,
+on-device and offline. Preserve fixed layouts only for historic saved games
+or tests; do not use them to supply New puzzles. Prefer a bounded, validated
+generator and a clear retry over a slow or predetermined fallback. Keep New
+and size/difficulty controls in the established compact interface, not a
+permanent extra toolbar. Save the exact board and progress so a generator
+upgrade cannot change a puzzle already in play. See
+[procedural acceptance](PROCEDURAL_PUZZLES.md) and [quality gate](GAME_QUALITY.md).

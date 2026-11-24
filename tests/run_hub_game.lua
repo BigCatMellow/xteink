@@ -44,5 +44,6 @@ function dofile(path)
   function on_leave() return engine.leave() end
 end
 if arg[1]=='--bitmap' then dofile('../../tests/run_themed_game.lua')
+elseif arg[1]=='--procedural' then dofile('tests/test_procedural.lua');on_leave()
 else dofile('tests/test_game.lua');on_leave() end
 print('HUB ENGINE: '..id..' passed through private modules, header and save namespace')

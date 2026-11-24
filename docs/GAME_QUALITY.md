@@ -149,3 +149,35 @@ This is **not** proof of enjoyment or human-rated difficulty. Uniqueness,
 shortest paths and successful packaging alone do not meet the challenge bar.
 Re-admitting an archived title requires a redesigned level set and explicit
 retrospective about the previously shallow mechanics.
+
+
+## Mandatory procedural generation gate — 2026-11-24
+
+Every active puzzle game must generate fresh original puzzles offline as the
+normal New and fresh-install path. A finite bank, symmetry-only variations, or
+a fixed fallback does not qualify. Authored fixtures and legacy saves may
+remain. The generator must have bounded work, recoverable failure, reproducible
+seed/version or exact stored board, meaningful variety, independently validated
+solutions (uniqueness where required by the rules), and preserved progress/undo.
+No-guess and human difficulty claims require separate evidence.
+
+The normal host gate checks the complete procedural acceptance registry
+(`scripts/procedural_gate.py`) and runs registered game tests. Unregistered
+games fail discovery. New games require a dedicated
+`tests/test_procedural.lua` covering fresh-install generation, distinct New
+puzzles, reload, failure/retry and independent solution verification as part
+of their suite. The quality runner replays the dedicated test through native
+and Hub engines. Existing integrated generators retain their established
+gameplay regressions.
+
+Six specifically identified migration gaps (Lights Out's fixed fallback and
+the five new engines' missing runtime integration) are allowed in development
+CI only, with a conspicuous pending status. They are not release exemptions.
+`python3 scripts/check_games.py --require-procedural` rejects every pending
+entry. The family release command requires this strict gate before archiving
+or applying any current family, including apply-only mode. Remove a named
+migration gap only when real gameplay integration and regressions exist.
+No new migration exception may be added merely to pass CI.
+
+Host timing/work evidence is not physical XTEINK performance. Record generation
+latency and responsiveness on the actual reader before device acceptance.

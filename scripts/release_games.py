@@ -17,6 +17,7 @@ import zipfile
 
 from sync_game_ui import GAMES, COLLECTIONS, ROOT, project_path
 import update_installed_games as Update
+import procedural_gate
 
 
 def source_hash(app):
@@ -62,10 +63,11 @@ def archive_game(game, dist, releases, root=ROOT):
 
 
 def prepare(packer, linter):
+    procedural_gate.verify(strict=True)
     for script in ('make_game_fonts.py','make_icons.py','sync_game_ui.py','sync_game_theme.py','sync_puzzle_store.py','build_game_hub.py'):
         subprocess.run([sys.executable,str(ROOT/'scripts'/script)],check=True,cwd=ROOT)
     verified_sources={game:source_hash(project_path(game) /'app') for game in GAMES+COLLECTIONS}
-    command=[sys.executable,str(ROOT/'scripts/check_games.py'),'--packer',str(packer),'--linter',str(linter)]
+    command=[sys.executable,str(ROOT/'scripts/check_games.py'),'--packer',str(packer),'--linter',str(linter),'--require-procedural']
     subprocess.run(command,check=True,cwd=ROOT)
     assert all(source_hash(project_path(game) /'app')==fingerprint for game,fingerprint in verified_sources.items()), 'Source changed during verification; rerun the release'
     releases=ROOT/'releases';releases.mkdir(exist_ok=True)
@@ -170,6 +172,7 @@ def main():
     parser.add_argument('--apply-only',action='store_true')
     parser.add_argument('--backup',type=Path,default=Path.home()/'Backups'/('xteink-family-update-'+datetime.now().strftime('%Y%m%d-%H%M%S')))
     args=parser.parse_args()
+    procedural_gate.verify(strict=True)
     catalogue=ROOT/'releases/game-family-latest.json' if args.apply_only else prepare(args.packer.resolve(),args.linter.resolve())
     if args.card:
         document=json.loads(catalogue.read_text())

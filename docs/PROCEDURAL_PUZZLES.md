@@ -33,7 +33,7 @@ ratings. Exact uniqueness for Hitori and Crowns is not evidence of a guess-free
 human solving path. Difficulty calibration and device latency remain unverified.
 The work counter is a finite deterministic bound, not milliseconds.
 
-## Required integration (not yet done)
+## Original integration requirements
 - Wire the generator to an explicit New action and default new-install flow;
   choose size/difficulty; do not recycle the frozen bank.
 - Use the existing sharded puzzle store and durable exact clues/seed/version,
@@ -144,3 +144,9 @@ Lights Out rejects exhausted generation instead of using a fixed fallback.
 Host smoke tests exercise both standalone and hosted paths, including write
 failure. Actual bitmap review, measured reader latency and reasoning-based
 difficulty calibration are separate acceptance requirements.
+
+## Reasoning evidence and strict Nonogram update
+
+The host quality run [45477648934](https://github.com/BigCatMellow/xteink/actions/runs/45477648934) verified 126 independently unique generated boards. The reasoning tests solved all 24 Hitori and 30 Crown Fields sample boards using the implemented deduction rules, including bounded contradiction forcing. This is evidence for the sample, not a guarantee that all future generated boards meet a difficulty tier. Sudoku's separate analyzer solved 54 of 60 existing v2 sample boards: 32 with naked singles, 21 requiring hidden singles and one requiring locked candidates. The six stalled boards do not establish a need for guessing. All emitted deduction traces agreed with their known unique solutions. Difficulty-based generation acceptance is still outstanding. The full run failed at a stale Hub fingerprint; the fingerprint was subsequently rebuilt.
+
+Fresh Nonogram sessions now use the strict v4 generation profile: on exhaustion, retry a different seed rather than publish the old staircase pattern. The v1–v3 compatibility path retains original seed behavior. This update still requires the standalone, hosted and full release checks.

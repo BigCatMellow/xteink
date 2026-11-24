@@ -1,7 +1,7 @@
 package.path='app/?.lua;../../tests/?.lua;'..package.path
-local G=require('generator')
 _G.__TEST={}
 dofile('app/index.lua')
+local G=require('generator')
 local A=__TEST.api
 local saves={}
 local f={line_height=24,measure=function(_,s)return #s*10 end}

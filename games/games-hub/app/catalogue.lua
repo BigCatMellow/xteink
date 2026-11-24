@@ -7,6 +7,6 @@ return {
 {id="takuzu",name="Takuzu",version="0.2.0",description="Balance zeroes and ones",source="8785dc7c9bc99ab9e6d12ff6866ba8dd793fc79a65354ea6f87f8b568a3493b1"},
 {id="mosaic",name="Mosaic",version="0.2.0",description="Shade by neighboring clues",source="e3ad666f6f2d1797a2e2f48ea4f5d070c2dbc5e636edab05a7462eb9cea5db9e"},
 {id="hitori",name="Hitori",version="0.2.0",description="Shade repeated numbers",source="e093c88e09e28a5dabcacee25a5e64df955f37380a5cd33db920839dc1498a6b"},
-{id="lanternlogic",name="Akari",version="0.5.0",description="Light up a logic puzzle",source="d70a968d898aef101120e8b971a67103289f66ff198d99a0a8d34e8afec07e01"},
-{id="crownfields",name="Crown Fields",version="0.3.0",description="One crown in every region",source="7c1b75d569a717d2436e107720501717464e192ef25a39ef32c2a46d7a864aac"}
+{id="lanternlogic",name="Akari",version="0.6.0",description="Light up a logic puzzle",source="99ff964d655ec10227142d30c3260d522e1d7df62e0ee3ee1def06d854c71089"},
+{id="crownfields",name="Crown Fields",version="0.4.0",description="One crown in every region",source="40b5e30f9b46497f7c7b0e6039866ba6dd05c9ce5c5158b9c49f738e64f16fb0"}
 }

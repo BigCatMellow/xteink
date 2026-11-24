@@ -1,7 +1,7 @@
 {
   "app_id": "lanternlogic",
   "display_name": "Akari",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": "BigCatMellow",
   "description": "Original static monochrome Light Up logic puzzles for X4 Pro",
   "entry": "index.lua",

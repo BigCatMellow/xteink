@@ -11,6 +11,7 @@ local TOTAL=#Pictures
 local MAX=999999999
 local C,S,ERR,MSG=nil,nil,nil,nil
 local generated=nil
+local seed_nonce=0
 local function random_seed(level)
   local now=0
   if C and C.clock and type(C.clock.millis)=='function' then
@@ -25,8 +26,14 @@ local function picture(level)
     local saved=nil
     if C and C.storage then saved=Store.get(C.storage,'pattern',level) end
     local v3=saved and saved:match('\nv3:(%d+)$')
+    local v4=saved and saved:match('\nv4:(%d+)$')
     local p
-    if v3 then
+    if v4 then
+      local seed=tonumber(v4)
+      assert(seed and seed>=13 and seed<=999999999,'Invalid strict Nonogram seed')
+      p=assert(Generator.generate_v2(seed,true),'Saved generator seed cannot be reconstructed')
+      p.generation=4;p.seed=seed
+    elseif v3 then
       local seed=tonumber(v3)
       assert(seed and seed>=13 and seed<=999999999,'Invalid saved Nonogram seed')
       p=Generator.generate_v2(seed)
@@ -36,9 +43,13 @@ local function picture(level)
       p=saved:match('\nv2$') and Generator.generate_v2(level)
         or Generator.generate(level)
     else
-      local seed=random_seed(level)
-      p=Generator.generate_v2(seed)
-      p.generation=3;p.seed=seed
+      for _=1,8 do
+        seed_nonce=seed_nonce+1
+        local seed=13+(random_seed(level)-13+seed_nonce*193)%999999987
+        p=Generator.generate_v2(seed,true)
+        if p then p.generation=4;p.seed=seed;break end
+      end
+      assert(p,'No verified random puzzle - retry New')
     end
     generated={number=level,puzzle=p}
   end
@@ -184,6 +195,8 @@ local function save()
       if picture(S.level).generation==2 then chunks[#chunks+1]='v2'
       elseif picture(S.level).generation==3 then
         chunks[#chunks+1]='v3:'..picture(S.level).seed
+      elseif picture(S.level).generation==4 then
+        chunks[#chunks+1]='v4:'..picture(S.level).seed
       end
       local data=table.concat(chunks,'\n')
       Store.put(C.storage,'pattern',S.level,data)
@@ -202,7 +215,7 @@ local function load_generated(state,level)
     if type(data)=='string' then
       local payload=data
       if payload:match('\nv2$') then payload=payload:sub(1,-4)
-      else payload=payload:gsub('\nv3:%d+$','') end
+      else payload=payload:gsub('\nv[34]:%d+$','') end
       local b,won,past=payload:match('^([^\n]+)\n([01])\n(.*)$')
       local decoded=decode(b,n)
       local valid=decoded~=nil
@@ -293,7 +306,9 @@ local function new_puzzle()
   if not S or S.unlocked>=MAX then return false end
   if not save() then return true end
   local number=math.max(TOTAL,S.unlocked)+1
-  load_generated(S,number)
+  local oldGenerated=generated
+  local ok=pcall(load_generated,S,number)
+  if not ok then generated=oldGenerated;MSG='No puzzle - retry New';return true end
   if S.level>TOTAL then
     S.boards[S.level]=nil;S.history[S.level]=nil;S.submitted[S.level]=nil
   end

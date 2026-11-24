@@ -227,7 +227,7 @@ local function acceptable(rows)
   end
   return true,rc,cc
 end
-function G.generate_v2(number)
+function G.generate_v2(number,strict,attempts)
   assert(number>=13 and number==math.floor(number))
   -- More intricate generated continuation while 5x5 pictures remain authored.
   -- Geometry stays large enough for touch and the clue stack on 480x800.
@@ -236,7 +236,7 @@ function G.generate_v2(number)
   local density=n==7 and 48 or n==8 and 47 or 49
   local rand=rng(number*131+791009)
   local best,bestRounds=nil,-1
-  for attempt=1,36 do
+  for attempt=1,(attempts or 36) do
     local rows={}
     for y=1,n do
       local items={}
@@ -257,7 +257,8 @@ function G.generate_v2(number)
     end
   end
   if best then return best end
-  -- Deterministic, no-guess safety net. The row lengths and corresponding
+  if strict then return nil,'No verified random pattern' end
+  -- Legacy-only deterministic, no-guess safety net. The row lengths and corresponding
   -- column patterns force the complete board even on unlucky seeds.
   local rows={}
   for y=1,n do

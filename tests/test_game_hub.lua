@@ -82,7 +82,7 @@ local function draw(label)
  if selected then
   local minimum={summitputt=420,lanternlogic=440,rayvault=430,
    islandlinks=410,nonogram=336,rectrooms=440,sudoku=441,
-   crownfields=440,quietmines=440,sumcross=395,tenpairs=440,lightsout=440}
+   crownfields=440,quietmines=440,sumcross=395,tenpairs=440,lightsout=440,takuzu=460,mosaic=460,hitori=460}
   local id=Catalogue[selected].id
   assert(W==480 and H==800,id..': engines must run on the portrait screen')
   assert(observed[1] and observed[1].w>=assert(minimum[id]),id..': play area regressed to a cramped layout')

@@ -1,0 +1,10 @@
+{
+  "app_id": "hitori",
+  "display_name": "Hitori",
+  "version": "0.1.0",
+  "author": "BigCatMellow",
+  "description": "Eliminate duplicates while keeping paths open",
+  "entry": "index.lua",
+  "api": "2.0",
+  "permissions": []
+}

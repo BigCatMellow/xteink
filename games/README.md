@@ -7,7 +7,15 @@ The four games currently used on the reader, in stable relative Hub order:
 - [Quiet Mines](quiet-mines/README.md) (Minesweeper)
 - [Lights Out](lights-out/README.md)
 
-[Games Hub](games-hub/README.md) hosts the active collection. [Inactive projects](inactive/README.md) preserve eight previously active games and define the next five candidates. [Archive](archive/README.md) preserves earlier retired games; [Paper Golf](paper-golf/README.md) remains separately shelved.
+## Five development candidates
+
+- [Takuzu](takuzu/README.md)
+- [Mosaic](mosaic/README.md)
+- [Hitori](hitori/README.md)
+- [Akari](lantern-logic/README.md)
+- [Crown Fields](crown-fields/README.md)
+
+The candidate Hub has nine games; the five additions are not yet device-verified or released. [Games Hub](games-hub/README.md) hosts this collection. [Inactive projects](inactive/README.md) preserve six other previously active games. [Archive](archive/README.md) preserves earlier retired games; [Paper Golf](paper-golf/README.md) remains separately shelved.
 
 The source reorganization does not uninstall any app or modify installed saves. Historical packages are immutable. Do not deploy the old family catalogue; generate and verify a new one.
 

@@ -9,18 +9,21 @@ from render_nonogram import ROOT, FONT, render
 from sync_game_ui import GAMES, project_path
 
 FIXTURES={
+ 'takuzu': ('A.state().unlocked=#A.levels;A.visit(LEVEL)',12,'A.tap(440,32)'),
+ 'mosaic': ('A.state().unlocked=#A.levels;A.visit(LEVEL)',12,'A.tap(440,32)'),
+ 'hitori': ('A.state().unlocked=#A.levels;A.visit(LEVEL)',12,'A.tap(440,32)'),
  'line-lift': ('A.fresh(LEVEL,#A.raw)',12,'A.tap(415,40)'),
  'summit-putt': ('A.start(LEVEL,#A.levels)',10,'A.touch(420,32)'),
  'link-grid': ('A.start(LEVEL,#A.levels)',20,None),
  'ink-runes': ("A.start(LEVEL,#A.levels,'')",20,'A.tap(412,32)'),
- 'lantern-logic': ('A.start(LEVEL,#A.levels)',16,None),
+ 'lantern-logic': ('A.start(LEVEL,#A.levels)',28,'A.tap(440,32)'),
  'ray-vault': ('A.start(LEVEL,#A.levels)',12,'A.tap(420,32)'),
  'island-links': ('A.start(LEVEL,#A.levels)',12,None),
  'oddity-hunt': ('A.state().unlocked=#A.levels;A.visit(LEVEL);A.hint()',12,'A.tap(426,32)'),
  'word-hunt': ("local s=A.state();s.unlocked={999999999,999999999};if LEVEL>8 then A.mode(2) end;A.visit(LEVEL);A.hint()",15,'A.tap(440,32)'),
  'word-bridge': ('A.state().unlocked=#A.levels;A.visit(LEVEL);A.hint()',12,'A.tap(440,32)'),
  'rectangle-rooms': ('A.state().unlocked=#A.puzzles;A.visit(LEVEL)',12,'A.tap(440,32)'),
- 'crown-fields': ('A.state().unlocked=#A.levels;A.visit(LEVEL);A.mark(1);A.mark(2);A.mark(2)',12,'A.tap(440,32)'),
+ 'crown-fields': ('A.state().unlocked=#A.levels;A.visit(LEVEL);A.mark(1,1);A.mark(2,2)',20,'A.tap(440,32)'),
  'ten-pairs': ('A.state().unlocked=#A.levels;A.visit(LEVEL);if LEVEL==#A.levels then local t={};for i=1,88 do t[i]=i%9+1 end;A.state().boards[LEVEL]=t end;A.hint()',12,'A.tap(440,32)'),
  'quiet-mines': ('A.apply(1)',12,'A.tap(440,32)'),
  'sum-cross': ('A.state().unlocked=#A.levels;A.visit(LEVEL);local g=A.grid(LEVEL);for i=1,g.n*g.n do if g.white[i] then A.select(i);A.digit(1);break end end',12,'A.tap(440,32)'),

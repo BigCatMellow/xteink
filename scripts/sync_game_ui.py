@@ -4,8 +4,8 @@ import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-GAMES = ('nonogram', 'sudoku', 'quiet-mines', 'lights-out')
-INACTIVE = ('summit-putt', 'lantern-logic', 'ray-vault', 'island-links', 'rectangle-rooms', 'crown-fields', 'sum-cross', 'ten-pairs')
+GAMES = ('nonogram', 'sudoku', 'quiet-mines', 'lights-out', 'takuzu', 'mosaic', 'hitori', 'lantern-logic', 'crown-fields')
+INACTIVE = ('summit-putt', 'ray-vault', 'island-links', 'rectangle-rooms', 'sum-cross', 'ten-pairs')
 OTHER_APPS = ('wallpaper-randomizer',)
 COLLECTIONS = ('games-hub',)  # Generated from GAMES; audited by check_games.py.
 SHELVED = ('paper-golf',)
@@ -36,6 +36,20 @@ def main():
                 bad.append(str(target.relative_to(ROOT)))
         else:
             target.write_bytes(canonical)
+    # Shared engine and host checks for the three binary-mark puzzle apps.
+    for game in ('takuzu', 'mosaic', 'hitori'):
+        for source, dest in (
+            ('shared/logic_grid.lua', 'app/index.lua'),
+            ('tests/logic_grid_game.lua', 'tests/test_game.lua'),
+            ('tests/validate_logic_grid.py', 'tests/validate_levels.py'),
+        ):
+            target = project_path(game) / dest
+            data = (ROOT / source).read_bytes()
+            if args.check:
+                if not target.exists() or target.read_bytes() != data:
+                    bad.append(str(target.relative_to(ROOT)))
+            else:
+                target.write_bytes(data)
     if bad:
         raise SystemExit('UI copies differ; run scripts/sync_game_ui.py: ' + ', '.join(bad))
     print('Shared UI copies: ' + ('verified' if args.check else 'updated'))

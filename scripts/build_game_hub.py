@@ -12,7 +12,7 @@ HUB = project_path('games-hub')
 SHARED = {'ui_core': 'game_ui', 'theme': 'game_theme', 'game_style': 'game_style',
           'typefaces': 'typefaces', 'font_data': 'font_data', 'font_license': 'font_license',
           'puzzle_store': 'puzzle_store'}
-DESCRIPTIONS = {'nonogram': 'Reveal a picture in ink', 'sudoku': 'Nine numbers, endless puzzles', 'quiet-mines': 'Deduce every safe square', 'lights-out': 'Turn every tile white'}
+DESCRIPTIONS = {'nonogram': 'Reveal a picture in ink', 'sudoku': 'Nine numbers, endless puzzles', 'quiet-mines': 'Deduce every safe square', 'lights-out': 'Turn every tile white', 'takuzu': 'Balance zeroes and ones', 'mosaic': 'Shade by neighboring clues', 'hitori': 'Shade repeated numbers', 'lantern-logic': 'Light up a logic puzzle', 'crown-fields': 'One crown in every region'}
 
 
 def outputs():

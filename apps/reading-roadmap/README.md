@@ -60,7 +60,7 @@ The reader API only reports books that have been opened, so the app relies on th
 
     python3 apps/reading-roadmap/tools/card_from_tree.py /media/<card>/Books/directory-tree.md
 
-With the card mounted, `--card /media/<card> --titles-json apps/reading-roadmap/data/reader-titles.json` refreshes the metadata titles (then run `build_catalog.py --write`), and `--predict /tmp/card.lua` plus `lua apps/reading-roadmap/tests/predict.lua /tmp/card.lua` shows the CHECK screen the app would give if every book had been opened once. Current prediction: 168 / 211 linked automatically before duplicate cleanup, 198 / 211 after. The 13 left are files whose metadata title is literally `none`, so link them once with LINK BOOK.
+With the card mounted, `--card /media/<card> --titles-json apps/reading-roadmap/data/reader-titles.json` refreshes the metadata titles (then run `build_catalog.py --write`), and `--predict /tmp/card.lua` plus `lua apps/reading-roadmap/tests/predict.lua /tmp/card.lua` shows the CHECK screen the app would give if every book had been opened once. On the current card (after duplicate cleanup and the metadata fix below): 211 / 211 linked automatically, 0 issues. Before: 168 / 211.
 
 To remove the duplicates in [data/duplicate-audit.md](data/duplicate-audit.md) (keep one EPUB per book, take duplicate MOBIs and extra EPUBs off the card):
 
@@ -68,6 +68,8 @@ To remove the duplicates in [data/duplicate-audit.md](data/duplicate-audit.md) (
     python3 apps/reading-roadmap/tools/dedupe_card.py --card /media/<card> --apply    # do it
 
 It never removes a reading-list file, checks that the kept EPUB opens and has no DRM, skips groups without an EPUB and unconfirmed "verify manually" groups, and never touches omnibus files. Removed files are copied to `~/xteink-research/card-dedupe-backup/DATE/` and verified before deletion, with `restore.sh` to undo and a fresh `directory-tree.md`. Planned on the current tree: 62 groups, 65 files; left alone: The Great Gatsby (unconfirmed), *Philosophy: The Classics* (MOBI+PDF) and *House Atreides* (two MOBIs).
+
+Some EPUBs carry placeholder metadata (`<dc:title>none</dc:title>`), so the reader reports them as "none" and the app cannot tell them apart. `tools/fix_metadata.py --card /media/<card>` lists the reading-list files affected (dry run; `--apply` fixes them, `--all` includes the rest of the library). It sets the title from the list (or the file name), the author from the file name, and a per-file identifier when it was a placeholder; nothing else in the file changes. Originals go to `~/xteink-research/metadata-fix-backup/DATE/` with `restore.sh`. Applied 2026-11-23 to the 13 listed books.
 
 ## Testing from the repository root
 

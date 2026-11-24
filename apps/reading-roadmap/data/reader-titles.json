@@ -26,8 +26,8 @@
  },
  {
   "path": "Adventure/Standalone/Treasure Island - Robert Louis Stevenson.epub",
-  "title": "none",
-  "author": ""
+  "title": "Treasure Island",
+  "author": "Robert Louis Stevenson"
  },
  {
   "path": "Adventure/Standalone/True Grit - Charles Portis.epub",
@@ -126,8 +126,8 @@
  },
  {
   "path": "Children and Fairy Tales/Standalone/Holes - Louis Sachar.epub",
-  "title": "none",
-  "author": ""
+  "title": "Holes",
+  "author": "Louis Sachar"
  },
  {
   "path": "Children and Fairy Tales/Standalone/Pinocchio - Carlo Collodi.epub",
@@ -136,8 +136,8 @@
  },
  {
   "path": "Children and Fairy Tales/Standalone/The Jungle Book - Rudyard Kipling.epub",
-  "title": "none",
-  "author": ""
+  "title": "The Jungle Book",
+  "author": "Rudyard Kipling"
  },
  {
   "path": "Children and Fairy Tales/Standalone/The Wind in the Willows - Kenneth Grahame.epub",
@@ -151,8 +151,8 @@
  },
  {
   "path": "Classics and Literature/Standalone/A Christmas Carol - Charles Dickens.epub",
-  "title": "none",
-  "author": ""
+  "title": "A Christmas Carol",
+  "author": "Charles Dickens"
  },
  {
   "path": "Classics and Literature/Standalone/A Confederacy of Dunces - John Kennedy Toole.epub",
@@ -176,13 +176,13 @@
  },
  {
   "path": "Classics and Literature/Standalone/A Tale of Two Cities - Charles Dickens.epub",
-  "title": "none",
-  "author": ""
+  "title": "A Tale of Two Cities",
+  "author": "Charles Dickens"
  },
  {
   "path": "Classics and Literature/Standalone/Animal Farm - George Orwell.epub",
-  "title": "none",
-  "author": ""
+  "title": "Animal Farm",
+  "author": "George Orwell"
  },
  {
   "path": "Classics and Literature/Standalone/Anna Karenina - Leo Tolstoy.epub",
@@ -236,8 +236,8 @@
  },
  {
   "path": "Classics and Literature/Standalone/Emma - Jane Austen.epub",
-  "title": "none",
-  "author": ""
+  "title": "Emma",
+  "author": "Jane Austen"
  },
  {
   "path": "Classics and Literature/Standalone/Eugenie Grandet - Honore de Balzac.epub",
@@ -261,8 +261,8 @@
  },
  {
   "path": "Classics and Literature/Standalone/Gulliver's Travels - Jonathan Swift.epub",
-  "title": "none",
-  "author": ""
+  "title": "Gulliver's Travels",
+  "author": "Jonathan Swift"
  },
  {
   "path": "Classics and Literature/Standalone/Infinite Jest - David Foster Wallace.epub",
@@ -281,8 +281,8 @@
  },
  {
   "path": "Classics and Literature/Standalone/Little Women - Louisa May Alcott.epub",
-  "title": "none",
-  "author": ""
+  "title": "Little Women",
+  "author": "Louisa May Alcott"
  },
  {
   "path": "Classics and Literature/Standalone/Lolita - Vladimir Nabokov.epub",
@@ -376,7 +376,7 @@
  },
  {
   "path": "Classics and Literature/Standalone/Pride and Prejudice - Jane Austen.epub",
-  "title": "none",
+  "title": "Pride and Prejudice",
   "author": "e-booksdirectory.com"
  },
  {
@@ -481,8 +481,8 @@
  },
  {
   "path": "Classics and Literature/Standalone/To Kill a Mockingbird - Harper Lee.epub",
-  "title": "none",
-  "author": ""
+  "title": "To Kill a Mockingbird",
+  "author": "Harper Lee"
  },
  {
   "path": "Classics and Literature/Standalone/Ulysses - James Joyce.epub",
@@ -556,8 +556,8 @@
  },
  {
   "path": "Fantasy/Artemis Fowl/[Artemis Fowl 01] Artemis Fowl - Eoin Colfer.epub",
-  "title": "none",
-  "author": ""
+  "title": "Artemis Fowl",
+  "author": "Eoin Colfer"
  },
  {
   "path": "Fantasy/Arthurian Saga/[Arthurian Saga 01] The Crystal Cave - Mary Stewart.mobi",
@@ -2966,8 +2966,8 @@
  },
  {
   "path": "Science Fiction/Standalone/The War of the Worlds - H. G Wells.epub",
-  "title": "none",
-  "author": ""
+  "title": "The War of the Worlds",
+  "author": "H. G Wells"
  },
  {
   "path": "Science Fiction/Standalone/Time Machine and the Invisible The - H. G. Wells.mobi",

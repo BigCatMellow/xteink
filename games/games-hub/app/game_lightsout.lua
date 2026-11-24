@@ -159,10 +159,7 @@ local function restore()
   if not first or first.count<4 or not solve(board,sz.cols,sz.rows) then return false end
   local history={}
   for item in (f.history or ''):gmatch('[^;]+') do
-    local b,m=item:match('^([01]+):(%d+)
-return {load=on_load,draw=on_draw,input=on_input,leave=on_leave,api=test and test.api,require=require}
-end
-)
+    local b,m=item:match('^([01]+):(%d+)$')
     local hb=parse(b,n)
     if hb and #history<HISTORY_MAX then history[#history+1]={board=hb,moves=tonumber(m)} end
   end

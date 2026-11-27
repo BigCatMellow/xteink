@@ -2,6 +2,14 @@
 
 `quality-first-211.json` is now the **runtime catalogue** (since app 0.6.0): `tools/build_catalog.py --write` bakes it into the Lua app and HTML preview, and CI fails if that copy is stale. The other files are reference data. `duplicate-audit.json` drives `tools/dedupe_card.py`.
 
+## Lifelong study curriculum — proposed research layer
+
+- [Lifelong curriculum v2](lifelong-curriculum-v2.md): an evidence-labeled framework with 22 competencies, 72 opening readings in six modules, 18 comparative inquiry arcs, 74 anchor works, and 62 first-pass historical-context profiles.
+- [Academic study workbook](lifelong-study-workbook.md): reusable close reading, historical-source analysis, quantitative problem practice, comparative essays, and a capstone rubric.
+- Full local data exports (generated during the v2 research pass): `lifelong_reading_curriculum_v2.json`, `lifelong_reading_curriculum_v2_core.json`, and `lifelong_reading_bibliography_review_queue.csv`. They are research outputs, **not** the app's runtime catalogue and have not been loaded into the app.
+
+**Scope boundary:** The broader master catalog includes 1,300 *candidate entries*, not 1,300 individually validated distinct editions. Its original reading route has 867 entries, plus 160 advanced and 273 reserve. V2 creates curriculum scaffolds for all 1,300 but verifies detailed historical context for only a selected set of anchors. The new materials do not replace the app's active 211-book list, modify save IDs, acquire books, or remove duplicates. A later app integration must handle ownership/availability and unchanged progress explicitly.
+
 ## Source and intended meaning
 
 - **Source of ownership evidence:** `directory-tree(6).md`, a user-supplied directory tree with **693 files** (not the ebooks themselves). Last reviewed 2026-11-23.

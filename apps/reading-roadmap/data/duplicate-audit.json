@@ -1,0 +1,1356 @@
+{
+  "source": "directory-tree(6).md",
+  "source_total_file_entries": 693,
+  "audit_method": "Normalized filename comparison and manually reviewed title variants; ebook contents were not read or hashed.",
+  "same_work_title_groups": 65,
+  "extra_same_work_file_entries": 68,
+  "uncertain_groups": 2,
+  "unique_work_labels_estimate": 625,
+  "duplicate_groups": [
+    {
+      "group": 1,
+      "work": "Last of the Mohicans",
+      "category": "Adventure",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Adventure/Standalone/Last of the Mohicans - James Fenimore Cooper.epub",
+      "files": [
+        {
+          "path": "Adventure/Standalone/Last of the Mohicans - James Fenimore Cooper.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Adventure/Standalone/The Last of the Mohicans - James Fenimore Cooper.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 2,
+      "work": "The Count of Monte Cristo",
+      "category": "Adventure",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Adventure/Standalone/The Count of Monte Cristo - Alexandre Dumas.epub",
+      "files": [
+        {
+          "path": "Adventure/Standalone/The Count of Monte Cristo - Alexandre Dumas (alternate edition).epub",
+          "format": "epub"
+        },
+        {
+          "path": "Adventure/Standalone/The Count of Monte Cristo - Alexandre Dumas.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 3,
+      "work": "Fear and Loathing on the Campaign Trail '72",
+      "category": "Biography and Journalism",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "The MOBI filename is truncated/malformed; treat as likely same work, verify book metadata.",
+      "preferred_file_for_epub_reader": "Biography and Journalism/Standalone/Fear and Loathing on the Campaign Trail '72 - Hunter S Thompson.epub",
+      "files": [
+        {
+          "path": "Biography and Journalism/Standalone/Fear and Loathing on the Campaign Trail '72 (Hunter - 04.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Biography and Journalism/Standalone/Fear and Loathing on the Campaign Trail '72 - Hunter S Thompson.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 4,
+      "work": "Alice in Wonderland",
+      "category": "Children and Fairy Tales",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Children and Fairy Tales/Standalone/Alice in Wonderland - Lewis Carroll.epub",
+      "files": [
+        {
+          "path": "Children and Fairy Tales/Standalone/Alice in Wonderland - Lewis Carroll.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Children and Fairy Tales/Standalone/Alice's Adventures in Wonderland - Lewis Carroll.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 5,
+      "work": "The Adventures of Tom Sawyer",
+      "category": "Classics and Literature",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Classics and Literature/Tom Sawyer/ADVENTURES OF TOM SAWYER - Twain.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Tom Sawyer/[Tom Sawyer 01] The Adventures of Tom Sawyer - Mark Twain.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Classics and Literature/Tom Sawyer/ADVENTURES OF TOM SAWYER - Twain.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 6,
+      "work": "The Adventures of Huckleberry Finn",
+      "category": "Classics and Literature",
+      "copies": 3,
+      "extra_file_entries": 2,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Classics and Literature/Tom Sawyer/HUCKLEBERRY FINN - Mark Twain.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Tom Sawyer/[Tom Sawyer 02] Adventures of Huckleberry Finn - Mark Twain.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Classics and Literature/Tom Sawyer/[Tom Sawyer 02] The Adventures of Huckleberry Finn - Mark Twain.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Classics and Literature/Tom Sawyer/HUCKLEBERRY FINN - Mark Twain.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 7,
+      "work": "A Confederacy of Dunces",
+      "category": "Classics and Literature",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Classics and Literature/Standalone/A Confederacy of Dunces - John Kennedy Toole.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Standalone/A Confederacy of Dunces - John Kennedy Toole (alternate edition).epub",
+          "format": "epub"
+        },
+        {
+          "path": "Classics and Literature/Standalone/A Confederacy of Dunces - John Kennedy Toole.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 8,
+      "work": "Cat's Cradle",
+      "category": "Classics and Literature",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/Cat’s Cradle - Kurt Vonnegut.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Standalone/Cat's Cradle - Kurt Vonnegut.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Standalone/Cat’s Cradle - Kurt Vonnegut.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 9,
+      "work": "The Complete Novels of George Orwell",
+      "category": "Classics and Literature",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "Two collection files with the same title; a collection may also overlap separate Orwell novels.",
+      "preferred_file_for_epub_reader": "Classics and Literature/Standalone/The Complete Novels Of George Orwell - George Orwell.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Standalone/Complete Novels of George Orwe The - George Orwell.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Classics and Literature/Standalone/The Complete Novels Of George Orwell - George Orwell.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 10,
+      "work": "The Great Gatsby (probable)",
+      "category": "Classics and Literature",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "verify manually",
+      "note": "The poorly labeled `greatgatsby...` EPUB appears to be The Great Gatsby by filename; inspect metadata/content to confirm.",
+      "preferred_file_for_epub_reader": "Classics and Literature/Standalone/The Great Gatsby - F. Scott Fitzgerald.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Standalone/greatgatsby0000unse c4w8 - Unknown Author.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Classics and Literature/Standalone/The Great Gatsby - F. Scott Fitzgerald.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 11,
+      "work": "Moby Dick",
+      "category": "Classics and Literature",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Classics and Literature/Standalone/Moby Dick - Herman Melville.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Standalone/Moby Dick - Herman Melville (alternate edition).epub",
+          "format": "epub"
+        },
+        {
+          "path": "Classics and Literature/Standalone/Moby Dick - Herman Melville.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 12,
+      "work": "Notes from the Underground",
+      "category": "Classics and Literature",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Classics and Literature/Standalone/Notes from Underground - Fyodor Dostoevsky.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Standalone/Notes from the Underground - Fyodor Dostoyevsky.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Classics and Literature/Standalone/Notes from Underground - Fyodor Dostoevsky.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 13,
+      "work": "Persuasion",
+      "category": "Classics and Literature",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Classics and Literature/Standalone/Persuasion - Jane Austen.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Standalone/Persuasion - Jane Austen (2).epub",
+          "format": "epub"
+        },
+        {
+          "path": "Classics and Literature/Standalone/Persuasion - Jane Austen.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 14,
+      "work": "The Rum Diary",
+      "category": "Classics and Literature",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Classics and Literature/Standalone/The Rum Diary - Hunter S. Thompson.epub",
+      "files": [
+        {
+          "path": "Classics and Literature/Standalone/The Rum Diary (Hunter S. Thompson) - 01.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Classics and Literature/Standalone/The Rum Diary - Hunter S. Thompson.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 15,
+      "work": "A Game of Thrones",
+      "category": "Fantasy",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Fantasy/A Song of Ice and Fire/[ASOIAF 01] A Game of Thrones - George R. R Martin.epub",
+      "files": [
+        {
+          "path": "Fantasy/A Song of Ice and Fire/[ASOIAF 01] A Game of Thrones - George R. R Martin.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Fantasy/A Song of Ice and Fire/[ASOIAF 01] A Game of Thrones - George R. R. Martin.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 16,
+      "work": "A Clash of Kings",
+      "category": "Fantasy",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Fantasy/A Song of Ice and Fire/[ASOIAF 02] A Clash of Kings - George R. R Martin.epub",
+      "files": [
+        {
+          "path": "Fantasy/A Song of Ice and Fire/[ASOIAF 02] A Clash of Kings - George R. R Martin.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Fantasy/A Song of Ice and Fire/[ASOIAF 02] A Clash of Kings - George R. R. Martin.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 17,
+      "work": "A Storm of Swords",
+      "category": "Fantasy",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Fantasy/A Song of Ice and Fire/[ASOIAF 03] A Storm of Swords - George R. R Martin.epub",
+      "files": [
+        {
+          "path": "Fantasy/A Song of Ice and Fire/[ASOIAF 03] A Storm of Swords - George R. R Martin.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Fantasy/A Song of Ice and Fire/[ASOIAF 03] A Storm of Swords - George R. R. Martin.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 18,
+      "work": "A Feast for Crows",
+      "category": "Fantasy",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Fantasy/A Song of Ice and Fire/[ASOIAF 04] A Feast for Crows - George R. R Martin.epub",
+      "files": [
+        {
+          "path": "Fantasy/A Song of Ice and Fire/[ASOIAF 04] A Feast for Crows - George R. R Martin.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Fantasy/A Song of Ice and Fire/[ASOIAF 04] A Feast for Crows - George R. R. Martin.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 19,
+      "work": "The Dark Tower (Book 7)",
+      "category": "Fantasy",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Fantasy/Dark Tower/The Dark Tower VII - Stephen King.epub",
+      "files": [
+        {
+          "path": "Fantasy/Dark Tower/[Dark Tower 07] The Dark Tower - Stephen King.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Fantasy/Dark Tower/The Dark Tower VII - Stephen King.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 20,
+      "work": "The Hobbit",
+      "category": "Fantasy",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Fantasy/The Lord of the Rings/[LOTR 00] The Hobbit Or There and Back Again - J. R. R Tolkien.epub",
+      "files": [
+        {
+          "path": "Fantasy/The Lord of the Rings/[LOTR 00] Hobbit Or There and Back Agai The - J. R. R. Tolkien.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Fantasy/The Lord of the Rings/[LOTR 00] The Hobbit Or There and Back Again - J. R. R Tolkien.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 21,
+      "work": "Watership Down",
+      "category": "Fantasy",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Fantasy/Watership Down/Watership Down - Richard Adams.epub",
+      "files": [
+        {
+          "path": "Fantasy/Watership Down/[Watership Down 01] Watership Down - Richard Adams.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Fantasy/Watership Down/Watership Down - Richard Adams.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 22,
+      "work": "American Gods",
+      "category": "Fantasy",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Fantasy/Standalone/American Gods - Neil Gaiman.epub",
+      "files": [
+        {
+          "path": "Fantasy/Standalone/American Gods - Neil Gaiman.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Fantasy/Standalone/American Gods - Neil Gaiman.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 23,
+      "work": "The Lord of the Rings",
+      "category": "Fantasy",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Fantasy/The Lord of the Rings/The Lord of the Rings - JRR Tolkien.epub",
+      "files": [
+        {
+          "path": "Fantasy/The Lord of the Rings/The Lord of the Rings - J. R. R. Tolkien.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Fantasy/The Lord of the Rings/The Lord of the Rings - JRR Tolkien.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 24,
+      "work": "Shogun",
+      "category": "Historical Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Historical Fiction/Standalone/Shogun - James Clavell.epub",
+      "files": [
+        {
+          "path": "Historical Fiction/Asian Saga/[Asian Saga 01] Shogun - James Clavell.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Historical Fiction/Standalone/Shogun - James Clavell.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 25,
+      "work": "Frankenstein",
+      "category": "Horror",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Horror/Standalone/Frankenstein - Mary Shelley.epub",
+      "files": [
+        {
+          "path": "Horror/Standalone/Frankenstein - Mary Shelley.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Horror/Standalone/Frankenstein - Mary Wollstonecraft Shelley.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 26,
+      "work": "The Stand",
+      "category": "Horror",
+      "copies": 3,
+      "extra_file_entries": 2,
+      "confidence": "same work inferred from filenames",
+      "note": "Different editions: the MOBI explicitly says “Complete and Uncut”; the EPUB filenames do not clarify which text they contain.",
+      "preferred_file_for_epub_reader": "Horror/Standalone/The Stand - Stephen King.epub",
+      "files": [
+        {
+          "path": "Horror/Standalone/Stand The Complete and Uncut The - Stephen King.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Horror/Standalone/The Stand - Stephen King (2).epub",
+          "format": "epub"
+        },
+        {
+          "path": "Horror/Standalone/The Stand - Stephen King.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 27,
+      "work": "Philosophy: The Classics (possible edition match)",
+      "category": "Philosophy and Personal Growth",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "verify manually",
+      "note": "Possible duplicate: PDF and MOBI may represent different editions of Nigel Warburton’s book; verify content before treating as interchangeable.",
+      "preferred_file_for_epub_reader": "Philosophy and Personal Growth/Standalone/The Classics - Nigel Warburton (MOBI).mobi",
+      "files": [
+        {
+          "path": "Philosophy and Personal Growth/Standalone/philosophy the classics warburton nigel 4 2014 routl - Unknown Author.pdf",
+          "format": "pdf"
+        },
+        {
+          "path": "Philosophy and Personal Growth/Standalone/The Classics - Nigel Warburton (MOBI).mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 28,
+      "work": "1984",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/1984 - George Orwell.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/1984 - George Orwell (alternate edition).epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/1984 - George Orwell.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 29,
+      "work": "Consider Phlebas",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Culture/[Culture 01] Consider Phlebas - Iain M Banks.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Culture/[Culture 01] Consider Phlebas - Iain M Banks.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Culture/[Culture 01] Consider Phlebas - Iain M. Banks.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 30,
+      "work": "The Player of Games",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Culture/[Culture 02] The Player of Games - Iain M Banks.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Culture/[Culture 02] The Player of Games - Iain M Banks.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Culture/[Culture 02] The Player of Games - Iain M. Banks.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 31,
+      "work": "Use of Weapons",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Culture/[Culture 03] Use of Weapons - Iain M Banks.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Culture/[Culture 03] Use of Weapons - Iain M Banks.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Culture/[Culture 03] Use of Weapons - Iain M. Banks.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 32,
+      "work": "The State of the Art",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Culture/[Culture 04] The State of the Art - Iain M Banks.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Culture/[Culture 04] The State of the Art - Iain M Banks.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Culture/[Culture 04] The State of the Art - Iain M. Banks.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 33,
+      "work": "Excession",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Culture/[Culture 05] Excession - Iain M Banks.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Culture/[Culture 05] Excession - Iain M Banks.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Culture/[Culture 05] Excession - Iain M. Banks.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 34,
+      "work": "Inversions",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Culture/[Culture 06] Inversions - Iain M Banks.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Culture/[Culture 06] Inversions - Iain M Banks.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Culture/[Culture 06] Inversions - Iain M. Banks.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 35,
+      "work": "Look to Windward",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Culture/[Culture 07] Look to Windward - Iain M Banks.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Culture/[Culture 07] Look to Windward - Iain M Banks.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Culture/[Culture 07] Look to Windward - Iain M. Banks.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 36,
+      "work": "Matter",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Culture/[Culture 08] Matter - Iain M Banks.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Culture/[Culture 08] Matter - Iain M Banks.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Culture/[Culture 08] Matter - Iain M. Banks.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 37,
+      "work": "Surface Detail",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Culture/[Culture 09] Surface Detail - Iain M Banks.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Culture/[Culture 09] Surface Detail - Iain M Banks.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Culture/[Culture 09] Surface Detail - Iain M. Banks.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 38,
+      "work": "Dune",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Dune/Dune - Frank Herbert.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Dune/[Dune 01] Dune - Frank Herbert.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Dune/Dune - Frank Herbert.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 39,
+      "work": "House Atreides",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "The same title appears under two different Dune-series folders; series labeling is inconsistent.",
+      "preferred_file_for_epub_reader": "Science Fiction/Dune - Legends of Dune/[Legends Of Dune 01] Dune House Atreides - Brian Herbert & Kevin Anderson.mobi",
+      "files": [
+        {
+          "path": "Science Fiction/Dune - House Trilogy/[Dune House Trilogy 01] House Atreides - Brian Herbert & Kevin J. Anderson.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Dune - Legends of Dune/[Legends Of Dune 01] Dune House Atreides - Brian Herbert & Kevin Anderson.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 40,
+      "work": "Ender’s Game",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Ender/Ender’s Game - Orson Scott Card.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Ender/[Ender 01] Ender's Game - Orson Scott Card.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Ender/Ender’s Game - Orson Scott Card.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 41,
+      "work": "The Forever War",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Forever War/The Forever War - Joe Haldeman.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Forever War/[Forever War 01] The Forever War - Joe Haldeman.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Forever War/The Forever War - Joe Haldeman.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 42,
+      "work": "Forever Free",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Forever War/Forever Free - Joe Haldeman.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Forever War/[Forever War 03] Forever Free - Joe Haldeman.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Forever War/Forever Free - Joe Haldeman.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 43,
+      "work": "Foundation",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Foundation/[Foundation 03] Foundation - Isaac Asimov.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Foundation/[Foundation 03] Foundation - Isaac Asimov.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Foundation/[Foundation 03] Foundation - Isaac Asimov.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 44,
+      "work": "Foundation and Empire",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Foundation/[Foundation 04] Foundation and Empire - Isaac Asimov.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Foundation/[Foundation 04] Foundation and Empire - Isaac Asimov.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Foundation/[Foundation 04] Foundation and Empire - Isaac Asimov.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 45,
+      "work": "Foundation's Edge",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Foundation/[Foundation 06] Foundation's Edge - Isaac Asimov.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Foundation/[Foundation 06] Foundation's Edge - Isaac Asimov.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Foundation/[Foundation 06] Foundation's Edge - Isaac Asimov.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 46,
+      "work": "Foundation and Earth",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Foundation/[Foundation 07] Foundation and Earth - Isaac Asimov.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Foundation/[Foundation 07] Foundation and Earth - Isaac Asimov.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Foundation/[Foundation 07] Foundation and Earth - Isaac Asimov.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 47,
+      "work": "The Hitchhiker's Guide to the Galaxy",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/The Hitchhiker's Guide to the Galaxy/The Hitchhiker's Guide to the Galaxy - Douglas Adams.epub",
+      "files": [
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/[Hitchhiker 01] Hitchhiker's Guide to the Gala The - Douglas Adams.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/The Hitchhiker's Guide to the Galaxy - Douglas Adams.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 48,
+      "work": "The Restaurant at the End of the Universe",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/The Hitchhiker's Guide to the Galaxy/The Restaurant at the End of the Universe - Douglas Adams.epub",
+      "files": [
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/[Hitchhiker 02] Restaurant at the End of the U The - Douglas Adams.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/The Restaurant at the End of the Universe - Douglas Adams.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 49,
+      "work": "Life, the Universe and Everything",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/The Hitchhiker's Guide to the Galaxy/Life, the Universe and Everything - Douglas Adams.epub",
+      "files": [
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/[Hitchhiker 03] Life, the Universe and Everything - Douglas Adams.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/Life, the Universe and Everything - Douglas Adams.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 50,
+      "work": "So Long, and Thanks for All the Fish",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/The Hitchhiker's Guide to the Galaxy/So Long, and Thanks for All the Fish - Douglas Adams.epub",
+      "files": [
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/[Hitchhiker 04] So Long, and Thanks for All th ish - Douglas Adams.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/So Long, and Thanks for All the Fish - Douglas Adams.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 51,
+      "work": "Mostly Harmless",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/The Hitchhiker's Guide to the Galaxy/[Hitchhiker 05] Mostly harmless - Douglas Adams.epub",
+      "files": [
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/[Hitchhiker 05] Mostly harmless - Douglas Adams.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/The Hitchhiker's Guide to the Galaxy/[Hitchhiker 05] Mostly Harmless - Douglas Adams.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 52,
+      "work": "A Canticle for Leibowitz",
+      "category": "Science Fiction",
+      "copies": 3,
+      "extra_file_entries": 2,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Leibowitz/A Canticle For Leibowitz - Walter M Miller.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Leibowitz/[Leibowitz 01] A Canticle for Leibowitz - Walter M. Miller.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Leibowitz/A Canticle For Leibowitz - Walter M Miller.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Leibowitz/A Canticle for Leibowitz - Walter M. Miller (alternate edition).epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 53,
+      "work": "Twenty Thousand Leagues Under the Sea",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Les Voyages Extraordinaires/Twenty Thousand Leagues Under the Sea - Jules Verne.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Les Voyages Extraordinaires/[Les Voyages Extraordinaires 06] Twenty Thousand Leagues Under Sea - Jules Verne.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Les Voyages Extraordinaires/Twenty Thousand Leagues Under the Sea - Jules Verne.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 54,
+      "work": "A Clockwork Orange",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/A Clockwork Orange - Anthony Burgess.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/A Clockwork Orange - Anthony Burgess.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/A Clockwork Orange - Anthony Burgess.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 55,
+      "work": "Brave New World",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/Brave New World - Aldous Leonard Huxley.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/Brave New World - Aldous Huxley.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Standalone/Brave New World - Aldous Leonard Huxley.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 56,
+      "work": "Contact",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/Contact - Carl Sagan.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/Contact - Carl Sagan.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/Contact - Carl Sagan.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 57,
+      "work": "Cryptonomicon",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/Cryptonomicon - Neal Stephenson.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/Cryptonomicon - Neal Stephenson.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/Cryptonomicon - Neal Stephenson.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 58,
+      "work": "Do Androids Dream of Electric Sheep",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/Do Androids Dream of Electric Sheep - Philip K Dick.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/Do Androids Dream of Electric eep - Philip K. Dick.mobi",
+          "format": "mobi"
+        },
+        {
+          "path": "Science Fiction/Standalone/Do Androids Dream of Electric Sheep - Philip K Dick.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 59,
+      "work": "Fahrenheit 451",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/Fahrenheit 451 - Ray Bradbury.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/Fahrenheit 451 - Ray Bradbury.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/Fahrenheit 451 - Ray Bradbury.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 60,
+      "work": "Starship Troopers",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/Starship Troopers - Robert A Heinlein.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/Starship Troopers - Robert A Heinlein.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/Starship Troopers - Robert A. Heinlein.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 61,
+      "work": "Stranger in a Strange Land",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/Stranger in a Strange Land - Robert A Heinlein.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/Stranger in a Strange Land - Robert A Heinlein.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/Stranger in a Strange Land - Robert A. Heinlein.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 62,
+      "work": "The Dispossessed",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/The Dispossessed - Ursula K. Le Guin.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/The Dispossessed - Ursula K. Le Guin.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/The Dispossessed A Novel - Ursula K. le Guin.mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 63,
+      "work": "The Employees",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "One EPUB is labeled “2025 edition.” Compare translation or edition details if you care which one to read.",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/The Employees - Olga Ravn.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/The Employees - Olga Ravn (2025 edition).epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/The Employees - Olga Ravn.epub",
+          "format": "epub"
+        }
+      ]
+    },
+    {
+      "group": 64,
+      "work": "The Moon is a Harsh Mistress",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/The Moon is a Harsh Mistress - Robert A Heinlein.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/The Moon is a Harsh Mistress - Robert A Heinlein.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/The Moon Is a Harsh Mistress - Robert A. Heinlein & Robert A..mobi",
+          "format": "mobi"
+        }
+      ]
+    },
+    {
+      "group": 65,
+      "work": "The War of the Worlds",
+      "category": "Science Fiction",
+      "copies": 2,
+      "extra_file_entries": 1,
+      "confidence": "same work inferred from filenames",
+      "note": "",
+      "preferred_file_for_epub_reader": "Science Fiction/Standalone/The War of the Worlds - H. G Wells.epub",
+      "files": [
+        {
+          "path": "Science Fiction/Standalone/The War of the Worlds - H. G Wells.epub",
+          "format": "epub"
+        },
+        {
+          "path": "Science Fiction/Standalone/The War of the Worlds - H. G. Wells.mobi",
+          "format": "mobi"
+        }
+      ]
+    }
+  ],
+  "collection_overlap_warnings": [
+    {
+      "title": "A Song of Ice and Fire — five-book bundle",
+      "overlap": "One bundle EPUB appears to contain A Game of Thrones through A Dance with Dragons, all also listed individually (the fifth as MOBI).",
+      "note": "Confirm contents of bundle before deciding which format to use; keep books 1–5 as distinct stories."
+    },
+    {
+      "title": "The Lord of the Rings — one-volume edition",
+      "overlap": "A complete LOTR EPUB and MOBI overlap the separate EPUBs for The Fellowship of the Ring, The Two Towers, and The Return of the King.",
+      "note": "This is not three redundant books: an omnibus can replace the three volume files for reading, but keep reading order."
+    },
+    {
+      "title": "The Complete Novels of George Orwell",
+      "overlap": "Collection files may contain novels that also appear as standalone books, including 1984.",
+      "note": "Exact included works require inspecting the files; do not count the entire collection as a duplicate of any one novel."
+    },
+    {
+      "title": "Fear and Loathing in Las Vegas, and Other American Stories",
+      "overlap": "The listing contains this collection and a standalone Fear and Loathing in Las Vegas EPUB.",
+      "note": "Likely overlapping content, but the collection may include additional distinct stories."
+    },
+    {
+      "title": "Malazan Book of the Fallen — “Collection” titles",
+      "overlap": "Four filenames have the same truncated “A Malazan Book of the Fallen Col...” text but different numbered [01], [03], [05], [07] prefixes.",
+      "note": "Do NOT mark these as duplicates solely by matching truncated filenames; collections/contents may differ."
+    },
+    {
+      "title": "Other omnibus entries",
+      "overlap": "Mistborn Trilogy and The Lonesome Dove Chronicles are stored as collection files.",
+      "note": "Do not count one omnibus as one short novella, nor assume an overlap if no matching standalone copy is listed."
+    }
+  ],
+  "not_deleted": true
+}
